@@ -97,41 +97,22 @@ def _range_source(a):
 def _seeds_to_ranges(seeds):
     import numpy
 
-    a = sorted(numpy.array(seeds).reshape((len(seeds) // 2, 2)), key=lambda x: x[0])
-    #print(seeds, a)
-
-    ranges = []
-    #ranges = [range(a[0][0], a[0][0] + a[0][1])]
-    #for i in range(0, len(seeds), 2):
-    for r in a:
-    #for i in range(1, len(a)):
-    #    r = ranges[-1]
-    #    print(f"LAST R {r}")
-    #    s = a[i]
-    #    # new range is completely within old range, skip
-    #    if s[0] + s[1] in r:
-    #        print(f"CONTAINED")
-    #        continue
-    #    # new min is beyond old max, new range
-    #    mx = r[-1]
-    #    if s[0] > mx:
-    #        print(f"NEW")
-    #        ranges.append(range(s[0], s[0] + s[1]))
-    #        continue
-    #    # ranges overlap
-    #    print(f"OVERLAP")
-    #    ranges[-1] = range(r[0], r[0] + s[1])
-        #print(f"STEPS {seeds[i + 1]}")
-        #ranges.append(range(seeds[i], seeds[i] + seeds[i + 1]))
-        ranges.append(range(r[0], r[0] + r[1]))
-    return ranges
-    #return sorted(ranges, key=lambda x: x[0])
+    return [
+        range(r[0], r[0] + r[1]) for r in sorted(
+            numpy.array(seeds).reshape((len(seeds) // 2, 2)),
+            key=lambda x: x[0]
+        )
+    ]
 
 
 def _range_to_lambda(a, x):
     rd = _range_dest(a)
     rs = _range_source(a)
     return x if x not in rs else rd[rs.index(x)]
+
+
+def _loc_dest_ranges(ranges):
+    return [_range_dest(_map_to_range(x)) for x in ranges["humidity"]["maps"]]
 
 
 def _min_loc(maps):
@@ -141,24 +122,30 @@ def _min_loc(maps):
     last_loc = loc
     seeds, ranges = _parse_maps(maps)
     loc_maps = ranges["humidity"]["maps"]
-    loc_dest_ranges = sorted(
-        [_range_dest(_map_to_range(x)) for x in loc_maps],
-        key=lambda x: x[0]
-    )
-    print(f"LOC DESTS {loc_dest_ranges}")
+    loc_dest_ranges = [_range_dest(_map_to_range(x)) for x in loc_maps]
     min_map_val = sys.maxsize * 2 + 1
     #for s in seeds:
-    print(f"N SEED R {len(seeds)}")
+    min_loc_range = range(min_map_val, min_map_val + 2)
+    min_loc_range_index = None
+    seed_ranges = []
+    seed_maps = []
     for j, r in enumerate(_seeds_to_ranges(seeds)):
         #print(f"r {r} STEPS {len(r)}")
         #i, l0 = _map_seed(r[0], ranges)
         #j, l1 = _map_seed(r[-1], ranges)
-        ml = _map_ranges(r, ranges)
+        sm = {}
+        ml = _map_ranges(r, ranges, seed_map=sm)
+        seed_ranges.append(ml)
+        seed_maps.append(sm)
+        print(f"SEED R {j} {ml} {sm}")
         min_ml = min(list(ml), key=lambda x: _range_dest(_map_to_range(loc_maps[x]))[0])
         #min_map = _map_to_range(loc_maps[min_ml])
         min_dest = loc_dest_ranges[min_ml] #range(min_map[1], min_map[1] + min_map[2])
         min_map_val = min(min_map_val, min_dest[0])
-        print(f"{j} MIN SEED LOC {min_ml} {min_map_val} {min_dest}")
+        if min_map_val < min_loc_range[0]:
+            min_loc_range = min_dest
+            min_loc_range_index = min_ml
+        #print(f"{j} MIN SEED LOC {min_loc_range_index} {min_map_val} {min_loc_range}")
         # far too many iterations...
         #for i, s in enumerate(r):
         #    pass
@@ -169,10 +156,15 @@ def _min_loc(maps):
             #    print(f"NEW LOC {loc} IN {i + 1} STEPS")
             #    break
             #last_loc = loc
+    #print(f"{min_loc_range_index} {sm[min_loc_range_index]}")
+    for j, r in enumerate(_seeds_to_ranges(seeds)):
+        if min_loc_range_index in seed_ranges[j]:
+            print(f"{j} {_min_seed_loc(r, min_loc_range_index, ranges)} {seed_maps[j][min_loc_range_index]}")
     return loc
 
 
 def _in_to_out(maps, x):
+    i = -1
     for i, m in enumerate(maps):
         y = _map_to_lambda(m, x)
         if x != y:
@@ -196,18 +188,47 @@ def _map_seed(seed, ranges):
     return n, o
 
 
-def _map_ranges(start_range, ranges):
+def _map_ranges(start_range, ranges, seed_map=None):
     r = set()
+    s = {} if seed_map is None else seed_map
     n = len(start_range) // 2
     i, _ = _map_seed(start_range[0], ranges)
     j, _ = _map_seed(start_range[-1], ranges)
     r.add(i)
-    #print(f"S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
+
+    #print(f"{idx} S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
     if i != j:
         r.add(j)
-        r = r | _map_ranges(start_range[0:n], ranges)
-        r = r | _map_ranges(start_range[n:], ranges)
+        r = r | _map_ranges(start_range[0:n], ranges, seed_map=s)
+        r = r | _map_ranges(start_range[n:], ranges, seed_map=s)
+    #print(f"S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
+    s[i] = [start_range[0], start_range[-1]]
     return r
+
+
+def _min_seed_loc(start_range, loc_range_index, ranges):
+    import sys
+
+    loc = sys.maxsize * 2 + 1
+
+    lr = _loc_dest_ranges(ranges)
+    n = len(start_range) // 2
+    i = -1
+    start = 0
+    last_start = 0
+    end = len(start_range) - 1
+    i, l0 = _map_seed(start_range[end], ranges)
+    print(f"MIN SEED LOC FOR {start_range} IN {loc_range_index}")
+    #while i != loc_range_index and end > 0:
+    #    end = end // 2
+    #    i, l0 = _map_seed(start_range[end], ranges)
+    #    print(f"{end} {i} {l0}")
+    #j, l1 = _map_seed(start_range[0], ranges)
+    #while j != loc_range_index and start < end:
+    #    start = (end - start) // 2
+    #    j, l1 = _map_seed(start_range[start], ranges)
+    return l0
+
 
 
 def _map_test():

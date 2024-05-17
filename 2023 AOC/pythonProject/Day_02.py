@@ -84,7 +84,7 @@ def main():
     print("SUM {}".format(s))
     print("POWER SUM {}".format(p))
 
-    #print("TEST {}".format(_game_test()))
+    #print("SUM TEST {}".format(_game_test()))
     #print("POWER TEST {}".format(_power_test()))
 
 
