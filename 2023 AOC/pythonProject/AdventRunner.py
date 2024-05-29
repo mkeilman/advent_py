@@ -3,7 +3,7 @@ import Day
 
 
 def main():
-    day = 3
+    day = 4
     d = importlib.import_module(f"Day_{day:02d}").AdventDay()
     print("TEST:")
     d.run_from_test_strings()
