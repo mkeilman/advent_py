@@ -86,6 +86,7 @@ class Planting:
             loc = min(loc, self._min_seed_from_range(r, loc))
         return loc
     
+    # recursively split the range
     def _min_seed_from_range(self, r, loc):
         n = len(r)
         if n == 0:
