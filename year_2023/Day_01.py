@@ -27,6 +27,7 @@ class AdventDay(Day.Base):
 
     def __init__(self):
         super(AdventDay, self).__init__(
+            2023,
             1,
             [
                 "two1nine",

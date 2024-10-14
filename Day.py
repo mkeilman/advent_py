@@ -4,8 +4,8 @@ class Base:
     def printStrings(v):
         print(v)
 
-    def __init__(self, day, test_strings=None):
-        self.input_file = f"input_day_{day:02d}.txt"
+    def __init__(self, year, day, test_strings=None):
+        self.input_file = f"year_{year}/input_day_{day:02d}.txt"
         self.test_strings = test_strings or []
 
     def run(self, v):

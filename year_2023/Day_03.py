@@ -76,6 +76,7 @@ class AdventDay(Day.Base):
 
     def __init__(self):
         super(AdventDay, self).__init__(
+            2023,
             3,
             [
                 "467..114..",
