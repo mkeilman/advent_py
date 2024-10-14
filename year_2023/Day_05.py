@@ -46,9 +46,7 @@ class Planting:
         self.maps = maps
         self.seeds = self._seeds()
         self.ranges = self._ranges()
-        #print(f"MAPS {self.maps}")
-        #print(f"RANGES {self.ranges}")
-        #print(f"SEEDS {self.seeds}")
+
 
     def _map_ranges(self, start_range, seed_map=None):
         r = set()
@@ -58,7 +56,6 @@ class Planting:
         j, _ = self._map_seed(start_range[-1])
         r.add(i)
 
-        # print(f"{idx} S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
         if i != j:
             r.add(j)
             r = r | self._map_ranges(start_range[0:n], seed_map=s)
@@ -79,66 +76,14 @@ class Planting:
             n, o = Planting._in_to_out(m, i)
             src = d
             i = o
-        # print(f"LOC MAP {n}")
         return n, o
 
     def min_loc(self):
         import sys
 
         loc = sys.maxsize * 2 + 1
-        last_loc = loc
-        loc_maps = self.ranges["humidity"]["maps"]
-        loc_dest_ranges = [Planting._range_dest(Planting._map_to_range(x)) for x in loc_maps]
-        min_map_val = sys.maxsize * 2 + 1
-        # for s in seeds:
-        min_loc_range = range(min_map_val, min_map_val + 2)
-        min_loc_range_index = None
-        seed_ranges = []
-        seed_maps = []
-        for j, r in enumerate(self._seeds_to_ranges()):
-            # print(f"r {r} STEPS {len(r)}")
-            # i, l0 = _map_seed(r[0], ranges)
-            # j, l1 = _map_seed(r[-1], ranges)
-            sm = {}
-            ml = self._map_ranges(r, seed_map=sm)
-            seed_ranges.append(ml)
-            seed_maps.append(sm)
-            print(f"SEED R {j} {ml} {sm} LEN {len(r)}")
-            min_ml = min(list(ml), key=lambda x: Planting._range_dest(Planting._map_to_range(loc_maps[x]))[0])
-            # min_map = _map_to_range(loc_maps[min_ml])
-            min_dest = loc_dest_ranges[min_ml]  # range(min_map[1], min_map[1] + min_map[2])
-            min_map_val = min(min_map_val, min_dest[0])
-            if min_map_val < min_loc_range[0]:
-                min_loc_range = min_dest
-                min_loc_range_index = min_ml
-            # print(f"{j} MIN SEED LOC {min_loc_range_index} {min_map_val} {min_loc_range}")
-            # far too many iterations...
-            # try a bin search style, splitting range
+        for r in self._seeds_to_ranges():
             loc = min(loc, self._min_seed_from_range(r, loc))
-            #for i, s in enumerate(r):
-            #ms = [self._map_seed(s)[1] for s in r]
-            #msn = min(ms)
-            #print(f"MS {ms} MIN {msn}")
-            #loc = min(loc, msn)
-            #p = -1
-            #for s in r:
-            #   pass
-            #    v = self._map_seed(s)[1]
-            #    if v < p:
-            #        loc = min(loc, v)
-            #        break
-            #    p = v
-                #loc = min(loc, self._map_seed(s)[1])
-            #    if i % (len(r) // 10) == 0:
-            #        print(f"LOC {i}: {loc}")
-                #if loc == last_loc:
-            #    print(f"NEW LOC {loc} IN {i + 1} STEPS")
-                #    break
-            # last_loc = loc
-        # print(f"{min_loc_range_index} {sm[min_loc_range_index]}")
-        #for j, r in enumerate(self._seeds_to_ranges()):
-        #    if min_loc_range_index in seed_ranges[j]:
-        #        print(f"{j} {_min_seed_loc(r, min_loc_range_index, self.ranges)} {seed_maps[j][min_loc_range_index]}")
         return loc
     
     def _min_seed_from_range(self, r, loc):
@@ -157,28 +102,6 @@ class Planting:
             loc
         ) 
 
-    def _min_seed_loc(self, start_range, loc_range_index):
-        import sys
-
-        loc = sys.maxsize * 2 + 1
-
-        lr = _loc_dest_ranges(self.ranges)
-        n = len(start_range) // 2
-        i = -1
-        start = 0
-        last_start = 0
-        end = len(start_range) - 1
-        i, l0 = self._map_seed(start_range[end])
-        print(f"MIN SEED LOC FOR {start_range} IN {loc_range_index}")
-        # while i != loc_range_index and end > 0:
-        #    end = end // 2
-        #    i, l0 = _map_seed(start_range[end], ranges)
-        #    print(f"{end} {i} {l0}")
-        # j, l1 = _map_seed(start_range[0], ranges)
-        # while j != loc_range_index and start < end:
-        #    start = (end - start) // 2
-        #    j, l1 = _map_seed(start_range[start], ranges)
-        return l0
 
     def _seeds_to_ranges(self):
         import numpy
