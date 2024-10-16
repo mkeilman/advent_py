@@ -5,8 +5,10 @@ class Base:
         print(v)
 
     def __init__(self, year, day, test_strings=None):
+        import argparse
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
         self.test_strings = test_strings or []
+        self.args_parser = argparse.ArgumentParser()
 
     def run(self, v):
         Base.printStrings(v)

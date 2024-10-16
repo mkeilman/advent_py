@@ -14,8 +14,9 @@ def main():
         default="all",
         dest="mode",
     )
-    a = p.parse_args()
-    d = importlib.import_module(f"year_{a.year}.Day_{a.day:02d}").AdventDay()
+    a, u = p.parse_known_args()
+    
+    d = importlib.import_module(f"year_{a.year}.Day_{a.day:02d}").AdventDay(u)
     if a.mode in ("test", "all"):
         print("TEST:")
         d.run_from_test_strings()

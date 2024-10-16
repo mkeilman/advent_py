@@ -13,13 +13,15 @@ class AdventDay(Day.Base):
         return press_time * (total_time - press_time)
 
     @classmethod
-    def _get_wins_product(cls, lines):
+    def _get_wins_product(cls, lines, preserve_spaces=True):
         dists = []
         wins = []
-        for t in [int(x) for x in re.findall(re_times, lines[0])]:
+        tp = cls._parse_line(re.findall(re_times, lines[0]), preserve_spaces)
+        dp = cls._parse_line(re.findall(re_dists, lines[1]), preserve_spaces)
+        for t in tp:
             dists.append([cls._dist(i, t) for i in range(t + 1)])
         #print(f"D {dists}")
-        record_dists = [int(x) for x in re.findall(re_dists, lines[1])]
+        record_dists = dp
         for (i, d) in enumerate(dists):
             w = 0
             o = len(d) % 2
@@ -32,8 +34,14 @@ class AdventDay(Day.Base):
         #print(f"W {wins}")
         return reduce((lambda x, y: x * y), wins, 1)
         
+    @classmethod
+    def _parse_line(cls, line, preserve_spaces):
+        if preserve_spaces:
+            return [int(x) for x in line]
+        return [int(reduce((lambda x, y: x + y), line, ""))]
 
-    def __init__(self):
+    def __init__(self, run_args):
+        import argparse
         super(AdventDay, self).__init__(
             2023,
             6,
@@ -42,10 +50,18 @@ class AdventDay(Day.Base):
                 "Distance:   9   40   200",
             ]
         )
+        self.args_parser.add_argument(
+            "--preserve-spaces",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="preserve_spaces",
+        )
+        self.args_parser.parse_args(run_args).preserve_spaces
+        self.preserve_spaces = self.args_parser.parse_args(run_args).preserve_spaces
     
 
     def run(self, v):
-        print(f"DISTS {AdventDay._get_wins_product(v)}")
+        print(f"DISTS {AdventDay._get_wins_product(v, self.preserve_spaces)}")
 
 
 def main():
