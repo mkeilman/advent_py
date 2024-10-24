@@ -25,7 +25,7 @@ class AdventDay(Day.Base):
     def _to_digit(cls, txt):
         return txt if txt.isdigit() else str(cls.nums.index(txt.lower()) + 1)
 
-    def __init__(self):
+    def __init__(self, run_args):
         super(AdventDay, self).__init__(
             2023,
             1,

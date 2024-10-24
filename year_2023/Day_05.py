@@ -154,7 +154,7 @@ class Planting:
 
 class AdventDay(Day.Base):
 
-    def __init__(self):
+    def __init__(self, run_args):
         super(AdventDay, self).__init__(
             2023,
             5,
