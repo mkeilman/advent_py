@@ -89,11 +89,19 @@ class CamelHand():
 
     def _type(self):
 
+        type_fns = [
+            self._is_type_5_of_a_kind,
+            self._is_type_4_of_a_kind,
+            self._is_type_full_house,
+            self._is_type_3_of_a_kind,
+            self._is_type_two_pair,
+            self._is_type_pair,
+            self._is_type_high_card,
+        ]
         n = len([x for x in self.hand_str if x == "J"])
         
         if self.jokers and n and len(self.card_groups) > 1:
             h = f"{self.hand_str}"
-            n_repl = 0
             for g in self.card_groups:
                 if n <= 0:
                     break
@@ -103,21 +111,11 @@ class CamelHand():
                 nr = min(n, 5 - len(g))
                 h = h.replace("J", label, nr)
                 n -= nr
-                n_repl += 1
-            #print(self.hand_str, h)
             return CamelHand(h, jokers=False).hand_type
 
-        for i, f in enumerate([
-            self._is_type_5_of_a_kind,
-            self._is_type_4_of_a_kind,
-            self._is_type_full_house,
-            self._is_type_3_of_a_kind,
-            self._is_type_two_pair,
-            self._is_type_pair,
-            self._is_type_high_card,
-        ]):
+        for i, f in enumerate(type_fns):
             if f():
-                return 6 - i
+                return len(type_fns) - i - 1
         return -1
 
 class Play():
@@ -144,8 +142,6 @@ class AdventDay(Day.Base):
             2023,
             7,
             [
-                #"22922 405",
-                #"22J92 630",
                 "32T3K 765",
                 "T55J5 684",
                 "KK677 28",
@@ -164,13 +160,6 @@ class AdventDay(Day.Base):
     def run(self, v):
         import functools
         plays = sorted([Play(x, jokers=self.jokers) for x in v], key=functools.cmp_to_key(Play.cmp))
-        #print(f"PLAYS {[p.hand.hand_str for p in plays]}")
-        #print(f"HIGH {[p.hand.hand_str for p in plays if p.hand.hand_type == 0]}")
-        #print(f"PAIR {[p.hand.hand_str for p in plays if p.hand.hand_type == 1]}")
-        #print(f"TWO PAIR {[p.hand.hand_str for p in plays if p.hand.hand_type == 2]}")
-        #print(f"THREE OF A KIND {[p.hand.hand_str for p in plays if p.hand.hand_type == 3]}")
-        #print(f"FULL HOUSE {[p.hand.hand_str for p in plays if p.hand.hand_type == 4]}")
-        print(f"FOUR OF A KIND {[p.hand.hand_str for p in plays if p.hand.hand_type == 5]}")
         amts = [(i + 1) * x for (i, x) in enumerate([y.bet for y in plays])]
         winnings = reduce((lambda x, y: x + y), amts, 0)
         print(f"WIN {winnings}")
