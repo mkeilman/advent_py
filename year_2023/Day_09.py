@@ -6,8 +6,8 @@ import Day
 class Sequence():
 
     @classmethod
-    def seq_sums(cls, seqs):
-        return reduce((lambda x, y: x + y), [x.seq[0][-1] for x in seqs], 0)
+    def seq_sums(cls, seqs, index=-1):
+        return reduce((lambda x, y: x + y), [x.seq[0][index] for x in seqs], 0)
     
     def __init__(self, seq_str):
         self.seq = []
@@ -17,13 +17,18 @@ class Sequence():
             curr = [curr[i + 1] - x for i, x in enumerate(curr[:-1])]
             self.seq.append(curr)
         self._complete_seqs()
+        #print(self.seq)
 
     def _complete_seqs(self):
         d = self.seq[-1][-1]
+        dd = self.seq[-1][0]
         for s in reversed(self.seq[:-1]):
             s.append(s[-1] + d)
+            s.insert(0, s[0] - dd)
             d = s[-1]
-
+            dd = s[0]
+        
+            
 
 class AdventDay(Day.Base):
 
@@ -42,7 +47,7 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         self.seqs = [Sequence(x) for x in v]
-        print(f"SUM {Sequence.seq_sums(self.seqs)}")
+        print(f"SUM {Sequence.seq_sums(self.seqs, index=0)}")
 
 
 def main():
