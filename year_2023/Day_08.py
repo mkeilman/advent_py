@@ -48,9 +48,7 @@ class RouteMap():
         print([x.name for x in start_nodes])
         print([x.name for x in end_nodes])
 
-        i = 0
         n = 1
-
         c = []
         for node in start_nodes:
             i = 0
