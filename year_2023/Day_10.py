@@ -109,53 +109,32 @@ class Plumbing():
     def __init__(self, grid):
         self.grid = grid
         self.grid_range = [range(len(grid)), range(len(grid[0]))]
-        self.num_pipes = len(grid) * len(grid[0])
         self.start_pos = self._start_pos()
         self.start_pipe = self._start_pipe()
         self.pipe_loop = self._pipe_loop()
-        self.pipe_positions = [x.pos for x in self.pipe_loop]
+        #self.pipe_positions = [x.pos for x in self.pipe_loop]
+        self.pipe_positions = [x["pos"] for x in self.pipe_loop.values()]
         x = [x[0] for x in self.pipe_positions]
         y = [x[1] for x in self.pipe_positions]
         self.pipe_loop_range = [range(min(*x) + 1, max(*x)), range(min(*y) + 1, max(*y))]
-        #print(f"LOOP R {self.pipe_loop_range} VS GRID RANGE {self.grid_range}")
 
     def interior_tiles(self):
+        #print("GET INT")
         not_pipe = []
+        #print("GET NOT PIPES...", end="")
         for i in self.pipe_loop_range[0]:
             for j in self.pipe_loop_range[1]:
                 if (i, j) not in self.pipe_positions:
                     not_pipe.append((i, j))
-        #print(f"NOT PIPES {not_pipe}")
+        #print("DONE")
 
         n = 0
-        # check every direction?
         for c in not_pipe:
-            #print(f"CHECK {c}")
-            cx = []
             m = 0
-            #for y in self.grid_range[1]:
-            #    if (c[0], y) in self.pipe_positions:
-            #        cx.append((c[0], y))
-            #print(f"R {range(c[1], self.grid_range[1][-1])}")
+            # draw a line to "infinity" and count the number of crossings
             for y in range(c[1], len(self.grid_range[1])):
-                #print(f"CHECK Y {(c[0], y)}")
-                if (c[0], y) in self.pipe_positions: #and self.grid[c[0]][y] != "-":
-                    #print(f"ADD {(c[0], y)}")
-                    cx.append((c[0], y) )
-            #for x in self.grid_range[0]:
-            #    if (x, c[1]) in self.pipe_positions:
-            #        cx.append((x, c[1]))
-            #for x in range(c[0], self.grid_range[0][1]):
-            #    if (x, c[1]) in self.pipe_positions:
-            #        cx.append((x, c[1]) )
-            for cc in cx:
-                m += self._get_pipe(cc).count
-            #if int(m) % 2:
-            #    print(f"NOT PIPE {c} CROSSINGS {cx} NUM {m} INT? {int(m) % 2}")
-            #if len(cx) % 2:
-            #print(f"NOT PIPE {c} WIND {m} INT? {len(cx) % 2}") 
-            #print(f"NOT PIPE {c} CROSSINGS {cx} NUM {len(cx)} INT? {len(cx) % 2}")
-            #n += len(cx) % 2
+                p = self._get_pipe((c[0], y))
+                m += 0 if p is None else p.count
             n += int(m) % 2
         return n
 
@@ -167,26 +146,8 @@ class Plumbing():
             print("")
 
     def _get_pipe(self, pos):
-        for p in self.pipe_loop:
-            if p.pos == pos:
-                return p
-        return None
-        
-
-    def _is_part_of_loop(self, pos):
-        return pos in self.pipe_positions
-
-
-    def _start_to_pos(self, pos):
-        if not self._get_pipe(pos):
-            return None
-        
-        sp = []
-        for p in self.pipe_loop:
-            if p.pos != pos:
-                sp.append(p)
-        sp.append(self._get_pipe(pos))
-        return sp
+        p = self.pipe_loop.get(f"{pos}")
+        return None if p is None else p.get("pipe")
 
     def _make_pipe(self, label, pos):
         if label in (Pipe.START, Pipe.GROUND):
@@ -196,30 +157,38 @@ class Plumbing():
         return p
 
     def _pipe_loop(self):
+        #print("PIPE LOOP")
+        def _add_pipe(d, p):
+            d[f"{p.pos}"] = {"pos": p.pos, "pipe": p}
 
-            def _can_add(pipe, arr):
-                return pipe is not None and pipe.pos not in [x.pos for x in arr]
-            
-            curr_pipe = self.start_pipe
-            l = [curr_pipe]
+        def _can_add(pipe, d):
+            return pipe is not None and f"{pipe.pos}" not in d.keys()
+        
+        
+        m = {}
+        curr_pipe = self.start_pipe
+        _add_pipe(m, curr_pipe)
 
-            did_add = True
-            while did_add:
-                n = curr_pipe.connections[0]
+        did_add = True
+        #print("BUILD LOOP...", end="")
+        while did_add:
+            n = curr_pipe.connections[0]
+            p = self._make_pipe(self.grid[n[0]][n[1]], n)
+            if not _can_add(p, m):
+                n = curr_pipe.connections[1]
                 p = self._make_pipe(self.grid[n[0]][n[1]], n)
-                if not _can_add(p, l):
-                    n = curr_pipe.connections[1]
-                    p = self._make_pipe(self.grid[n[0]][n[1]], n)
-                    if not _can_add(p, l):
-                        did_add = False
-                    else:
-                        l.append(p)
-                        curr_pipe = p
-                        continue
+                if not _can_add(p, m):
+                    did_add = False
                 else:
-                    l.append(p)
                     curr_pipe = p
-            return l
+                    _add_pipe(m, curr_pipe)
+                    continue
+            else:
+                curr_pipe = p
+                _add_pipe(m, curr_pipe)
+                
+        #print("DONE")
+        return m
 
     def _start_pipe(self):
         for t in Pipe.connections:
@@ -258,8 +227,6 @@ class AdventDay(Day.Base):
         pl = Plumbing(v)
         print(f"START PIPE {pl.start_pipe.label} NUM INT {pl.interior_tiles()}")
         #pl.print_loop()
-        #print(f"LOOP {[(x.label, x.pos) for x in pl.pipe_loop]}")
-        #print([(p.label, p.pos) for p in pl._start_to_pos((4, 10))])
         #print(f"START {pl.start_pos} PIPE {pl.start_pipe.label} LOOP LEN {len(pl.pipe_loop)} MAX DIST {len(pl.pipe_loop) // 2}")
 
 
