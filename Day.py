@@ -18,5 +18,5 @@ class Base:
 
     def run_from_file(self):
         with open(self.input_file, "r") as f:
-            v = f.readlines()
+            v = [x.strip() for x in f.readlines()]
             self.run(v)
