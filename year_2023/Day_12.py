@@ -27,22 +27,19 @@ class HotSpring():
         g = [self._unfold(x.split()[1], ",", num_folds=num_folds) for x in self.grid]
         self.spring_groups = [[int(y) for y in re.findall(r"\d+", x)] for x in g]
         #print(f"SCH {self.schematic} G {self.spring_groups}")
-        self.num_busted = [len(Utils.Math.sum(x, "")) for x in [self._collect_busted(y) for y in self.schematic]]
+        self.num_busted = [Utils.Math.sum(x) for x in [self._collect_busted(list(y)) for y in self.schematic]]
         self.num_left = [x - self.num_busted[i] for i, x in enumerate([Utils.Math.sum(y) for y in self.spring_groups])]
         self.valid_counts = [self._num_valid(x, self.num_left[i], self.spring_groups[i]) for i, x in enumerate(self.schematic)]
 
     def total_valid(self):
         return Utils.Math.sum(self.valid_counts)
+
     
-    def _collect_busted(self, txt):
-        return re.findall(HotSpring.RE_BUSTED, txt)
-    
-    def _cb(self, arr):
-        #print(arr)
+    def _collect_busted(self, arr):
         a = []
         n = 0
-        for i in range(len(arr)):
-            if arr[i] == HotSpring.BUSTED:
+        for c in arr:
+            if c == HotSpring.BUSTED:
                 n += 1
                 continue
             if n:
@@ -56,34 +53,16 @@ class HotSpring():
     def _num_valid(self, txt, num_repl, groups):
         import itertools
         import time
-        def _pos_unknown(txt):
-            #p = 0
-            #a = []
-            #done = False
-            #while not done:
-            #    try:
-            #        pp = txt.index(HotSpring.UNKNOWN, p)
-            #        a.append(pp)
-            #        p = pp + 1
-            #    except ValueError:
-            #        done = True
-            #return a
-            return 
         
         n = 0
         nn = 1
         t = txt.replace(HotSpring.UNKNOWN, HotSpring.WORKING)
         t0 = time.time()
         for c in itertools.combinations([i for i, x in enumerate(txt) if x == HotSpring.UNKNOWN], num_repl):
-            #l = [HotSpring.BUSTED if i in c else x for i, x in enumerate(t)]
             l = list(t)
             for i in c:
                 l[i] = HotSpring.BUSTED 
-            #g = [len(x) for x in self._collect_busted(t)]
-            gg = self._cb(l)
-            #print(gg)
-            #g = [len(x) for x in self._collect_busted("".join(l))]
-            n += int(gg == groups)
+            n += int(self._collect_busted(l) == groups)
         t1 = time.time()
         print(f"{n} NV TIME {int(t1 - t0)}")
         return n
