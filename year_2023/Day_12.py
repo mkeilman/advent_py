@@ -19,63 +19,103 @@ class HotSpring():
     UNKNOWN = "?"
     WORKING = "."
 
+    RE_BUSTED = re.compile(fr"{BUSTED}+")
     
-    def __init__(self, grid):
+    def __init__(self, grid, num_folds=1):
         self.grid = grid
-        self.schematic = [x.split()[0] for x in self.grid]
-        self.busted = [self._collect_busted(x) for x in self.schematic]
-        self.spring_groups = [[int(y) for y in re.findall(r"\d+", x.split()[1])] for x in self.grid]
-        self.num_springs = [Utils.sum(x) for x in self.spring_groups]
-        self.num_busted = [len(Utils.sum(x, "")) for x in self.busted]
-        self.num_left = [x - self.num_busted[i] for i, x in enumerate(self.num_springs)]
+        self.schematic = [self._unfold(x.split()[0], HotSpring.UNKNOWN, num_folds=num_folds) for x in self.grid]
+        g = [self._unfold(x.split()[1], ",", num_folds=num_folds) for x in self.grid]
+        self.spring_groups = [[int(y) for y in re.findall(r"\d+", x)] for x in g]
+        #print(f"SCH {self.schematic} G {self.spring_groups}")
+        self.num_busted = [len(Utils.Math.sum(x, "")) for x in [self._collect_busted(y) for y in self.schematic]]
+        self.num_left = [x - self.num_busted[i] for i, x in enumerate([Utils.Math.sum(y) for y in self.spring_groups])]
         self.valid_counts = [self._num_valid(x, self.num_left[i], self.spring_groups[i]) for i, x in enumerate(self.schematic)]
 
-
     def total_valid(self):
-        return Utils.sum(self.valid_counts)
+        return Utils.Math.sum(self.valid_counts)
     
     def _collect_busted(self, txt):
-        return re.findall(fr"{HotSpring.BUSTED}+", txt)
-
-    def _pos_unknown(self, txt):
-        p = 0
+        return re.findall(HotSpring.RE_BUSTED, txt)
+    
+    def _cb(self, arr):
+        #print(arr)
         a = []
-        done = False
-        while not done:
-            try:
-                pp = txt.index(HotSpring.UNKNOWN, p)
-                a.append(pp)
-                p = pp + 1
-            except ValueError:
-                done = True
+        n = 0
+        for i in range(len(arr)):
+            if arr[i] == HotSpring.BUSTED:
+                n += 1
+                continue
+            if n:
+                a.append(n)
+            n = 0
+        if n:
+            a.append(n)
         return a
+
 
     def _num_valid(self, txt, num_repl, groups):
         import itertools
-        u = self._pos_unknown(txt)
+        import time
+        def _pos_unknown(txt):
+            #p = 0
+            #a = []
+            #done = False
+            #while not done:
+            #    try:
+            #        pp = txt.index(HotSpring.UNKNOWN, p)
+            #        a.append(pp)
+            #        p = pp + 1
+            #    except ValueError:
+            #        done = True
+            #return a
+            return 
+        
         n = 0
-        for c in itertools.combinations(u, num_repl):
-            t = txt.replace(HotSpring.UNKNOWN, HotSpring.WORKING)
+        nn = 1
+        t = txt.replace(HotSpring.UNKNOWN, HotSpring.WORKING)
+        t0 = time.time()
+        for c in itertools.combinations([i for i, x in enumerate(txt) if x == HotSpring.UNKNOWN], num_repl):
+            #l = [HotSpring.BUSTED if i in c else x for i, x in enumerate(t)]
+            l = list(t)
             for i in c:
-                t = t[:i] + HotSpring.BUSTED + t[i + 1:]
-            g = [len(x) for x in self._collect_busted(t)]
-            n += int(g == groups)
+                l[i] = HotSpring.BUSTED 
+            #g = [len(x) for x in self._collect_busted(t)]
+            gg = self._cb(l)
+            #print(gg)
+            #g = [len(x) for x in self._collect_busted("".join(l))]
+            n += int(gg == groups)
+        t1 = time.time()
+        print(f"{n} NV TIME {int(t1 - t0)}")
         return n
         
+    def _unfold(self, txt, sep, num_folds=1):
+        return sep.join([txt] * num_folds)
 
 class AdventDay(Day.Base):
 
     def __init__(self, run_args):
-
+        def _pos_int_type(x):
+            x = int(x)
+            if x < 1:
+                raise argparse.ArgumentTypeError(f"Number of folds {x} must be >= 1")
+            return x
+        
         import argparse
         super(AdventDay, self).__init__(
             2023,
             12,
             HotSpring.BASIC
         )
+        self.args_parser.add_argument(
+            "--num-folds",
+            default=1,
+            dest="num_folds",
+            type=_pos_int_type,
+        )
+        self.num_folds = self.args_parser.parse_args(run_args).num_folds
 
     def run(self, v):
-        h = HotSpring(v)
+        h = HotSpring(v, num_folds=self.num_folds)
         print(f"SUM VALID {h.total_valid()}")
     
 
