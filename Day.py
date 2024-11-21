@@ -1,7 +1,7 @@
 class Base:
 
     @staticmethod
-    def printStrings(v):
+    def print_strings(v):
         print(v)
 
     def __init__(self, year, day, test_strings=None):
@@ -11,7 +11,7 @@ class Base:
         self.args_parser = argparse.ArgumentParser()
 
     def run(self, v):
-        Base.printStrings(v)
+        Base.print_strings(v)
 
     def run_from_test_strings(self, substitute_strings=None):
         self.run(substitute_strings or self.test_strings)
