@@ -1,6 +1,6 @@
 import Day
 import re
-from functools import reduce
+import Utils
 
 class Deck:
 
@@ -34,7 +34,7 @@ class Deck:
         return n
 
     def _copies_sum(self):
-        return reduce((lambda x, y: x + y), self.copies.values(), 0)
+        return Utils.Math.sum(self.copies.values())
 
 
 class AdventDay(Day.Base):

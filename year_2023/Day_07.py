@@ -1,6 +1,6 @@
-from functools import reduce
 import re
 import Day
+import Utils
 
 
 class CamelCard():
@@ -134,7 +134,8 @@ class AdventDay(Day.Base):
      
     @classmethod
     def _parse_line(cls, line, preserve_spaces):
-        return [int(reduce((lambda x, y: x + y), line, ""))]
+        return [int(Utils.Math.sum(line, ""))]
+
 
     def __init__(self, run_args):
         import argparse
@@ -161,7 +162,7 @@ class AdventDay(Day.Base):
         import functools
         plays = sorted([Play(x, jokers=self.jokers) for x in v], key=functools.cmp_to_key(Play.cmp))
         amts = [(i + 1) * x for (i, x) in enumerate([y.bet for y in plays])]
-        winnings = reduce((lambda x, y: x + y), amts, 0)
+        winnings = Utils.Math.sum(amts)
         print(f"WIN {winnings}")
 
 

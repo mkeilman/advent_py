@@ -1,6 +1,6 @@
-from functools import reduce
 import re
 import Day
+import Utils
 
 re_times = r"(?:Time:\s+)*(\d+)\s?"
 re_dists = r"(?:Distance:\s+)*(\d+)\s?"
@@ -32,13 +32,14 @@ class AdventDay(Day.Base):
                 w += (2 - p if dd > record_dists[i] else 0)
             wins.append(w)
         #print(f"W {wins}")
-        return reduce((lambda x, y: x * y), wins, 1)
+        return Utils.Math.product(wins)
         
     @classmethod
     def _parse_line(cls, line, preserve_spaces):
         if preserve_spaces:
             return [int(x) for x in line]
-        return [int(reduce((lambda x, y: x + y), line, ""))]
+        return [int(Utils.Math.sum(line, ""))]
+
 
     def __init__(self, run_args):
         import argparse

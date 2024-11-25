@@ -1,6 +1,5 @@
 import re
 import Day
-from functools import reduce
 
 re_part = r"\D*(\d+)\D*"
 re_digit_or_dot = r"[.0-9]"
