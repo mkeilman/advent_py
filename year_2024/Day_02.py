@@ -52,7 +52,7 @@ class AdventDay(Day.Base):
         self.dampen = self.args_parser.parse_args(run_args).dampen
 
     def run(self, v):
-        print(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
+        Utils.Debug.debug(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
 
 
 def main():
