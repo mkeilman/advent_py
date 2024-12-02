@@ -17,3 +17,12 @@ class Math:
     def product(arr, init_val=1):
         return functools.reduce((lambda x, y: x * y), arr, init_val)
 
+
+class Debug:
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def debug(txt, **kawrgs):
+        print(txt, **kawrgs)
