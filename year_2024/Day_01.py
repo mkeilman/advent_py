@@ -9,7 +9,11 @@ class AdventDay(Day.Base):
         d = self._col_diffs(*self._get_cols(v))
         return Utils.Math.sum(d)
     
-    
+
+    def similarity_sum(self, v):
+        c1, c2 = self._get_cols(v)
+        return Utils.Math.sum([self._similarity(x, c2) for x in c1])
+
     def _col_diffs(self, c1, c2):
         return [abs(c1[i] - c2[i]) for i, _ in enumerate(c1)]
     
@@ -19,6 +23,10 @@ class AdventDay(Day.Base):
         c1 = sorted([int(x[0]) for x in d])
         c2 = sorted([int(x[1]) for x in d])
         return c1, c2
+
+    def _similarity(self, val, arr):
+        e = [int(val == x) for x in arr]
+        return val * Utils.Math.sum([int(val == x) for x in arr])
 
     def __init__(self, run_args):
         super(AdventDay, self).__init__(
@@ -33,9 +41,19 @@ class AdventDay(Day.Base):
                 "3   3",
             ]
         )
+        self.args_parser.add_argument(
+            "--calc",
+            type=str,
+            help="calculation",
+            choices=["col-diffs", "similarity"],
+            default="col-diffs",
+            dest="calc",
+        )
+        self.calc = self.args_parser.parse_args(run_args).calc
 
     def run(self, v):
-        print(f"C {self.col_diff_sum(v)}")
+        c = self.col_diff_sum(v) if self.calc == 'col-diffs' else self.similarity_sum(v)
+        print(f"C {c}")
 
 
 def main():
