@@ -1,6 +1,7 @@
 import Day
 import re
 from utils import math
+from utils.debug import debug
 
 class Deck:
 
@@ -55,15 +56,15 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         deck = Deck(v)
-        print(f"SUM {deck.sum}")
-        print(f"COPIES SUM {deck.c_sum}")
+        debug(f"SUM {deck.sum}")
+        debug(f"COPIES SUM {deck.c_sum}")
 
 
 def main():
     d = AdventDay()
-    print("TEST:")
+    debug("TEST:")
     d.run_from_test_strings()
-    print("FILE:")
+    debug("FILE:")
     d.run_from_file()
 
 

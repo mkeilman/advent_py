@@ -1,6 +1,7 @@
 from functools import reduce
 import re
 import Day
+from utils.debug import debug
 
 
 class AdventDay(Day.Base):
@@ -41,13 +42,13 @@ class AdventDay(Day.Base):
         )
 
     def run(self, v):
-        print(f"CALS {AdventDay._get_calibrations(v)}")
+        debug(f"CALS {AdventDay._get_calibrations(v)}")
 
 
 def main():
     d = AdventDay()
 
-    print(f"TEST NUMS ONLY:")
+    debug(f"TEST NUMS ONLY:")
     d.run_from_test_strings(
         [
             "1abc2",
@@ -56,9 +57,9 @@ def main():
             "treb7uchet",
         ]
     )
-    print("TEST:")
+    debug("TEST:")
     d.run_from_test_strings()
-    print("FILE:")
+    debug("FILE:")
     d.run_from_file()
 
 

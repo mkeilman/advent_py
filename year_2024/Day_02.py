@@ -58,9 +58,9 @@ class AdventDay(Day.Base):
 
 def main():
     d = AdventDay()
-    print("TEST:")
+    debug("TEST:")
     d.run_from_test_strings()
-    print("FILE:")
+    debug("FILE:")
     d.run_from_file()
 
 

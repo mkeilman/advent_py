@@ -1,6 +1,7 @@
 import re
 import Day
 from utils import math
+from utils.debug import debug
 
 re_times = r"(?:Time:\s+)*(\d+)\s?"
 re_dists = r"(?:Distance:\s+)*(\d+)\s?"
@@ -20,7 +21,7 @@ class AdventDay(Day.Base):
         dp = cls._parse_line(re.findall(re_dists, lines[1]), preserve_spaces)
         for t in tp:
             dists.append([cls._dist(i, t) for i in range(t + 1)])
-        #print(f"D {dists}")
+        #debug(f"D {dists}")
         record_dists = dp
         for (i, d) in enumerate(dists):
             w = 0
@@ -31,7 +32,7 @@ class AdventDay(Day.Base):
                 p = 1 if o and k == len(hd) - 1 else 0
                 w += (2 - p if dd > record_dists[i] else 0)
             wins.append(w)
-        #print(f"W {wins}")
+        #debug(f"W {wins}")
         return math.product(wins)
         
     @classmethod
@@ -62,14 +63,14 @@ class AdventDay(Day.Base):
     
 
     def run(self, v):
-        print(f"DISTS {AdventDay._get_wins_product(v, self.preserve_spaces)}")
+        debug(f"DISTS {AdventDay._get_wins_product(v, self.preserve_spaces)}")
 
 
 def main():
     d = AdventDay()
-    print("TEST:")
+    debug("TEST:")
     d.run_from_test_strings()
-    print("FILE:")
+    debug("FILE:")
     d.run_from_file()
 
 

@@ -1,6 +1,6 @@
 import argparse
 import importlib
-
+from utils.debug import debug
 
 def main():
     p = argparse.ArgumentParser(description="run AdventOfCode for the given year and day")
@@ -18,10 +18,10 @@ def main():
     
     d = importlib.import_module(f"year_{a.year}.Day_{a.day:02d}").AdventDay(u)
     if a.mode in ("test", "all"):
-        print("TEST:")
+        debug("TEST:")
         d.run_from_test_strings()
     if a.mode in ("file", "all"):
-        print("FILE:")
+        debug("FILE:")
         d.run_from_file()
 
 

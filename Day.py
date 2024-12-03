@@ -1,8 +1,10 @@
+from utils.debug import debug
+
 class Base:
 
     @staticmethod
     def print_strings(v):
-        print(v)
+        debug(v)
 
     def __init__(self, year, day, test_strings=None):
         import argparse

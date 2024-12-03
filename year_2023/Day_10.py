@@ -1,5 +1,6 @@
 import re
 import Day
+from utils.debug import debug
 
 
 class Pipe():
@@ -118,14 +119,14 @@ class Plumbing():
         self.pipe_loop_range = [range(min(*x) + 1, max(*x)), range(min(*y) + 1, max(*y))]
 
     def interior_tiles(self):
-        #print("GET INT")
+        #debug("GET INT")
         not_pipe = []
-        #print("GET NOT PIPES...", end="")
+        #debug("GET NOT PIPES...", end="")
         for i in self.pipe_loop_range[0]:
             for j in self.pipe_loop_range[1]:
                 if (i, j) not in self.pipe_positions:
                     not_pipe.append((i, j))
-        #print("DONE")
+        #debug("DONE")
 
         n = 0
         for c in not_pipe:
@@ -141,8 +142,8 @@ class Plumbing():
     def print_loop(self):
         for i in self.grid_range[0]:
             for j in self.grid_range[1]:
-                print(self.grid[i][j] if (i, j) in self.pipe_positions else ".", end="")
-            print("")
+                debug(self.grid[i][j] if (i, j) in self.pipe_positions else ".", end="")
+            debug("")
 
     def _get_pipe(self, pos):
         p = self.pipe_loop.get(f"{pos}")
@@ -156,7 +157,7 @@ class Plumbing():
         return p
 
     def _pipe_loop(self):
-        #print("PIPE LOOP")
+        #debug("PIPE LOOP")
         def _add_pipe(d, p):
             d[f"{p.pos}"] = {"pos": p.pos, "pipe": p}
 
@@ -169,7 +170,7 @@ class Plumbing():
         _add_pipe(m, curr_pipe)
 
         did_add = True
-        #print("BUILD LOOP...", end="")
+        #debug("BUILD LOOP...", end="")
         while did_add:
             n = curr_pipe.connections[0]
             p = self._make_pipe(self.grid[n[0]][n[1]], n)
@@ -186,7 +187,7 @@ class Plumbing():
                 curr_pipe = p
                 _add_pipe(m, curr_pipe)
                 
-        #print("DONE")
+        #debug("DONE")
         return m
 
     def _start_pipe(self):
@@ -224,16 +225,16 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         pl = Plumbing(v)
-        print(f"START PIPE {pl.start_pipe.label} NUM INT {pl.interior_tiles()}")
+        debug(f"START PIPE {pl.start_pipe.label} NUM INT {pl.interior_tiles()}")
         #pl.print_loop()
-        #print(f"START {pl.start_pos} PIPE {pl.start_pipe.label} LOOP LEN {len(pl.pipe_loop)} MAX DIST {len(pl.pipe_loop) // 2}")
+        #debug(f"START {pl.start_pos} PIPE {pl.start_pipe.label} LOOP LEN {len(pl.pipe_loop)} MAX DIST {len(pl.pipe_loop) // 2}")
 
 
 def main():
     d = AdventDay()
-    print("TEST:")
+    debug("TEST:")
     d.run_from_test_strings()
-    print("FILE:")
+    debug("FILE:")
     d.run_from_file()
 
 
