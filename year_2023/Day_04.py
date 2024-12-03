@@ -1,6 +1,6 @@
 import Day
 import re
-import Utils
+from utils import math
 
 class Deck:
 
@@ -34,7 +34,7 @@ class Deck:
         return n
 
     def _copies_sum(self):
-        return Utils.Math.sum(self.copies.values())
+        return math.sum(self.copies.values())
 
 
 class AdventDay(Day.Base):

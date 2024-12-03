@@ -1,18 +1,22 @@
 import re
 import Day
-import Utils
-
+from utils import math
+from utils.debug import debug
 
 class AdventDay(Day.Base):
 
-    def _get_muls(self, v):
-        return [re.findall(r"mul\(\d+,\d+\)", x) for x in v]
+    def _get_muls(self, v, respect_enables=True):
+        if not respect_enables:
+            return [re.findall(r"mul\(\d+,\d+\)", x) for x in v]
+        e = [re.findall(r"[(do\(\)) | (don\'t\(\))]", x) for x in v]
+        debug(f"E {e}")
+        return []
 
 
     def _do_muls(self, arr):
         s = 0
         for m in arr:
-            s += Utils.Math.product([int(x) for x in re.findall(r"\d+", m)])
+            s += math.product([int(x) for x in re.findall(r"\d+", m)])
         return s
 
 
@@ -32,22 +36,22 @@ class AdventDay(Day.Base):
             ]
         )
         self.args_parser.add_argument(
-            "--dampen",
+            "--respect-enables",
             action=argparse.BooleanOptionalAction,
             default=True,
-            dest="dampen",
+            dest="respect_enables",
         )
-        self.dampen = self.args_parser.parse_args(run_args).dampen
+        self.respect_enables = self.args_parser.parse_args(run_args).respect_enables
 
     def run(self, v):
-        Utils.Debug.debug(f"M {self.mul_sum(v)}")
+        debug(f"M {self.mul_sum(v)}")
 
 
 def main():
     d = AdventDay()
-    print("TEST:")
+    debug("TEST:")
     d.run_from_test_strings()
-    print("FILE:")
+    debug("FILE:")
     d.run_from_file()
 
 

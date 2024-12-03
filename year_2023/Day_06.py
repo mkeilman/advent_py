@@ -1,6 +1,6 @@
 import re
 import Day
-import Utils
+from utils import math
 
 re_times = r"(?:Time:\s+)*(\d+)\s?"
 re_dists = r"(?:Distance:\s+)*(\d+)\s?"
@@ -32,13 +32,13 @@ class AdventDay(Day.Base):
                 w += (2 - p if dd > record_dists[i] else 0)
             wins.append(w)
         #print(f"W {wins}")
-        return Utils.Math.product(wins)
+        return math.product(wins)
         
     @classmethod
     def _parse_line(cls, line, preserve_spaces):
         if preserve_spaces:
             return [int(x) for x in line]
-        return [int(Utils.Math.sum(line, ""))]
+        return [int(math.sum(line, ""))]
 
 
     def __init__(self, run_args):

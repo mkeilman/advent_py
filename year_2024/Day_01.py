@@ -1,18 +1,18 @@
 import re
 import Day
-import Utils
+from utils import math
 
 
 class AdventDay(Day.Base):
 
     def col_diff_sum(self, v):
         d = self._col_diffs(*self._get_cols(v))
-        return Utils.Math.sum(d)
+        return math.sum(d)
     
 
     def similarity_sum(self, v):
         c1, c2 = self._get_cols(v)
-        return Utils.Math.sum([self._similarity(x, c2) for x in c1])
+        return math.sum([self._similarity(x, c2) for x in c1])
 
     def _col_diffs(self, c1, c2):
         return [abs(c1[i] - c2[i]) for i, _ in enumerate(c1)]
@@ -26,7 +26,7 @@ class AdventDay(Day.Base):
 
     def _similarity(self, val, arr):
         e = [int(val == x) for x in arr]
-        return val * Utils.Math.sum([int(val == x) for x in arr])
+        return val * math.sum([int(val == x) for x in arr])
 
     def __init__(self, run_args):
         super(AdventDay, self).__init__(

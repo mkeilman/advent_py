@@ -1,13 +1,13 @@
 import re
 import Day
-import Utils
+from utils import math
 
 
 class Sequence():
 
     @classmethod
     def seq_sums(cls, seqs, index=-1):
-        return Utils.Math.sum([x.seq[0][index] for x in seqs])
+        return math.sum([x.seq[0][index] for x in seqs])
     
     def __init__(self, seq_str):
         self.seq = []

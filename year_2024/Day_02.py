@@ -1,6 +1,7 @@
 import re
 import Day
-import Utils
+from utils import math
+from utils.debug import debug
 
 
 class AdventDay(Day.Base):
@@ -8,7 +9,7 @@ class AdventDay(Day.Base):
     def safe_sum(self, v, dampen=True):
         d = [[int(y) for y in re.findall(r"\d+", x)] for x in v]
         s = [int(self._is_safe(x, dampen=dampen)) for x in d]
-        return Utils.Math.sum(s)
+        return math.sum(s)
 
     
     def _is_safe(self, arr, dampen=True):
@@ -17,7 +18,7 @@ class AdventDay(Day.Base):
 
         def _s(arr):
             d = [arr[i + 1] - arr[i] for i, _ in enumerate(arr[1:])]
-            return all([Utils.Math.sign(x) == Utils.Math.sign(d[0]) for x in d]) and all([min_diff <= abs(x) <= max_diff for x in d])
+            return all([math.sign(x) == math.sign(d[0]) for x in d]) and all([min_diff <= abs(x) <= max_diff for x in d])
 
         s = _s(arr)
         if not s and dampen:
@@ -52,7 +53,7 @@ class AdventDay(Day.Base):
         self.dampen = self.args_parser.parse_args(run_args).dampen
 
     def run(self, v):
-        Utils.Debug.debug(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
+        debug(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
 
 
 def main():

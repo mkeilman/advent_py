@@ -1,6 +1,6 @@
 import re
 import Day
-import Utils
+from utils import math
 
 
 class Universe():
@@ -31,7 +31,7 @@ class Universe():
         self.dists = [Universe._dist(x[0], x[1]) for x in self.galaxy_pairs]
         
     def dist_sum(self):
-        return Utils.Math.sum(self.dists)
+        return math.sum(self.dists)
         
     def print_grid(self):
         for r in self.grid:
