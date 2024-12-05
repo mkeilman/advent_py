@@ -1,16 +1,78 @@
 import re
 import Day
 from utils import math
+from utils import string
 from utils.debug import debug
 
 class AdventDay(Day.Base):
 
+
     def _get_muls(self, v, respect_enables=True):
+
+        def _enabled_ranges(e, d, max_index):
+            r = []
+            ei = 0
+            i = 1
+            j = 0
+            d_index = 0
+
+            # only enabled index is 0, so turn off at 1st disabled index (or max if never disabled)
+            if len(e) == 1:
+                return [range(d[0])] if len(d) > 0 else [range(max_index)]
+            
+            for e_index in e[1:]:
+                # out of disabled indices before enabled indices
+                if j == len(d):
+                    # current enabled index is below the previous disabled index
+                    if e_index < d_index:
+                        r.append(range(ei, d[-1]))
+                    # current enabled index is beyond the previous disabled index, enable to end of line
+                    else:
+                        r.append(range(ei, max_index))
+                    break
+                d_index = d[j]
+                if e_index < d_index:
+                    continue
+                r.append(range(ei, d_index))
+                ei = e_index
+                while j < len(d):
+                    if ei > d[j]:
+                        j += 1
+                    else:
+                        break
+
+            # still have disabled indices
+            if j < len(d):
+                # current enabled index is beyond the previous disabled index
+                if ei > d[j]:
+                    #debug(f"ADD NEXT")
+                    r.append(range(ei, d[j + 1] if j < len(d) -1 else d[-1]))
+                # current enabled index is below the previous disabled index
+                else:
+                    r.append(range(ei, d[j]))
+            else:
+                if ei > d[-1]:
+                    r.append(range(ei, max_index))
+            return r
+
+        m = [re.findall(r"mul\(\d+,\d+\)", x) for x in v]
         if not respect_enables:
-            return [re.findall(r"mul\(\d+,\d+\)", x) for x in v]
-        e = [re.findall(r"[(do\(\)) | (don\'t\(\))]", x) for x in v]
-        debug(f"E {e}")
-        return []
+            return m
+        n = []
+        for i, r in enumerate(v):
+            nn = []
+            # always enabled at the start of the line
+            e = [0] + string.indices("do()", r)
+            d = string.indices("don\'t", r)
+            debug(f"E {e} D {d} -> ", end="")
+            er = _enabled_ranges(e, d, len(r))
+            debug(f"{er}")
+            for mm in m[i]:
+                # could be duplicates
+                for pos in [x for x in string.indices(mm, r) if any([x in y for y in er])]:
+                    nn.append(mm)
+            n.append(nn)
+        return n
 
 
     def _do_muls(self, arr):
@@ -20,9 +82,9 @@ class AdventDay(Day.Base):
         return s
 
 
-    def mul_sum(self, v):
+    def mul_sum(self, v, respect_enables=True):
         s = 0
-        for m in self._get_muls(v):
+        for m in self._get_muls(v, respect_enables=respect_enables):
             s += self._do_muls(m)
         return s
 
@@ -32,8 +94,11 @@ class AdventDay(Day.Base):
             2024,
             3,
             [
-                "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
+                "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
             ]
+            #[
+            #    "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
+            #]
         )
         self.args_parser.add_argument(
             "--respect-enables",
@@ -44,7 +109,7 @@ class AdventDay(Day.Base):
         self.respect_enables = self.args_parser.parse_args(run_args).respect_enables
 
     def run(self, v):
-        debug(f"M {self.mul_sum(v)}")
+        debug(f"M {self.mul_sum(v, respect_enables=self.respect_enables)}")
 
 
 def main():
