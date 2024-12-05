@@ -55,24 +55,23 @@ class AdventDay(Day.Base):
                     r.append(range(ei, max_index))
             return r
 
-        m = [re.findall(r"mul\(\d+,\d+\)", x) for x in v]
+        # input needs to be on a single line
+        vv = "".join(v)
+        m = re.findall(r"mul\(\d+,\d+\)", vv)
         if not respect_enables:
-            return m
+            return [m]
+        
         n = []
-        for i, r in enumerate(v):
-            nn = []
-            # always enabled at the start of the line
-            e = [0] + string.indices("do()", r)
-            d = string.indices("don\'t", r)
-            debug(f"E {e} D {d} -> ", end="")
-            er = _enabled_ranges(e, d, len(r))
-            debug(f"{er}")
-            for mm in m[i]:
-                # could be duplicates
-                for pos in [x for x in string.indices(mm, r) if any([x in y for y in er])]:
-                    nn.append(mm)
-            n.append(nn)
-        return n
+        e = [0] + string.indices("do()", vv)
+        d = string.indices("don\'t", vv)
+        #debug(f"E {e} D {d} -> ", end="")
+        er = _enabled_ranges(e, d, len(vv))
+        #debug(f"{er}")
+        for mm in m:
+            # could be duplicates
+            for pos in [x for x in string.indices(mm, vv) if any([x in y for y in er])]:
+                n.append(mm)
+        return [n]
 
 
     def _do_muls(self, arr):
