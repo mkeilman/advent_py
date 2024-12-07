@@ -11,11 +11,9 @@ class WordGrid:
         self.max_word_len = max([len(x) for x in self.valid_words])
         self.min_word_len = min([len(x) for x in self.valid_words])
         self.rows = grid
-        self.cols = self._get_cols(0)
+        self.cols = self._get_cols()
         self.diags = self._get_diags()
-        #debug(f"DIAGs {self.diags}")
 
-        matches = []
 
     def get_num_matches(self):
         n = 0
@@ -23,39 +21,34 @@ class WordGrid:
             n += len(self._get_word_indices(m))
         return n
     
-    def _get_cols(self, direction):
+    def get_num_subgrid_matches(self, sub_grid):
+        return 0
+
+    def _get_cols(self):
         c = []
-        d = math.sign(direction)
         nr = len(self.rows)
         nc = len(self.rows[0])
         for i in range(nc):
             s = ""
-            #debug(f"COL {i}")
             for j in range(nr):
-                #debug(f"ROW {j}")
                 s = s + self.rows[j][i]
             c.append(s)
-            #c.append("".join([self.rows[j][i] for j, _ in enumerate(self.rows)]))
         return c
     
     def _get_diags(self):
         d = []
         nr = len(self.rows)
         nc = len(self.rows[0])
+
         # build the lower half
         bottom = []
         for i in range(nr):
-            #s = ""
             c = []
             for j in range(nc):
                 k = i + j
-                l = nc - k - 1
                 if k < nr:
                     c.append((k, j))
-                    #s = s + self.rows[k][j]
-            #d.append(s)
             bottom.append(c)
-        #debug(f"BOTTOM {bottom}")
 
         # add the top half by symmetry
         top = []
@@ -63,7 +56,6 @@ class WordGrid:
             a = [(j, i) for i, j in c if i != j and j < nr and i < nc]
             if a:
                 top.append(a)
-        #debug(f"TOP {top}")
 
         diags = top + bottom
 
@@ -71,15 +63,13 @@ class WordGrid:
         rev = []
         for c in diags:
             rev.append([(i, nc - j - 1) for i, j in c])
-        #debug(f"REV {rev}")
 
         diags = diags + rev
 
         for c in diags:
             s = ""
-            #debug(f"TC {c}")
-            for cccc in c:
-                s += self.rows[cccc[0]][cccc[1]]
+            for ij in c:
+                s += self.rows[ij[0]][ij[1]]
             d.append(s)
         return d
 
@@ -87,9 +77,35 @@ class WordGrid:
         w = []
         for i, txt in enumerate(arr):
             for v in self.valid_words:
-                #debug(f"FIND {v} IN {txt}")
                 w.extend([(i, x) for x in string.indices(v, txt)])
         return w
+    
+    def _get_subgrid_indices(self, sub_grid):
+        w = []
+        nr = len(self.rows) - len(sub_grid)
+        nc = len(self.rows[0])
+        for i in range(nr):
+            p = [string.re_indices(x, self.rows[i + j]) for j, x in enumerate(sub_grid)]
+            p = [x for x in p if all([len(y) for y in p])]
+            if not p:
+                continue
+            for j in set([x for y in p for x in y]):
+                if all([j in x for x in p]):
+                    w.append((i, j))
+            #debug(f"{i} SG POS {p}")
+                
+            #for j in range(nc):
+            #    m = True
+            #    for k, r in enumerate(sub_grid):
+            #        M = string.re_indices(r, self)
+            #        
+            #        debug(f"MATCH {(i, j)} {r} in {self.rows[i + k][j:]}: {MM}")
+            #        m = m and re.match(r, self.rows[i + k][j:])
+            #    if m:
+            #        w.append((i, j))
+        return w
+                    
+            
 
 class AdventDay(Day.Base):
 
@@ -130,7 +146,29 @@ class AdventDay(Day.Base):
     def run(self, v):
         g = WordGrid(v, valid_words=["XMAS", "SAMX"])
         debug(f"NUM MATCHES {g.get_num_matches()}")
-
+        a = r".A."
+        ms = r"M.S"
+        sm = r"S.M"
+        mm = r"M.M"
+        ss = r"S.S"
+        sg = [
+            [ms, a, ms],
+            [sm, a, sm],
+            [mm, a, ss],
+            [ss, a, mm],
+        ]
+        s = math.sum(
+            [len(x) for x in [g._get_subgrid_indices(y) for y in sg]]
+        )
+        debug(f"NUM X-MAS {s}")
+        #g1 = [r"M.S", r".A.", r"M.S"]
+        #debug(f"X-MAS 1 {g._get_subgrid_indices(g1)}")
+        #g2 = [r"S.M", r".A.", r"S.M"]
+        #debug(f"X-MAS 2 {g._get_subgrid_indices(g2)}")
+        #g3 = [r"S.S", r".A.", r"M.M"]
+        #debug(f"X-MAS 3 {g._get_subgrid_indices(g3)}")
+        #g4 = [r"M.M", r".A.", r"S.S"]
+        #debug(f"X-MAS 4 {g._get_subgrid_indices(g4)}")
 
 def main():
     d = AdventDay()
