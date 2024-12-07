@@ -1,3 +1,5 @@
+from utils.debug import debug
+
 def indices(sub_txt, txt):
     done = False
     s = []
@@ -10,3 +12,20 @@ def indices(sub_txt, txt):
         except ValueError:
             done = True
     return s
+
+def re_indices(r, txt):
+    import re
+
+    s = []
+    q = 0
+    t = txt
+    m = re.search(r, t)
+    while m:
+        p = m.span()[0]
+        q += p
+        s.append(q)
+        t = t[p + 1:]
+        q += 1
+        m = re.search(r, t)
+    return s
+
