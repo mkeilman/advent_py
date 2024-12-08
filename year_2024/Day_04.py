@@ -82,7 +82,7 @@ class WordGrid:
     
     def _get_subgrid_indices(self, sub_grid):
         w = []
-        nr = len(self.rows) - len(sub_grid)
+        nr = len(self.rows) - len(sub_grid) + 1
         nc = len(self.rows[0])
         for i in range(nr):
             p = [string.re_indices(x, self.rows[i + j]) for j, x in enumerate(sub_grid)]
@@ -134,6 +134,11 @@ class AdventDay(Day.Base):
                 "MAMMMXMMMM",
                 "MXMXAXMASX",
             ]
+            #[
+            #    "SSS",
+            #    "AAA",
+            #    "MMM",
+            #]
         )
         self.args_parser.add_argument(
             "--x-mas",
@@ -161,14 +166,10 @@ class AdventDay(Day.Base):
             [len(x) for x in [g._get_subgrid_indices(y) for y in sg]]
         )
         debug(f"NUM X-MAS {s}")
-        #g1 = [r"M.S", r".A.", r"M.S"]
-        #debug(f"X-MAS 1 {g._get_subgrid_indices(g1)}")
-        #g2 = [r"S.M", r".A.", r"S.M"]
-        #debug(f"X-MAS 2 {g._get_subgrid_indices(g2)}")
-        #g3 = [r"S.S", r".A.", r"M.M"]
-        #debug(f"X-MAS 3 {g._get_subgrid_indices(g3)}")
-        #g4 = [r"M.M", r".A.", r"S.S"]
-        #debug(f"X-MAS 4 {g._get_subgrid_indices(g4)}")
+        #debug(f"X-MAS 1 {g._get_subgrid_indices([ms, a, ms])}")
+        #debug(f"X-MAS 2 {g._get_subgrid_indices([sm, a, sm])}")
+        #debug(f"X-MAS 3 {g._get_subgrid_indices([mm, a, ss])}")
+        #debug(f"X-MAS 4 {g._get_subgrid_indices([ss, a, mm])}")
 
 def main():
     d = AdventDay()
