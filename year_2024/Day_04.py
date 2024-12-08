@@ -140,13 +140,6 @@ class AdventDay(Day.Base):
             #    "MMM",
             #]
         )
-        self.args_parser.add_argument(
-            "--x-mas",
-            action=argparse.BooleanOptionalAction,
-            default=True,
-            dest="x_mas",
-        )
-        self.x_mas = self.args_parser.parse_args(run_args).x_mas
 
     def run(self, v):
         g = WordGrid(v, valid_words=["XMAS", "SAMX"])
