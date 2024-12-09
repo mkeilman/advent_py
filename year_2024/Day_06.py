@@ -4,6 +4,45 @@ from utils import math
 from utils import string
 from utils.debug import debug
 
+class Room:
+
+    @classmethod
+    def is_loop(cls, arr):
+        return len(arr) > len(set(arr))
+        #for p, d in arr[1:]:
+        #    if p == arr[0][0] and d == arr[0][1]:
+        #        return True
+        #return False
+
+    def __init__(self, grid):
+        self.grid = grid
+        self.size = (len(grid), len(grid[0]))
+
+
+    def find_path(self, start_pos, start_dir):
+
+        def _is_in_room(pos):
+            return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
+
+        p = [(start_pos, start_dir)]
+        pos = start_pos
+        dir = start_dir
+        d = list(Guard.DIRECTIONS.values())
+
+        while _is_in_room(pos) and not Room.is_loop(p):
+            q = (pos[0] + dir[0], pos[1] + dir[1])
+            if _is_in_room(q):
+                if self.grid[q[0]][q[1]] == "#":
+                    dir = d[(d.index(dir) + 1) % len(d)]
+                    p.append((pos, dir))
+                    continue
+                # do not include spaces outside the room, but do set the position
+                p.append((q, dir))
+            pos = q
+
+        return p
+
+
 class Guard:
 
     DIRECTIONS = {
@@ -26,32 +65,9 @@ class Guard:
         self.direction = Guard.DIRECTIONS[direction]
         self.init_dir = self.direction
 
-
-    def find_path(self, room):
-        def _is_in_room(pos, room):
-            nr = len(room)
-            nc = len(room[0])
-            return 0 <= pos[0] < nr and 0 <= pos[1] < nc
-
-
-        p = [self.position]
-        r = room[p[0][0]][p[0][1]]
-        d = list(Guard.DIRECTIONS.values())
-
-        while _is_in_room(self.position, room):
-            q = (self.position[0] + self.direction[0], self.position[1] + self.direction[1])
-            if _is_in_room(q, room):
-                if room[q[0]][q[1]] == "#":
-                    self.direction = d[(d.index(self.direction) + 1) % len(d)]
-                    continue
-                # do not include spaces outside the room, but do set the position
-                p.append(q)
-            self.position = q
-
-        return p
-
-    def next_position(self):
-        return self.position
+    def _reset(self):
+        self.position = self.init_pos
+        self.direction = self.init_dir
 
 
 class AdventDay(Day.Base):
@@ -84,12 +100,36 @@ class AdventDay(Day.Base):
                 return Guard((i, m.span()[0]), m[0])
         return None
     
+    def count_loops(self, grid, init_row, init_col, pos, dir):
+        
+        n = 0
+        # do not include starting space
+        # only need to consider spaces on the original path?
+        for i in range(len(grid)):
+            for j in range(len(grid[0])):
+                if i == init_row and j == init_col:
+                    continue
+                g = grid[:]
+                if g[i][j] == "#":
+                    continue
+                debug(f"{i} {j} CHECK LOOP")
+                g[i] = g[i][:j] + "#" + g[i][j + 1:]
+                p = Room(g).find_path(pos, dir)
+                if Room.is_loop(p):
+                    #debug(f"{i} {j} LOOP FOUND {p}")
+                    n += 1
+
+        return n
+            
+
     def run(self, v):
         g = self._get_guard(v)
-        debug(f"G POS {g.position} DIR {g.direction}")
-        p = g.find_path(v)
-        debug(f"UNIQUE PATH LEN {len(set(p))}")
-        pass
+        r = Room(v)
+        #debug(f"G POS {g.position} DIR {g.direction}")
+        p = r.find_path(g.init_pos, g.init_dir)
+        debug(f"UNIQUE PATH LEN {len(set([x[0] for x in p]))}")
+        n = self.count_loops(v, p[0][0], p[0][1], g.init_pos, g.init_dir)
+        debug(f"NUM LOOPS {n}")
 
 
 def main():
