@@ -9,10 +9,6 @@ class Room:
     @classmethod
     def is_loop(cls, arr):
         return len(arr) > len(set(arr))
-        #for p, d in arr[1:]:
-        #    if p == arr[0][0] and d == arr[0][1]:
-        #        return True
-        #return False
 
     def __init__(self, grid):
         self.grid = grid
@@ -36,8 +32,8 @@ class Room:
                     dir = d[(d.index(dir) + 1) % len(d)]
                     p.append((pos, dir))
                     continue
-                # do not include spaces outside the room, but do set the position
                 p.append((q, dir))
+            # do not append spaces outside the room, but do set the position
             pos = q
 
         return p
@@ -100,26 +96,47 @@ class AdventDay(Day.Base):
                 return Guard((i, m.span()[0]), m[0])
         return None
     
-    def count_loops(self, grid, init_row, init_col, pos, dir):
+    def count_loops(self, grid, init_path, pos, dir):
+    #def count_loops(self, grid, init_row, init_col, pos, dir):
         
-        n = 0
+        o = []
         # do not include starting space
         # only need to consider spaces on the original path?
-        for i in range(len(grid)):
-            for j in range(len(grid[0])):
-                if i == init_row and j == init_col:
-                    continue
-                g = grid[:]
-                if g[i][j] == "#":
-                    continue
-                debug(f"{i} {j} CHECK LOOP")
-                g[i] = g[i][:j] + "#" + g[i][j + 1:]
-                p = Room(g).find_path(pos, dir)
-                if Room.is_loop(p):
-                    #debug(f"{i} {j} LOOP FOUND {p}")
-                    n += 1
+        #for space in set([x[0] for x in init_path[1:]]):
+        for k in range(1, len(init_path)):
+            space = init_path[k]
+            prev_space = init_path[k - 1]
+            i = space[0][0]
+            j = space[0][1]
+            if (i, j) in o:
+                continue
+            #if grid[i][j] == "#":
+            #    continue
+            #debug(f"{i} {j} CHECK LOOP")
+            g = grid[:]
+            g[i] = g[i][:j] + "#" + g[i][j + 1:]
+            #p = Room(g).find_path(pos, dir)
+            # start at the previous space
+            p = Room(g).find_path(prev_space[0], prev_space[1])
+            if Room.is_loop(p):
+                debug(f"{k} {i} {j}")
+                o.append((i, j))
 
-        return n
+        #for i in range(len(grid)):
+        #    for j in range(len(grid[0])):
+        #        if i == init_row and j == init_col:
+        #            continue
+        #        g = grid[:]
+        #        if g[i][j] == "#":
+        #            continue
+        #        #debug(f"{i} {j} CHECK LOOP")
+        #        g[i] = g[i][:j] + "#" + g[i][j + 1:]
+        #        p = Room(g).find_path(pos, dir)
+        #        if Room.is_loop(p):
+        #            debug(f"{i} {j} LOOP FOUND")
+        #            n += 1
+
+        return len(o)
             
 
     def run(self, v):
@@ -127,8 +144,9 @@ class AdventDay(Day.Base):
         r = Room(v)
         #debug(f"G POS {g.position} DIR {g.direction}")
         p = r.find_path(g.init_pos, g.init_dir)
-        debug(f"UNIQUE PATH LEN {len(set([x[0] for x in p]))}")
-        n = self.count_loops(v, p[0][0], p[0][1], g.init_pos, g.init_dir)
+        debug(f"UNIQUE PATH LEN {len(set([x[0] for x in p]))} FULL LEN {len(p)}")
+        n = self.count_loops(v, p, g.init_pos, g.init_dir)
+        #n = self.count_loops(v, p[0][0], p[0][1], g.init_pos, g.init_dir)
         debug(f"NUM LOOPS {n}")
 
 
