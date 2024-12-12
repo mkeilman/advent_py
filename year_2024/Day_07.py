@@ -9,7 +9,8 @@ class Equation:
 
     OPS = (
         operator.add,
-        operator.mul
+        operator.mul,
+        lambda x, y: int(str(x) + str(y))
     )
 
     def __init__(self, txt):
