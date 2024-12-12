@@ -11,14 +11,14 @@ class Antenna:
         # note this is a signed value
         return ((node2[0] - node1[0]), (node2[1] - node1[1]))
 
-    def __init__(self, grid):
+    def __init__(self, grid, t_nodes=True):
         self.grid = grid
         self.size = (len(grid), len(grid[0]))
         self.nodes = self._nodes()
         self.all_nodes = self._all_nodes()
         self.node_pairs = self._node_pairs()
         self.node_pair_dists = self._node_pair_dists()
-        self.antinodes = self._antinodes()
+        self.antinodes = self._antinodes(t_nodes=t_nodes)
         self.all_antinodes = self._all_antinodes()
         #debug(f"NODES {self.nodes}")
         #debug(f"ALL NODES {self.all_nodes}")
@@ -34,7 +34,6 @@ class Antenna:
             nn = self.antinodes[n]
             nodes = nodes.union(set(nn))
             x.extend(nn)
-        debug(f"A ARR {x} {len(x)}")
         return nodes
     
     def _all_nodes(self):
@@ -44,8 +43,15 @@ class Antenna:
         return nodes
 
 
-    def _antinodes(self):
+    def _antinodes(self, t_nodes=True):
+        def _t_nodes(pos):
+            pass
+
         nodes = {}
+
+        # for simplicity if not elegance, repeat over the max dimension size of
+        # the grid when specified
+        factor = max(self.size) if t_nodes else 1
         for n in self.node_pairs:
             p = self.node_pairs[n]
             d = self.node_pair_dists[n]
@@ -53,10 +59,11 @@ class Antenna:
             for j, nn in enumerate(p):
                 dd = d[j]
                 for node in nn:
-                    for dir in (-1, 1):
-                        q = (node[0] + dir * dd[0], node[1] + dir * dd[1])
-                        if q not in nn and self._is_in_grid(q):
-                            nodes[n].append(q)
+                    for f in range(1, factor) if t_nodes else [1]:
+                        for dir in (-1 * f, 1 * f):
+                            q = (node[0] + dir * dd[0], node[1] + dir * dd[1])
+                            if self._is_in_grid(q) and (t_nodes or q not in nn):
+                                nodes[n].append(q)
         return nodes
 
 
@@ -112,10 +119,29 @@ class AdventDay(Day.Base):
                 "............",
                 "............",
             ]
+            #[
+            #    "T.........",
+            #    "...T......",
+            #    ".T........",
+            #    "..........",
+            #    "..........",
+            #    "..........",
+            #    "..........",
+            #    "..........",
+            #    "..........",
+            #    "...........",
+            #]
         )
+        self.args_parser.add_argument(
+            "--t-nodes",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="t_nodes",
+        )
+        self.t_nodes = self.args_parser.parse_args(run_args).t_nodes
 
     def run(self, v):
-        a = Antenna(v)
+        a = Antenna(v, t_nodes=self.t_nodes)
         debug(f"NUM ANTI {len(a.all_antinodes)}")
 
 
