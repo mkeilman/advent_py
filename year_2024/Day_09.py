@@ -6,71 +6,64 @@ from utils.debug import debug
 
 class Disk:
 
-    def __init__(self, txt):
-        self.map = txt
-        s = [int(x) for x in re.findall(r"\d", self.map)]
-        self.map_arr = s
-        f = [x for i, x in enumerate(s) if not i % 2]
-        num_files = len(f)
-        debug(f"N FILES {num_files}")
-        sp = [x for i, x in enumerate(s) if i % 2]
-        num_spaces = len(sp)
-        self.space_inds = [math.sum(f[:i]) + math.sum(sp[:i - 1]) for i in range(1, num_files)]
-        self.size = math.sum(f)
-        debug(f"SZ {self.size}")
+    def __init__(self, txt, whole_files=True):
+        self.map = [int(x) for x in re.findall(r"\d", txt)]
+        f = [x for i, x in enumerate(self.map) if not i % 2]
+        self.num_files = len(f)
         self.blocks = self._blocks()
-        self.defragged = self._defrag()
-        debug(f"DF SZ {len(self.defragged)}")
+        self.defragged = self._defrag(whole_files=whole_files)
         self.checksum = self._checksum()
-        self.df = [None] * (num_files + num_spaces)
         
 
     def _blocks(self):
-        s = ""
         a = []
-        for i, c in enumerate(self.map_arr):
-            if not i % 2:
-                a.extend(c * [i // 2])
-            else:
-                a.extend(c * [-1])
-        return a
-
-
         for i, c in enumerate(self.map):
-            if not i % 2:
-                s += int(c) * str(i // 2)
-            else:
-                s += int(c) * "."
-        return s
+            a.extend(c * [-1 if i % 2 else (i // 2)])
+        return a
     
+
     def _checksum(self):
-        #return math.sum([i * int(x) for i, x in enumerate(self.defragged)])
-        return math.sum([i * x for i, x in enumerate(self.defragged)])
+        return math.sum([i * x for i, x in enumerate(self.defragged) if x >= 0])
 
-    def _defrag(self):
-        n = len(self.blocks)
-        n_moves = 0
-        #arr = re.findall(r".", self.blocks)
-        arr = self.blocks[:]
-        for i in range(n):
-            j = n - i - 1
-            c = self.blocks[j]
-            if c == -1:
-            #if c == ".":
-                continue
-            #k = arr.index(".")
-            k = arr.index(-1)
-            if k > j:
-                break
-            arr[k] = c
-            #arr[j] = "."
-            arr[j] = -1
-            #debug("".join(arr))
-            n_moves += 1
-        #return "".join(arr).replace(".", "")
-        return [x for x in arr if x >= 0]
+
+    def _defrag(self, whole_files=True):
+        def _empty_ranges(arr):
+            a = []
+            j = 0
+            for i, c in enumerate(arr):
+                if c >= 0:
+                    if i > j:
+                        a.append(range(j, i))
+                        j = i
+                    j += 1
+            return a
+
+        def _move_blocks(arr):
+            #debug(f"MT {arr} {_empty_ranges(arr)}")
+            n = len(self.blocks)
+            for i in range(n):
+                j = n - i - 1
+                c = self.blocks[j]
+                if c == -1:
+                    continue
+                k = arr.index(-1)
+                if k > j:
+                    break
+                arr[k] = c
+                arr[j] = -1
+            return [x for x in arr if x >= 0]
+
+        def _move_files(arr):
+
+            e = _empty_ranges(arr)
+
+            return arr
+
+        a = self.blocks[:]
+        if whole_files:
+            return _move_files(a)
+        return _move_blocks(a)
             
-
 
 class AdventDay(Day.Base):
             
@@ -87,16 +80,16 @@ class AdventDay(Day.Base):
             #]
         )
         self.args_parser.add_argument(
-            "--t-nodes",
+            "--whole-files",
             action=argparse.BooleanOptionalAction,
             default=True,
-            dest="t_nodes",
+            dest="whole_files",
         )
-        self.t_nodes = self.args_parser.parse_args(run_args).t_nodes
+        self.whole_files = self.args_parser.parse_args(run_args).whole_files
 
     def run(self, v):
         # single line
-        d = Disk(v[0])
+        d = Disk(v[0], whole_files=self.whole_files)
         debug(f"C {d.checksum}")
 
 
