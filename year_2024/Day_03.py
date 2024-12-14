@@ -1,6 +1,6 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils import string
 from utils.debug import debug
 
@@ -77,7 +77,7 @@ class AdventDay(Day.Base):
     def _do_muls(self, arr):
         s = 0
         for m in arr:
-            s += math.product([int(x) for x in re.findall(r"\d+", m)])
+            s += mathutils.product([int(x) for x in re.findall(r"\d+", m)])
         return s
 
 

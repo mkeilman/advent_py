@@ -1,6 +1,6 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils.debug import debug
 
 
@@ -135,7 +135,7 @@ class AdventDay(Day.Base):
      
     @classmethod
     def _parse_line(cls, line, preserve_spaces):
-        return [int(math.sum(line, ""))]
+        return [int(mathutils.sum(line, ""))]
 
 
     def __init__(self, run_args):
@@ -163,7 +163,7 @@ class AdventDay(Day.Base):
         import functools
         plays = sorted([Play(x, jokers=self.jokers) for x in v], key=functools.cmp_to_key(Play.cmp))
         amts = [(i + 1) * x for (i, x) in enumerate([y.bet for y in plays])]
-        debug(f"WIN {math.sum(amts)}")
+        debug(f"WIN {mathutils.sum(amts)}")
 
 
 def main():

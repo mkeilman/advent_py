@@ -1,6 +1,6 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils import string
 from utils.debug import debug
 
@@ -110,8 +110,8 @@ class AdventDay(Day.Base):
         m = [x._get_middle_page() for x in [y for y in u if y.is_in_order()]]
         fb = [x.reordered() for x in [y for y in u if not y.is_in_order()]]
         fbm = [Update.get_middle_page(x) for x in fb]
-        fbs = math.sum([int(x) for x in fbm])
-        s = math.sum([int(x) for x in m])
+        fbs = mathutils.sum([int(x) for x in fbm])
+        s = mathutils.sum([int(x) for x in m])
         debug(f"SUM {s}")
         debug(f"FIXED BAD SUM {fbs}")
 

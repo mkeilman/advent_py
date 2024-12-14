@@ -1,6 +1,6 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils import string
 from utils.debug import debug
 
@@ -155,7 +155,7 @@ class AdventDay(Day.Base):
             [mm, a, ss],
             [ss, a, mm],
         ]
-        s = math.sum(
+        s = mathutils.sum(
             [len(x) for x in [g._get_subgrid_indices(y) for y in sg]]
         )
         debug(f"NUM X-MAS {s}")

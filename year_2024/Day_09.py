@@ -1,15 +1,16 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils import string
 from utils.debug import debug
 
 class Disk:
 
     def __init__(self, txt, whole_files=True):
+        import math
+
         self.map = [int(x) for x in re.findall(r"\d", txt)]
-        f = [x for i, x in enumerate(self.map) if not i % 2]
-        self.num_files = len(f)
+        self.num_files = math.ceil(len(self.map) / 2)
         self.blocks = self._blocks()
         self.defragged = self._defrag(whole_files=whole_files)
         self.checksum = self._checksum()
@@ -23,7 +24,7 @@ class Disk:
     
 
     def _checksum(self):
-        return math.sum([i * x for i, x in enumerate(self.defragged) if x >= 0])
+        return mathutils.sum([i * x for i, x in enumerate(self.defragged) if x >= 0])
 
 
     def _defrag(self, whole_files=True):
@@ -39,7 +40,6 @@ class Disk:
             return a
 
         def _move_blocks(arr):
-            #debug(f"MT {arr} {_empty_ranges(arr)}")
             n = len(self.blocks)
             for i in range(n):
                 j = n - i - 1
@@ -54,15 +54,20 @@ class Disk:
             return [x for x in arr if x >= 0]
 
         def _move_files(arr):
-
-            e = _empty_ranges(arr)
-
+            for i in reversed(range(self.num_files)):
+                a = string.indices(i, arr)
+                na = len(a)
+                e = [x for x in _empty_ranges(arr) if len(x) >= na]
+                if not e or e[0][0] > a[-1]:
+                    continue
+                for j in e[0][:na]:
+                    arr[j] = i
+                for j in a:
+                    arr[j] = -1
             return arr
 
         a = self.blocks[:]
-        if whole_files:
-            return _move_files(a)
-        return _move_blocks(a)
+        return _move_files(a) if whole_files else _move_blocks(a)
             
 
 class AdventDay(Day.Base):

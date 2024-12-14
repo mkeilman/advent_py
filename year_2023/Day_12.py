@@ -1,6 +1,6 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils.debug import debug
 
 
@@ -26,13 +26,13 @@ class HotSpring():
         self.schematic = [self._unfold(x.split()[0], HotSpring.UNKNOWN, num_folds=num_folds) for x in self.grid]
         g = [self._unfold(x.split()[1], ",", num_folds=num_folds) for x in self.grid]
         self.spring_groups = [[int(y) for y in re.findall(r"\d+", x)] for x in g]
-        self.num_busted = [math.sum(x) for x in [self._collect_symbol(list(y)) for y in self.schematic]]
+        self.num_busted = [mathutils.sum(x) for x in [self._collect_symbol(list(y)) for y in self.schematic]]
         self.num_unknown = [self._collect_symbol(list(y), symbol=HotSpring.UNKNOWN) for y in self.schematic]
-        self.num_left = [x - self.num_busted[i] for i, x in enumerate([math.sum(y) for y in self.spring_groups])]
+        self.num_left = [x - self.num_busted[i] for i, x in enumerate([mathutils.sum(y) for y in self.spring_groups])]
         self.valid_counts = [self._num_valid(x, self.num_left[i], self.spring_groups[i]) for i, x in enumerate(self.schematic)]
 
     def total_valid(self):
-        return math.sum(self.valid_counts)
+        return mathutils.sum(self.valid_counts)
 
     
     def _collect_symbol(self, arr, symbol=None, cmp_arr=None):

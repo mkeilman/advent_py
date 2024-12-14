@@ -1,6 +1,6 @@
 import re
 import Day
-from utils import math
+from utils import mathutils
 from utils.debug import debug
 
 
@@ -8,7 +8,7 @@ class Sequence():
 
     @classmethod
     def seq_sums(cls, seqs, index=-1):
-        return math.sum([x.seq[0][index] for x in seqs])
+        return mathutils.sum([x.seq[0][index] for x in seqs])
     
     def __init__(self, seq_str):
         self.seq = []
