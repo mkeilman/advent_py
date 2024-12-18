@@ -26,10 +26,10 @@ class AdventDay(Day.Base):
     def run(self, v):
         # single line
         stones = [int(x) for x in re.findall(r"\d+", v[0])]
-        n = 25
+        n =25
         for i in range(n):
-            if not i % 10:
-                debug(f"{i + 1} -> {len(self.blink(stones, num_blinks=i + 1))}")
+            #if not i % 10:
+            debug(f"{i + 1} -> {len(self.blink(stones, num_blinks=i + 1))}")
         #new_stones = self.blink(stones, num_blinks=n)
         #debug(f"{stones} BLINKS {n} -> N {len(new_stones)}")
 
@@ -61,24 +61,30 @@ class AdventDay(Day.Base):
         
         st = stones[:]
         m = len(stones)
-        for _ in range(num_blinks):
-            new_stones = []
-            for i, s in enumerate(st):
+        for n in range(num_blinks):
+            #new_stones = []
+            #debug(f"INIT {st}")
+            j = 0
+            for i in range(len(st)):
+                k = i + j
+                s = st[k]
                 if s == 0:
-                    #st = st[:i] + [self._zero_to_one(s)] + st[:i + 1]
+                    st[k] = 1
                     #new_stones.append(self._zero_to_one(s))
-                    new_stones.append(1)
                 elif not (int(math.log10(s)) + 1) % 2:
-                    #st = st[:i] + self._split(s) + st[:i + 1]
-                    new_stones.extend(_split(s))
-                    m += 1
+                    s1, s2 = _split(s)
+                    st[k] = s1
+                    st.insert(k + 1, s2)
+                    j += 1
+                    #new_stones.extend(_split(s))
                 else:
-                    #st = st[:i] + [self._mult(s)] + st[:i + 1]
+                    st[k] = s * 2024
                     #new_stones.append(self._mult(s))
-                    new_stones.append(s * 2024)
-            st = new_stones
-        return new_stones
-        #return st
+                #debug(f"N {n} I {i} {st}")
+            #st = new_stones
+        #return new_stones
+        #debug(f"FINAL {st}")
+        return st
 
 
 
