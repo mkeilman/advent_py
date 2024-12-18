@@ -14,27 +14,81 @@ class PathTree:
         node.parent = self
         self.children.append(node)
 
+
+    def descendants(self):
+        d = self.children[:]
+        for c in self.children:
+            d.extend(c.descendants())
+        return d
+        
+
+    def find_node(self, node_id):
+        if node_id == self.unique_id:
+            return self
+        
+        d = self.descendants()
+        ids = [x.unique_id for x in d]
+        if node_id in ids:
+            return [ids.index(node_id)]
+        return None
+
+        #for c in self.children:
+        #    #debug(f"CHECK {c.unique_id} VS {node_id}")
+        #    if c.unique_id == node_id:
+        #        #debug("FOUND")
+        #        return c
+        #    return c.find_node(node_id)
+        #return None
+
     def is_leaf(self):
         return not self.children
 
     def leaves(self):
-        l = []
+        #l = []
+        #for c in self.children:
+        #    #debug(f"{self.unique_id} SO FAR {[x.unique_id for x in l]}")
+        #    if c.is_leaf() and c.unique_id not in [x.unique_id for x in l]:
+        #        #debug(f"{self.unique_id} LEAF {c.unique_id}")
+        #        l.append(c)
+        #        continue
+        #    for ll in c.leaves():
+        #        if ll.is_leaf() and ll.unique_id not in l:
+        #            l.append(ll)
+        #    #l.extend()
+        return [self.find_node(x) for x in self.leaf_ids()]
+    
+    def leaf_ids(self):
+        l = set()
         for c in self.children:
             if c.is_leaf():
-                l.append(c)
+                l.add(c.unique_id)
                 continue
-            l.extend(c.leaves())
+            l = l.union(c.leaf_ids())
+            #for ll in c.leaves():
+            ##    if ll.is_leaf():
+            #        l.add(ll.unique_id)
         return l
 
+    def leaf_routes(self):
+        return [self.route(x) for x in self.leaves()]
     
-    def path_to(self, node):
+    def prune(self, node_id):
+        n = self.find_node(node_id)
+        if not n:
+            return
+        n.children = []
+        del n.parent[n]
+        
+
+    def route(self, node):
         # go backwards?
         p = [node]
         pp = node.parent
         while pp is not None:
             p.append(pp)
             pp = pp.parent
-        return reversed(p)
+        p.reverse()
+        return p
 
         
     def to_string(self):
@@ -52,6 +106,13 @@ class Terrain:
         self.size = [len(self.grid), len(self.grid[0])]
         self.trailheads = self._trailheads()
     
+
+    def th_routes(self):
+        r = []
+        for th in self.trailheads:
+            p = self._paths(th)
+            r.append([x.leaf_routes() for x in p if len(x.leaf_routes()) == 10])
+        return r
 
     def _is_in_grid(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
@@ -74,49 +135,34 @@ class Terrain:
         
         def _path(pos):
             t = PathTree(pos)
-            #path = [pos]
-            #pp = []
-            #debug(f"P {pos} N {n}")
             for p in _neighborhood(pos):
-                # new array for every pos in neighborhood
-                #pp = [pos]
                 v = self._val(p)
                 if v == self._val(pos) + 1:
-                    pt = _path(p)
-                    t.add(pt)
-                    #debug(f"PATH FROM {t.unique_id} TO {pt.unique_id} {[x.unique_id for x in t.path_to(pt)]}")
-                #debug(f"POS {pos} N {p}")
-                #path.extend(_path(p))
-                #pp = pp + _path(pos)
-            #path.append(pp)
+                    t.add(_path(p))
             return t
-            #return path
 
         #debug(f"P {trailhead} N {_neighborhood(trailhead)}")
         #debug(f"{[x for x in _neighborhood(trailhead) if self._val(x) == self._val(trailhead) + 1]}")
         
-        paths = []
-        p = _path(pos)
+        #paths = []
+        #p = _path(pos)
         #for l in p.leaves():
         #    debug(f"P {p.unique_id} TO {l.unique_id}: {[x.unique_id for x in p.path_to(l)]}")
-        paths.append(p)
+        #paths.append(p)
         #if p and self._val(p[-1]) == 9:
         #    paths.append(p)
 
         #for p in [x for x in _neighborhood(trailhead) if self._val(x) == self._val(trailhead) + 1]:
             #paths.extend(self._paths(p))
 
-        return paths
+        return _path(pos)
+        #return paths
 
 
     def _val(self, pos):
         return int(self.grid[pos[0]][pos[1]])
 
-class Path:
-    def __init__(self, grid):
-        self.grid = grid
-    
-        
+            
 
 class AdventDay(Day.Base):
             
@@ -126,26 +172,38 @@ class AdventDay(Day.Base):
             2024,
             10,
             #[
-            #    "89010123",
+            #    "89019123",
             #    "78121874",
-            #    "87430965",
+            #    "87439965",
             #    "96549874",
-            #    "45678903",
-            #    "32019012",
-            #    "01329801",
-            #    "10456732",
+            #    "45678993",
+            #    "32919312",
+            #    "91329891",
+            #    "19456732",
             #]
             [
-                "012345",
-                "199996",
-                "299997",
-                "399958",
-                "499999",
-                "599999",
-                "659999",
-                "788999",
+                "89010123",
+                "78121874",
+                "87430965",
+                "96549874",
+                "45678903",
+                "32019012",
+                "01329801",
+                "10456732",
             ]
             #[
+            #    "012345",
+            #    "199996",
+            #    "299997",
+            #    "399958",
+            #    "499999",
+            #    "599999",
+            ##    "659999",
+            #    "789999",
+            #]
+            #[
+            #    "01234",
+            #    "98765",
             #    "01234",
             #    "98765",
             #]
@@ -160,9 +218,25 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         t = Terrain(v)
-        p = t._paths(t.trailheads[0])
+        #p = t._paths(t.trailheads[0])
+        #debug(f"TH {t.trailheads}")
+        n = 0
+        for th in t.trailheads:
+            pt = [x for x in t._paths(th).leaves()]
+            debug(f"TH {th} LEN {[x.unique_id for x in t._paths(th).descendants()]}")
+            n += len(pt)
+            for r in pt:
+                pass
+                #debug(f"TH {th} LEN {len(pt)}")
+                #debug(f"TH {th}  {[(x.unique_id, t._val(x.unique_id)) for x in r]}")
+
+        debug(f"N {n}")
+        #thr = t.th_routes()
         #debug(f"P {p[0]} L {len(p[0])} V {[t._val(x) for x in p[0]]}")
-        debug(f"P {[x.unique_id for x in p[0].leaves()]}")
+        #for p in thr:
+        #    for pp in p:
+        #        for r in pp:
+        #            debug(f"RR {[rr.unique_id for rr in r]}")
 
 
 
