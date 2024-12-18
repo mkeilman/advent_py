@@ -18,43 +18,67 @@ class AdventDay(Day.Base):
             [
                 "125 17",
             ]
+            #[
+            #    "0",
+            #]
         )
-        self.args_parser.add_argument(
-            "--whole-files",
-            action=argparse.BooleanOptionalAction,
-            default=True,
-            dest="whole_files",
-        )
-        self.whole_files = self.args_parser.parse_args(run_args).whole_files
 
     def run(self, v):
         # single line
         stones = [int(x) for x in re.findall(r"\d+", v[0])]
         n = 25
-        new_stones = self.blink(stones, num_blinks=n)
-        debug(f"{stones} BLINKS {n} -> N {len(new_stones)}")
+        for i in range(n):
+            if not i % 10:
+                debug(f"{i + 1} -> {len(self.blink(stones, num_blinks=i + 1))}")
+        #new_stones = self.blink(stones, num_blinks=n)
+        #debug(f"{stones} BLINKS {n} -> N {len(new_stones)}")
+
+    #def blink(self, stones, num_blinks=1):
+    #    if num_blinks < 1:
+    #        return stones
+    #    m = len(stones)
+    #    new_stones = []
+    #    for s in stones:
+    #        if s == 0:
+    #            new_stones.append(self._zero_to_one(s))
+    #        elif not len(f"{s}") % 2:
+    #            m += 1
+    #            new_stones.extend(self._split(s))
+    #        else:
+    #            new_stones.append(self._mult(s))
+    #    #debug(f"M {m}")
+    #    return new_stones if num_blinks == 1 else self.blink(new_stones, num_blinks=num_blinks - 1)
 
     def blink(self, stones, num_blinks=1):
-        new_stones = []
-        for s in stones:
-            if s == 0:
-                new_stones.append(self._zero_to_one(s))
-            elif not len(f"{s}") % 2:
-                new_stones.extend(self._split(s))
-            else:
-                new_stones.append(self._mult(s))
-        return new_stones if num_blinks == 1 else self.blink(new_stones, num_blinks=num_blinks - 1)
+        import math
 
-    def _zero_to_one(self, stone):
-        return 1
-    
-    def _split(self, stone):
-        s = f"{stone}"
-        sz = len(s) // 2
-        return [int(s[:sz]), int(s[sz:])]
-    
-    def _mult(self, stone):
-        return stone * 2024
+        def _split(stone):
+            f = math.pow(10,  (int(math.log10(stone)) + 1) // 2)
+            return [int(stone // f), int(stone % f)]
+        
+        if num_blinks < 1:
+            return stones
+        
+        st = stones[:]
+        m = len(stones)
+        for _ in range(num_blinks):
+            new_stones = []
+            for i, s in enumerate(st):
+                if s == 0:
+                    #st = st[:i] + [self._zero_to_one(s)] + st[:i + 1]
+                    #new_stones.append(self._zero_to_one(s))
+                    new_stones.append(1)
+                elif not (int(math.log10(s)) + 1) % 2:
+                    #st = st[:i] + self._split(s) + st[:i + 1]
+                    new_stones.extend(_split(s))
+                    m += 1
+                else:
+                    #st = st[:i] + [self._mult(s)] + st[:i + 1]
+                    #new_stones.append(self._mult(s))
+                    new_stones.append(s * 2024)
+            st = new_stones
+        return new_stones
+        #return st
 
 
 
