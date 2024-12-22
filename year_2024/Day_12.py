@@ -15,10 +15,12 @@ class Plot:
             self.plants = self.plants.union(set(r))
         self.regions = {}
         self.areas = {}
+        self.perimeters = {}
         for p in self.plants:
             self.regions[p] = self._regions_for_plant(p)
-            self.areas[p] = len(self.regions[p])
-        debug(f"R {self.regions} A {self.areas}")
+            self.areas[p] = [len(x) for x in self.regions[p]]
+            self.perimeters[p] = [self._perimeter(x) for x in self.regions[p]]
+        #debug(f"R {self.regions} A {self.areas} P {self.perimeters}")
 
 
     def _is_in_grid(self, pos):
@@ -31,6 +33,22 @@ class Plot:
             if self._is_in_grid(q):
                 n.append(q)
         return n
+
+    def _perimeter(self, region):
+        #x = [x[0] for x in region]
+        #y = [x[1] for x in region]
+        #p = 2 * abs(max(x) - min(x) + 1) + 2 * abs(max(y) - min(y) + 1)
+        p = 0
+        for pos in region:
+            m = set(self._neighborhood(pos))
+            p += (4 - len(m.intersection(region)))
+        return p
+
+    def price(self):
+        s = 0
+        for p in self.plants:
+            s += mathutils.sum([self.areas[p][i] * self.perimeters[p][i] for i, _ in enumerate(self.areas[p])])
+        return s
 
     def _regions_for_plant(self, plant):
         def _region(p, c, s=None):
@@ -48,13 +66,9 @@ class Plot:
             reg.extend([(i, j) for j in string.indices(plant, r)])
         conn = {}
         for p in reg:
-            c = []
             n = []
             for q in reg:
-                if p == q:
-                    continue
-                c.append(p in self._neighborhood(q))
-                if p in self._neighborhood(q):
+                if p != q and p in self._neighborhood(q):
                     n.append(q)
             conn[p] = n
         p_reg = []
@@ -84,19 +98,19 @@ class AdventDay(Day.Base):
             #    "MIIISIJEEE",
             #    "MMMISSJEEE",
             #]
-            [
-                "AAAA",
-                "BBCD",
-                "BBCC",
-                "EEEC",
-            ]
             #[
-            #    "OOOOO",
-            #    "OXOXO",
-            #    "OOOOO",
-            #    "OXOXO",
-            #    "OOOOO",
+            #    "AAAA",
+            #    "BBCD",
+            #    "BBCC",
+            #    "EEEC",
             #]
+            [
+                "OOOOO",
+                "OXOXO",
+                "OOOOO",
+                "OXOXO",
+                "OOOOO",
+            ]
             #[
             #    "AABBB",
             #    "BBAAB",
@@ -105,7 +119,7 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         p = Plot(v)
-        debug(f"RUN")
+        debug(f"PRICE {p.price()}")
 
 
 
