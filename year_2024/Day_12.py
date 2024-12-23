@@ -39,9 +39,26 @@ class Plot:
         return False
     
 
+    def _to_grid(self, region):
+        g = []
+        rows = set([x[0] for x in region])
+        cols = set([x[1] for x in region])
+        for r in rows:
+            arr = []
+            for c in cols:
+                p = (r, c)
+                if p in region:
+                    arr.append(p)
+            g.append(arr)
+        return g
+
     def _is_in_grid(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
     
+    def _is_rect(self, region):
+        g = self._to_grid(region)
+        return all([len(r) == len(list(g)[0]) for r in g])
+
     def _neighborhood(self, pos, restrict_to=None):
         n = []
         sites = {
@@ -63,8 +80,11 @@ class Plot:
             return 2 if self._is_corner(pos, region) else 4
         
         n = 4
-        if len(region) == 1:
+        #if len(region) == 1:
+        if self._is_rect(region) == 1:
+            #debug(f"R {region} IS RECT")
             return n
+        
         #edges = [x for x in region if 0 < len(set(self._neighborhood(x)).intersection(region)) < 4]
         #edges.sort(key=operator.itemgetter(0, 1))
         x = [x[0] for x in region]
@@ -77,48 +97,36 @@ class Plot:
             isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="c") if q in region]
             if not [q for q in self._neighborhood(p, restrict_to="c") if q in region]:
                 add_sides = True
-                #n += _new_sides(p)
+                n += _new_sides(p)
         
         #bottom
         for p in [p for p in region if p[0] == max(x)]:
             isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="c") if q in region]
             if not [q for q in self._neighborhood(p, restrict_to="c") if q in region]:
                 add_sides = True
-                #n += _new_sides(p)
+                n += _new_sides(p)
 
         #left
         for p in [p for p in region if p[1] == min(y)]:
             isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="r") if q in region]
             if not [q for q in self._neighborhood(p, restrict_to="r") if q in region]:
                 add_sides = True
-                #n += _new_sides(p)
+                n += _new_sides(p)
 
         #right
         for p in [p for p in region if p[1] == max(y)]:
             isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="r") if q in region]
             if not [q for q in self._neighborhood(p, restrict_to="r") if q in region]:
                 add_sides = True
-               #n += _new_sides(p)
+                n += _new_sides(p)
         
         print(f"ISO {isolated}")
         #if add_sides:
         #    n += _new_sides(p)
 
-        #start = sorted(region, key=operator.itemgetter(0, 1))[0]
-        #next = None
-        #dirs = ((0, 1), (1, 0), (0, -1), (-1, 0))
-        #j = 0
-        #while next != start:
-        #    d = dirs[j]
-        #    next = (start[0] + d[0], start[1] + d[1])
-        #    if next not in region:
-        #        j = (j + 1) % 4
-        #        continue
-
         return n
 
     def _perimeter(self, region):
-        debug(f"EDGES {self._num_sides(region)}")
         p = 0
         for pos in region:
             m = set(self._neighborhood(pos))
@@ -128,7 +136,9 @@ class Plot:
     def price(self, length_type="perimeter"):
         s = 0
         for p in self.plants:
-            s += mathutils.sum([self.areas[p][i] * self.perimeters[p][i] for i, _ in enumerate(self.areas[p])])
+            debug(f"{p} AREA {self.areas[p]} SIDES {self.sides[p]}")
+            lengths = self.perimeters[p] if length_type == "perimeter" else self.sides[p]
+            s += mathutils.sum([self.areas[p][i] * lengths[i] for i, _ in enumerate(self.areas[p])])
         return s
 
     def _regions_for_plant(self, plant):
@@ -185,19 +195,19 @@ class AdventDay(Day.Base):
             #    "BBCC",
             #    "EEEC",
             #]
-            #[
-            #    "OOOOO",
-            #    "OXOXO",
-            #    "OOOOO",
-            #    "OXOXO",
-            #    "OOOOO",
-            #]
             [
-                "ABB",
-                "AAA",
-                "AAA",
-                "BBA",
+                "OOOOO",
+                "OXOXO",
+                "OOOOO",
+                "OXOXO",
+                "OOOOO",
             ]
+            #[
+            #    "ABB",
+            #    "AAA",
+            #    "AAA",
+            #    "BBA",
+            #]
         )
         self.args_parser.add_argument(
             "--length-type",
