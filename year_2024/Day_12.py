@@ -5,6 +5,11 @@ from utils import mathutils
 from utils import string
 from utils.debug import debug
 
+class Region:
+    def __init__(self, grid):
+        self.grid = grid
+
+
 
 class Plot:
     def __init__(self, grid):
@@ -16,35 +21,111 @@ class Plot:
         self.regions = {}
         self.areas = {}
         self.perimeters = {}
+        self.sides = {}
         for p in self.plants:
             self.regions[p] = self._regions_for_plant(p)
             self.areas[p] = [len(x) for x in self.regions[p]]
             self.perimeters[p] = [self._perimeter(x) for x in self.regions[p]]
+            self.sides[p] = [self._num_sides(x) for x in self.regions[p]]
         #debug(f"R {self.regions} A {self.areas} P {self.perimeters}")
 
+    def _is_corner(self, pos, region):
+        x = [x[0] for x in region]
+        y = [x[1] for x in region]
+        for i in (min(x), max(x)):
+            for j in (min(y), max(y)):
+                if pos == (i, j):
+                    return True
+        return False
+    
 
     def _is_in_grid(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
     
-    def _neighborhood(self, pos):
+    def _neighborhood(self, pos, restrict_to=None):
         n = []
-        for p in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        sites = {
+            "r": ((-1, 0), (1, 0)),
+            "c": ((0, -1), (0, 1)),
+        }
+        s = mathutils.sum(sites.values(), init_val=()) if restrict_to is None else sites[restrict_to]
+        #for p in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        for p in s:
             q = (pos[0] + p[0], pos[1] + p[1])
             if self._is_in_grid(q):
                 n.append(q)
         return n
 
+    def _num_sides(self, region):
+        import operator
+
+        def _new_sides(pos):
+            return 2 if self._is_corner(pos, region) else 4
+        
+        n = 4
+        if len(region) == 1:
+            return n
+        #edges = [x for x in region if 0 < len(set(self._neighborhood(x)).intersection(region)) < 4]
+        #edges.sort(key=operator.itemgetter(0, 1))
+        x = [x[0] for x in region]
+        y = [x[1] for x in region]
+
+        add_sides = False
+        isolated = {}
+        #top
+        for p in [p for p in region if p[0] == min(x)]:
+            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="c") if q in region]
+            if not [q for q in self._neighborhood(p, restrict_to="c") if q in region]:
+                add_sides = True
+                #n += _new_sides(p)
+        
+        #bottom
+        for p in [p for p in region if p[0] == max(x)]:
+            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="c") if q in region]
+            if not [q for q in self._neighborhood(p, restrict_to="c") if q in region]:
+                add_sides = True
+                #n += _new_sides(p)
+
+        #left
+        for p in [p for p in region if p[1] == min(y)]:
+            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="r") if q in region]
+            if not [q for q in self._neighborhood(p, restrict_to="r") if q in region]:
+                add_sides = True
+                #n += _new_sides(p)
+
+        #right
+        for p in [p for p in region if p[1] == max(y)]:
+            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="r") if q in region]
+            if not [q for q in self._neighborhood(p, restrict_to="r") if q in region]:
+                add_sides = True
+               #n += _new_sides(p)
+        
+        print(f"ISO {isolated}")
+        #if add_sides:
+        #    n += _new_sides(p)
+
+        #start = sorted(region, key=operator.itemgetter(0, 1))[0]
+        #next = None
+        #dirs = ((0, 1), (1, 0), (0, -1), (-1, 0))
+        #j = 0
+        #while next != start:
+        #    d = dirs[j]
+        #    next = (start[0] + d[0], start[1] + d[1])
+        #    if next not in region:
+        #        j = (j + 1) % 4
+        #        continue
+
+        return n
+
     def _perimeter(self, region):
-        #x = [x[0] for x in region]
-        #y = [x[1] for x in region]
-        #p = 2 * abs(max(x) - min(x) + 1) + 2 * abs(max(y) - min(y) + 1)
+        debug(f"EDGES {self._num_sides(region)}")
         p = 0
         for pos in region:
             m = set(self._neighborhood(pos))
             p += (4 - len(m.intersection(region)))
         return p
 
-    def price(self):
+    def price(self, length_type="perimeter"):
         s = 0
         for p in self.plants:
             s += mathutils.sum([self.areas[p][i] * self.perimeters[p][i] for i, _ in enumerate(self.areas[p])])
@@ -104,22 +185,33 @@ class AdventDay(Day.Base):
             #    "BBCC",
             #    "EEEC",
             #]
-            [
-                "OOOOO",
-                "OXOXO",
-                "OOOOO",
-                "OXOXO",
-                "OOOOO",
-            ]
             #[
-            #    "AABBB",
-            #    "BBAAB",
+            #    "OOOOO",
+            #    "OXOXO",
+            #    "OOOOO",
+            #    "OXOXO",
+            #    "OOOOO",
             #]
+            [
+                "ABB",
+                "AAA",
+                "AAA",
+                "BBA",
+            ]
         )
+        self.args_parser.add_argument(
+            "--length-type",
+            type=str,
+            help="calculation",
+            choices=["perimeter", "num-sides"],
+            default="perimeter",
+            dest="length_type",
+        )
+        self.length_type = self.args_parser.parse_args(run_args).length_type
 
     def run(self, v):
         p = Plot(v)
-        debug(f"PRICE {p.price()}")
+        debug(f"PRICE {p.price(length_type=self.length_type)}")
 
 
 
