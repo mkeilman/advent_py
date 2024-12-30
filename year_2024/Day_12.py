@@ -6,9 +6,22 @@ from utils import string
 from utils.debug import debug
 
 class Region:
-    def __init__(self, grid):
+    def __init__(self, grid, plant):
         self.grid = grid
+        self.plant = plant
+        self.coords = self._coords(plant, {})
 
+
+    def _coords(self, p, c, s=None):
+        r = s or set([p])
+        if not c[p]:
+            # plants with no connections are their own regions
+            return r
+        for n in [x for x in c[p] if x not in r]:
+            r.add(n)
+            r = r.union(self._coords(n, c, s=r))
+        return r
+    
 
 
 class Plot:
@@ -27,7 +40,9 @@ class Plot:
             self.areas[p] = [len(x) for x in self.regions[p]]
             self.perimeters[p] = [self._perimeter(x) for x in self.regions[p]]
             self.sides[p] = [self._num_sides(x) for x in self.regions[p]]
-        #debug(f"R {self.regions} A {self.areas} P {self.perimeters}")
+        for p in self.plants:
+            n = [self._num_interior_sides(p, x) for x in self.regions[p]]
+            self.sides[p] = [x + n[i] for i, x in enumerate(self.sides[p])]
 
     def _is_corner(self, pos, region):
         x = [x[0] for x in region]
@@ -66,7 +81,6 @@ class Plot:
             "c": ((0, -1), (0, 1)),
         }
         s = mathutils.sum(sites.values(), init_val=()) if restrict_to is None else sites[restrict_to]
-        #for p in ((-1, 0), (1, 0), (0, -1), (0, 1)):
         for p in s:
             q = (pos[0] + p[0], pos[1] + p[1])
             if self._is_in_grid(q):
@@ -74,57 +88,46 @@ class Plot:
         return n
 
     def _num_sides(self, region):
-        import operator
 
         def _new_sides(pos):
             return 2 if self._is_corner(pos, region) else 4
         
         n = 4
-        #if len(region) == 1:
         if self._is_rect(region) == 1:
-            #debug(f"R {region} IS RECT")
             return n
         
-        #edges = [x for x in region if 0 < len(set(self._neighborhood(x)).intersection(region)) < 4]
-        #edges.sort(key=operator.itemgetter(0, 1))
         x = [x[0] for x in region]
         y = [x[1] for x in region]
 
-        add_sides = False
-        isolated = {}
-        #top
-        for p in [p for p in region if p[0] == min(x)]:
-            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="c") if q in region]
-            if not [q for q in self._neighborhood(p, restrict_to="c") if q in region]:
-                add_sides = True
-                n += _new_sides(p)
-        
-        #bottom
-        for p in [p for p in region if p[0] == max(x)]:
-            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="c") if q in region]
-            if not [q for q in self._neighborhood(p, restrict_to="c") if q in region]:
-                add_sides = True
-                n += _new_sides(p)
-
-        #left
-        for p in [p for p in region if p[1] == min(y)]:
-            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="r") if q in region]
-            if not [q for q in self._neighborhood(p, restrict_to="r") if q in region]:
-                add_sides = True
-                n += _new_sides(p)
-
-        #right
-        for p in [p for p in region if p[1] == max(y)]:
-            isolated[p] = isolated.get(p) or not [q for q in self._neighborhood(p, restrict_to="r") if q in region]
-            if not [q for q in self._neighborhood(p, restrict_to="r") if q in region]:
-                add_sides = True
-                n += _new_sides(p)
-        
-        print(f"ISO {isolated}")
-        #if add_sides:
-        #    n += _new_sides(p)
+        for i, r in enumerate(("c", "r")):
+            c = (x, y)[i]
+            for f in (min, max):
+                for p in [p for p in region if p[i] == f(c)]:
+                    if not [q for q in self._neighborhood(p, restrict_to=r) if q in region]:
+                        n += _new_sides(p)
 
         return n
+    
+    def _num_interior_sides(self, plant, region):
+        x = [x[0] for x in region]
+        y = [x[1] for x in region]
+
+        n = 0
+        #debug(f"PL {plant} B X {min(x)}-{max(x)} Y {min(y)}-{max(y)}")
+        for p in self.regions:
+            if p == plant:
+                continue
+            for r in self.regions[p]:
+                # must be completely interior
+                xr = [x[0] for x in r]
+                yr = [x[1] for x in r]
+                #debug(f"P {p} B X {min(xr)}-{max(xr)} Y {min(yr)}-{max(yr)}")
+                if min(x) < min(xr) and max(x) > max(xr) and min(y) < min(yr) and max(y) > max(yr):
+                    n += self._num_sides(r)
+        
+        #debug(f"PL {plant} INT {n}")
+        return n
+    
 
     def _perimeter(self, region):
         p = 0
@@ -172,42 +175,62 @@ class Plot:
 
 class AdventDay(Day.Base):
 
+    ABCDE = [
+        "AAAA",
+        "BBCD",
+        "BBCC",
+        "EEEC",
+    ]
+
+    COMPLEX = [
+        "RRRRIICCFF",
+        "RRRRIICCCF",
+        "VVRRRCCFFF",
+        "VVRCCCJFFF",
+        "VVVVCJJCFE",
+        "VVIVCCJJEE",
+        "VVIIICJJEE",
+        "MIIIIIJJEE",
+        "MIIISIJEEE",
+        "MMMISSJEEE",
+    ]
+
+    EX = [
+        "EEEEE",
+        "EXXXX",
+        "EEEEE",
+        "EXXXX",
+        "EEEEE",
+    ]
+
+    RING = [
+        "AAA",
+        "ABA",
+        "AAA",
+    ]
+
+    TWO_BLOCK = [
+        "AAAAAA",
+        "AAABBA",
+        "AAABBA",
+        "ABBAAA",
+        "ABBAAA",
+        "AAAAAA",
+    ]
+
+    XO = [
+        "OOOOO",
+        "OXOXO",
+        "OOOOO",
+        "OXOXO",
+        "OOOOO",
+    ]
+
     def __init__(self, run_args):
-        import argparse
         super(AdventDay, self).__init__(
             2024,
             12,
-            #[
-            #    "RRRRIICCFF",
-            #    "RRRRIICCCF",
-            #    "VVRRRCCFFF",
-            #    "VVRCCCJFFF",
-            #    "VVVVCJJCFE",
-            #    "VVIVCCJJEE",
-            #    "VVIIICJJEE",
-            #    "MIIIIIJJEE",
-            #    "MIIISIJEEE",
-            #    "MMMISSJEEE",
-            #]
-            #[
-            #    "AAAA",
-            #    "BBCD",
-            #    "BBCC",
-            #    "EEEC",
-            #]
-            [
-                "OOOOO",
-                "OXOXO",
-                "OOOOO",
-                "OXOXO",
-                "OOOOO",
-            ]
-            #[
-            #    "ABB",
-            #    "AAA",
-            #    "AAA",
-            #    "BBA",
-            #]
+            AdventDay.XO
         )
         self.args_parser.add_argument(
             "--length-type",
