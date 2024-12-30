@@ -12,6 +12,28 @@ class Region:
         self.coords = self._coords(plant, {})
 
 
+    def is_corner(self, pos):
+        x = [x[0] for x in self.coords]
+        y = [x[1] for x in self.coords]
+        for i in (min(x), max(x)):
+            for j in (min(y), max(y)):
+                if pos == (i, j):
+                    return True
+        return False
+
+    def to_grid(self):
+        g = []
+        rows = set([x[0] for x in self.coords])
+        cols = set([x[1] for x in self.coords])
+        for r in rows:
+            arr = []
+            for c in cols:
+                p = (r, c)
+                if p in self.coords:
+                    arr.append(p)
+            g.append(arr)
+        return g
+    
     def _coords(self, p, c, s=None):
         r = s or set([p])
         if not c[p]:
@@ -26,10 +48,10 @@ class Region:
 
 class Plot:
     def __init__(self, grid):
-        self.grid = grid
-        self.size = [len(self.grid), len(self.grid[0])]
+        self.grid = Day.Grid(grid)
+        #self.size = [len(self.grid), len(self.grid[0])]
         self.plants = set()
-        for r in self.grid:
+        for r in self.grid.coord_array:
             self.plants = self.plants.union(set(r))
         self.regions = {}
         self.areas = {}
@@ -67,25 +89,10 @@ class Plot:
             g.append(arr)
         return g
 
-    def _is_in_grid(self, pos):
-        return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
     
     def _is_rect(self, region):
         g = self._to_grid(region)
         return all([len(r) == len(list(g)[0]) for r in g])
-
-    def _neighborhood(self, pos, restrict_to=None):
-        n = []
-        sites = {
-            "r": ((-1, 0), (1, 0)),
-            "c": ((0, -1), (0, 1)),
-        }
-        s = mathutils.sum(sites.values(), init_val=()) if restrict_to is None else sites[restrict_to]
-        for p in s:
-            q = (pos[0] + p[0], pos[1] + p[1])
-            if self._is_in_grid(q):
-                n.append(q)
-        return n
 
     def _num_sides(self, region):
 
@@ -99,11 +106,11 @@ class Plot:
         x = [x[0] for x in region]
         y = [x[1] for x in region]
 
-        for i, r in enumerate(("c", "r")):
+        for i, r in enumerate(("col", "row")):
             c = (x, y)[i]
             for f in (min, max):
                 for p in [p for p in region if p[i] == f(c)]:
-                    if not [q for q in self._neighborhood(p, restrict_to=r) if q in region]:
+                    if not [q for q in self.grid.neighborhood(p, restrict_to=r) if q in region]:
                         n += _new_sides(p)
 
         return n
@@ -125,14 +132,14 @@ class Plot:
                 if min(x) < min(xr) and max(x) > max(xr) and min(y) < min(yr) and max(y) > max(yr):
                     n += self._num_sides(r)
         
-        #debug(f"PL {plant} INT {n}")
+        debug(f"PL {plant} INT {n}")
         return n
     
 
     def _perimeter(self, region):
         p = 0
         for pos in region:
-            m = set(self._neighborhood(pos))
+            m = set(self.grid.neighborhood(pos))
             p += (4 - len(m.intersection(region)))
         return p
 
@@ -156,13 +163,13 @@ class Plot:
             return r
 
         reg = []
-        for i, r in enumerate(self.grid):
+        for i, r in enumerate(self.grid.coord_array):
             reg.extend([(i, j) for j in string.indices(plant, r)])
         conn = {}
         for p in reg:
             n = []
             for q in reg:
-                if p != q and p in self._neighborhood(q):
+                if p != q and p in self.grid.neighborhood(q):
                     n.append(q)
             conn[p] = n
         p_reg = []
@@ -230,7 +237,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             12,
-            AdventDay.XO
+            AdventDay.COMPLEX
         )
         self.args_parser.add_argument(
             "--length-type",
