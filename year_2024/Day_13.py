@@ -10,16 +10,23 @@ class Crane:
         self.buttons = {
             "A": {
                 "cost": 3,
+                "max_presses": 100,
             },
             "B": {
                 "cost": 1,
+                "max_presses": 100,
             },
         }
         self.start = (0, 0)
         for i in (0, 1):
             self._build_button(lines[i])
         self.prize_coords = self._prize_coords(lines[2])
+        self.paths = self._paths()
+        self.prices = [self.path_price(x) for x in self.paths]
+        self.min_price = min(self.prices) if self.paths else 0
 
+    def path_price(self, path):
+        return path[0] * self.buttons["A"]["cost"] + path[1] * self.buttons["B"]["cost"]
 
 
     def _build_button(self, txt):
@@ -33,30 +40,17 @@ class Crane:
         m = re.match(r"Prize:\s+X=(\d+),\s+Y=(\d+)", txt)
         return (int(m.group(1)), int(m.group(2)))
 
-    
+
     def _paths(self):
-        paths = {
-            "X": [],
-            "Y": [],
-        }
-        for n in range(0, self.prize_coords[0] // self.buttons["A"]["X"]):
-            for m in range(0, self.prize_coords[0] // self.buttons["B"]["X"]):
-                p = n * self.buttons["A"]["X"] + m * self.buttons["B"]["X"]
-                if p == self.prize_coords[0]:
-                    paths["X"].append((n, m))
-        
-        if not paths["X"]:
-            return None
-        
-        for n in range(0, self.prize_coords[1] // self.buttons["A"]["Y"]):
-            for m in range(0, self.prize_coords[1] // self.buttons["B"]["Y"]):
-                p = n * self.buttons["A"]["Y"] + m * self.buttons["B"]["Y"]
-                if p == self.prize_coords[1]:
-                    paths["Y"].append((n, m))
-        
-        if not paths["Y"]:
-            return None
-        
+        paths = []
+        for n in range(self.buttons["A"]["max_presses"]):
+            for m in range(self.buttons["B"]["max_presses"]):
+        #for n in range(0, self.prize_coords[0] // self.buttons["A"]["X"]):
+        #    for m in range(0, self.prize_coords[0] // self.buttons["B"]["X"]):
+                x = n * self.buttons["A"]["X"] + m * self.buttons["B"]["X"]
+                y = n * self.buttons["A"]["Y"] + m * self.buttons["B"]["Y"]
+                if x == self.prize_coords[0] and y == self.prize_coords[1]:
+                    paths.append((n, m))
         
         return paths
 
@@ -98,9 +92,9 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         self.cranes = self._parse(v)
-        #debug(f"CRANES {[x.prize_coords for x in self.cranes]}")
-        for i, c in enumerate(self.cranes):
-            debug(f"{i} PATHS {c._paths()}")
+        debug(f"NUM CR {len(self.cranes)} LAST {self.cranes[-1].paths}")
+        min_price = mathutils.sum([x.min_price for x in self.cranes])
+        debug(f"MIN PRICE {min_price}")
 
     def _parse(self, grid):
         i = 0
