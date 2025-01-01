@@ -47,9 +47,8 @@ class Region:
 
 
 class Plot:
-    def __init__(self, grid):
+    def __init__(self, grid, exclude=None, offset=(0,0)):
         self.grid = Day.Grid(grid)
-        #self.size = [len(self.grid), len(self.grid[0])]
         self.plants = set()
         for r in self.grid.coord_array:
             self.plants = self.plants.union(set(r))
@@ -58,13 +57,15 @@ class Plot:
         self.perimeters = {}
         self.sides = {}
         for p in self.plants:
-            self.regions[p] = self._regions_for_plant(p)
+            if exclude and p == exclude:
+                continue
+            self.regions[p] = self._regions_for_plant(p, offset=offset)
             self.areas[p] = [len(x) for x in self.regions[p]]
             self.perimeters[p] = [self._perimeter(x) for x in self.regions[p]]
-            self.sides[p] = [self._num_sides(x) for x in self.regions[p]]
-        for p in self.plants:
-            n = [self._num_interior_sides(p, x) for x in self.regions[p]]
-            self.sides[p] = [x + n[i] for i, x in enumerate(self.sides[p])]
+            self.sides[p] = [self._num_sides(p, x) for x in self.regions[p]]
+        #for p in self.plants:
+        #    n = [self._num_interior_sides(p, x) for x in self.regions[p]]
+        #    self.sides[p] = [x + n[i] for i, x in enumerate(self.sides[p])]
 
     def _is_corner(self, pos, region):
         x = [x[0] for x in region]
@@ -89,29 +90,72 @@ class Plot:
             g.append(arr)
         return g
 
+    def _complement(self, plant, region):
+        import time
+
+        # rectangles have no complements
+        if self._is_rect(region):
+            return None
+        
+        x = [x[0] for x in region]
+        y = [x[1] for x in region]
+
+        grid = []
+        for r in range(min(x), max(x) + 1):
+            s = ""
+            for c in range(min(y), max(y) + 1):
+                s += ("+" if (r, c) in region else "-")
+            grid.append(s)
+        debug(f"{plant} G {grid}")
+        if not grid:
+            return None
+        p = Plot(grid, exclude="+", offset=(min(x), min(y)))
+        return p
+        #return p.regions.get("-", [])
+        
     
     def _is_rect(self, region):
         g = self._to_grid(region)
         return all([len(r) == len(list(g)[0]) for r in g])
 
-    def _num_sides(self, region):
+    def _num_sides(self, plant, region):
 
         def _new_sides(pos):
             return 2 if self._is_corner(pos, region) else 4
         
         n = 4
-        if self._is_rect(region) == 1:
-            return n
+        #if self._is_rect(region):
+        #    return n
         
+        cmp = self._complement(plant, region)
+        if cmp is not None:
+            #m = 4
+            for r in cmp.regions.get("-", []):
+                #m = m + cmp._num_sides("-", r)
+                nn = cmp._num_sides(plant, r)
+                debug(f"{plant} ADD {nn}")
+                n = n + nn
+                if any([self._is_corner(x, r) for x in r]):
+                    #m -= 2
+                    n -= 2
+                #debug(f"R {r} M NOW {m}")
+                #d = -2 if any([self._is_corner(x, r) for x in r]) else 0
+            #debug(f"{plant} M {m}")
+            debug(f"{plant} M {n}")
+
+        #cmp = self._complement(plant, region)
+        #debug(f"{plant} CMP PLOT REG {cmp.regions}")
+
         x = [x[0] for x in region]
         y = [x[1] for x in region]
 
-        for i, r in enumerate(("col", "row")):
-            c = (x, y)[i]
-            for f in (min, max):
-                for p in [p for p in region if p[i] == f(c)]:
-                    if not [q for q in self.grid.neighborhood(p, restrict_to=r) if q in region]:
-                        n += _new_sides(p)
+        #for i, r in enumerate(Day.Grid.neighborhoods):
+        #    c = (x, y)[i]
+        #    for f in (min, max):
+        #        for p in [p for p in region if p[i] == f(c)]:
+        #            if not [q for q in self.grid.neighborhood(p, restrict_to=r) if q in region]:
+        #                debug(f"{plant} NEW SIDES {p}: {_new_sides(p)}")
+        #                n += _new_sides(p)
 
         return n
     
@@ -120,7 +164,6 @@ class Plot:
         y = [x[1] for x in region]
 
         n = 0
-        #debug(f"PL {plant} B X {min(x)}-{max(x)} Y {min(y)}-{max(y)}")
         for p in self.regions:
             if p == plant:
                 continue
@@ -128,9 +171,8 @@ class Plot:
                 # must be completely interior
                 xr = [x[0] for x in r]
                 yr = [x[1] for x in r]
-                #debug(f"P {p} B X {min(xr)}-{max(xr)} Y {min(yr)}-{max(yr)}")
                 if min(x) < min(xr) and max(x) > max(xr) and min(y) < min(yr) and max(y) > max(yr):
-                    n += self._num_sides(r)
+                    n += self._num_sides(p, r)
         
         debug(f"PL {plant} INT {n}")
         return n
@@ -151,7 +193,7 @@ class Plot:
             s += mathutils.sum([self.areas[p][i] * lengths[i] for i, _ in enumerate(self.areas[p])])
         return s
 
-    def _regions_for_plant(self, plant):
+    def _regions_for_plant(self, plant, offset=(0, 0)):
         def _region(p, c, s=None):
             r = s or set([p])
             if not c[p]:
@@ -164,7 +206,7 @@ class Plot:
 
         reg = []
         for i, r in enumerate(self.grid.coord_array):
-            reg.extend([(i, j) for j in string.indices(plant, r)])
+            reg.extend([(i + offset[0], j + offset[1]) for j in string.indices(plant, r)])
         conn = {}
         for p in reg:
             n = []
@@ -189,17 +231,30 @@ class AdventDay(Day.Base):
         "EEEC",
     ]
 
+    #COMPLEX = [
+    #    "RRRRIICCFF",
+    #    "RRRRIICCCF",
+    #    "VVRRRCCFFF",
+    #    "VVRCCCJFFF",
+    #    "VVVVCJJCFE",
+    #    "VVIVCCJJEE",
+    #    "VVIIICJJEE",
+    ###    "MIIIIIJJEE",
+    #    "MIIISIJEEE",
+    ##    "MMMISSJEEE",
+    #]
+
     COMPLEX = [
-        "RRRRIICCFF",
-        "RRRRIICCCF",
-        "VVRRRCCFFF",
-        "VVRCCCJFFF",
-        "VVVVCJJCFE",
-        "VVIVCCJJEE",
-        "VVIIICJJEE",
-        "MIIIIIJJEE",
-        "MIIISIJEEE",
-        "MMMISSJEEE",
+        "......CC..",
+        "......CCC.",
+        ".....CC...",
+        "...CCC....",
+        "....C..C..",
+        "....CC....",
+        ".....C....",
+        "..........",
+        "..........",
+        "..........",
     ]
 
     EX = [
@@ -237,7 +292,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             12,
-            AdventDay.COMPLEX
+            AdventDay.RING
         )
         self.args_parser.add_argument(
             "--length-type",

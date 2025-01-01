@@ -25,6 +25,12 @@ class Base:
 
 
 class Grid:
+
+    neighborhoods = {
+        "col": ((0, -1), (0, 1)),
+        "row": ((-1, 0), (1, 0)),
+    }
+
     def __init__(self, coord_array):
         self.coord_array = coord_array
         self.size = [len(self.coord_array), len(self.coord_array[0])]
@@ -36,11 +42,7 @@ class Grid:
         from utils import mathutils
 
         n = []
-        sites = {
-            "row": ((-1, 0), (1, 0)),
-            "col": ((0, -1), (0, 1)),
-        }
-        s = mathutils.sum(sites.values(), init_val=()) if restrict_to is None else sites[restrict_to]
+        s = mathutils.sum(Grid.neighborhoods.values(), init_val=()) if restrict_to is None else Grid.neighborhoods[restrict_to]
         for p in s:
             q = (pos[0] + p[0], pos[1] + p[1])
             if self.contains(q):
