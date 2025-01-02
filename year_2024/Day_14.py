@@ -21,6 +21,16 @@ class Foyer:
             for i in (0, 1):
                 r.pos[i] = ((r.pos[i] + num_steps * r.velocity[i]) + self.size[i]) % self.size[i]
 
+    def display(self):
+        for j in range(self.size[1]):
+            s = ""
+            for i in range(self.size[0]):
+                p = [i, j]
+                n = len([x.pos for x in self.robots if x.pos == p])
+                s += (str(n) if n else ".")
+            debug(s)
+        
+
     def robot_counts(self):
         c = []
         for q in self.quadrants:
@@ -86,12 +96,10 @@ class AdventDay(Day.Base):
     def run(self, v):
         r = [Robot(x) for x in v]
         f = Foyer((self.width, self.height), r)
-        #debug(f"R 10 POS {r[10].pos}")
+        #f.display()
         f.move_robots(num_steps=100)
-        #debug(f"R 10 POS {r[10].pos}")
-        #debug(f"POS {[x.pos for x in r]}")
-        #debug(f"Q {f.quadrants}")
         debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
+        f.display()
 
 
 def main():
