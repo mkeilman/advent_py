@@ -16,6 +16,14 @@ class Foyer:
             (range(self.size[0] // 2 + 1, self.size[0]), range(self.size[1] // 2 + 1, self.size[1])),
         )
 
+    def find_tree(self, max_runs=100):
+        for i in range(max_runs):
+            p = [tuple(x.pos) for x in self.robots]
+            if all([x in p for x in self.tree()]):
+                debug(f"FOUND TREE RUN {i + 1}")
+                break
+        return i
+    
     def move_robots(self, num_steps=1):
         for r in self.robots:
             for i in (0, 1):
@@ -43,6 +51,43 @@ class Foyer:
     
     def safety_factor(self):
         return mathutils.product(self.robot_counts())
+
+
+    def set_robots(self, positions):
+        for i in range(min(len(positions), len(self.robots))):
+            self.robots[i].pos = [positions[i][0], positions[i][1]]
+    
+
+    def tree(self):
+        i = self.size[0] // 2
+        j = 0
+        k = i
+        l = 1
+        positions = [(i, j)]
+        done = False
+        while not done:
+            i -= 1
+            j += 1
+            k = i + 2 * l
+            positions.append((i, j))
+            positions.append((k, j))
+            done = i <= 0 or j >= self.size[1] or len(positions) >= len(self.robots)
+            l += 1
+        n = len(self.robots) - len(positions)
+        n_base = 2 * l - 3
+        n_trunk = 3 * (self.size[1] - j - 1)
+       
+        if n < n_base + n_trunk:
+            debug("NOT ENOUGH ROBOTS")
+            return positions
+        for i in range(i + 1, k):
+            positions.append((i, j))
+        for j in range(j + 1, self.size[1]):
+            positions.append((self.size[0] // 2 - 1, j))
+            positions.append((self.size[0] // 2, j))
+            positions.append((self.size[0] // 2 + 1, j))
+        return positions
+
 
 
 class Robot:
@@ -90,16 +135,28 @@ class AdventDay(Day.Base):
             default=7,
             dest="height",
         )
+        self.args_parser.add_argument(
+            "--tree-tries",
+            type=int,
+            help="limit to finding easter egg",
+            default=100,
+            dest="tree_tries",
+        )
         self.width = self.args_parser.parse_args(run_args).width
         self.height = self.args_parser.parse_args(run_args).height
+        self.tree_tries = self.args_parser.parse_args(run_args).tree_tries
 
     def run(self, v):
         r = [Robot(x) for x in v]
         f = Foyer((self.width, self.height), r)
         #f.display()
-        f.move_robots(num_steps=100)
-        debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
-        f.display()
+        #f.move_robots(num_steps=100)
+        #debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
+        #f.set_robots(f.tree())
+        #f.display()
+        #debug(f"TREE {len(f.tree())}")
+        n = f.find_tree(max_runs=self.tree_tries)
+        debug(f"TREE RUNS {n + 1} FOUND? {n >= self.tree_tries}")
 
 
 def main():
