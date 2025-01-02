@@ -22,7 +22,6 @@ class Crane:
         for i in (0, 1):
             self._build_button(lines[i])
         self.prize_coords = self._prize_coords(lines[2])
-        #debug(f"PC {self.prize_coords}")
         self.paths = self._paths()
         self.prices = [self.path_price(x) for x in self.paths]
         self.min_price = min(self.prices) if self.paths else 0
