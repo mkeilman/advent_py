@@ -6,7 +6,7 @@ from utils import string
 from utils.debug import debug
 
 class Crane:
-    def __init__(self, lines):
+    def __init__(self, lines, prize_offset=0):
         self.buttons = {
             "A": {
                 "cost": 3,
@@ -18,9 +18,11 @@ class Crane:
             },
         }
         self.start = (0, 0)
+        self.prize_offset = prize_offset
         for i in (0, 1):
             self._build_button(lines[i])
         self.prize_coords = self._prize_coords(lines[2])
+        #debug(f"PC {self.prize_coords}")
         self.paths = self._paths()
         self.prices = [self.path_price(x) for x in self.paths]
         self.min_price = min(self.prices) if self.paths else 0
@@ -38,19 +40,28 @@ class Crane:
 
     def _prize_coords(self, txt):
         m = re.match(r"Prize:\s+X=(\d+),\s+Y=(\d+)", txt)
-        return (int(m.group(1)), int(m.group(2)))
+        return (int(m.group(1)) + self.prize_offset, int(m.group(2)) + self.prize_offset)
 
 
     def _paths(self):
         paths = []
-        for n in range(self.buttons["A"]["max_presses"]):
-            for m in range(self.buttons["B"]["max_presses"]):
+        dxa = self.buttons["A"]["X"]
+        dxb = self.buttons["B"]["X"]
+        dya = self.buttons["A"]["Y"]
+        dyb = self.buttons["B"]["Y"]
+
+        m = (self.prize_coords[1] * dxa - self.prize_coords[0] * dya) / (dxa * dyb - dxb * dya)
+        n = (self.prize_coords[0] - m * dxb) / dxa
+        if n % 1 == 0 and m % 1 == 0:
+            paths.append((int(n), int(m)))
+        #for n in range(self.buttons["A"]["max_presses"]):
+        #    for m in range(self.buttons["B"]["max_presses"]):
         #for n in range(0, self.prize_coords[0] // self.buttons["A"]["X"]):
         #    for m in range(0, self.prize_coords[0] // self.buttons["B"]["X"]):
-                x = n * self.buttons["A"]["X"] + m * self.buttons["B"]["X"]
-                y = n * self.buttons["A"]["Y"] + m * self.buttons["B"]["Y"]
-                if x == self.prize_coords[0] and y == self.prize_coords[1]:
-                    paths.append((n, m))
+        #        x = n * self.buttons["A"]["X"] + m * self.buttons["B"]["X"]
+        #        y = n * self.buttons["A"]["Y"] + m * self.buttons["B"]["Y"]
+        #        if x == self.prize_coords[0] and y == self.prize_coords[1]:
+        #            paths.append((n, m))
         
         return paths
 
@@ -81,18 +92,16 @@ class AdventDay(Day.Base):
             AdventDay.TEST
         )
         self.args_parser.add_argument(
-            "--length-type",
-            type=str,
-            help="calculation",
-            choices=["perimeter", "num-sides"],
-            default="perimeter",
-            dest="length_type",
+            "--prize-offset",
+            type=int,
+            help="prize offset",
+            default=0,
+            dest="prize_offset",
         )
-        self.length_type = self.args_parser.parse_args(run_args).length_type
+        self.prize_offset = self.args_parser.parse_args(run_args).prize_offset
 
     def run(self, v):
         self.cranes = self._parse(v)
-        debug(f"NUM CR {len(self.cranes)} LAST {self.cranes[-1].paths}")
         min_price = mathutils.sum([x.min_price for x in self.cranes])
         debug(f"MIN PRICE {min_price}")
 
@@ -100,7 +109,7 @@ class AdventDay(Day.Base):
         i = 0
         cranes = []
         while i < len(grid):
-            cranes.append(Crane(grid[i:i + 3]))
+            cranes.append(Crane(grid[i:i + 3], prize_offset=self.prize_offset))
             i += 4
         return cranes
 
