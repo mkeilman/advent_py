@@ -49,11 +49,20 @@ class Foyer:
     def is_symmetric(self):
         s = True
         for i in range(self.size[1]):
-            p = [x.pos[0] for x in self.robots if x.pos[1] == i]
+            p = sorted([x.pos[0] for x in self.robots if x.pos[1] == i])
+            #debug(f"CHECK LINE {i} {p}")
             if not p:
                 continue
-            if p[:self.size[1] // 2] == list(reversed(p[self.size[1] // 2:])):
-                debug(f"SYMM LINE {i} {p}")
+            dp = 1 if len(p) % 2 else 0
+            p_front = p[:len(p) // 2]
+            p_back = [self.size[0] - x - 1 for x in list(reversed(p[len(p) // 2 + dp:]))]
+            if not p_back or not p_front:
+                continue
+            #debug(f"F/B {p_front} {p_back}")
+            if p_front == p_back:
+                #debug(f"F/B {p_front} {p_back}")
+                #debug(f"SYMM LINE {i} {p}")
+                pass
             else:
                 s = False
         return s
@@ -197,11 +206,28 @@ class AdventDay(Day.Base):
         "p=9,5 v=-3,-3",
     ]
 
+    SYMMETRIC = [
+        "p=5,0 v=0,0",
+        "p=0,0 v=3,-3",
+        "p=10,0 v=-1,-3",
+        "p=1,0 v=3,-3",
+        "p=9,0 v=-1,-3",
+        "p=1,1 v=-1,2",
+        "p=9,1 v=2,-1",
+        "p=2,2 v=1,3",
+        "p=8,2 v=-2,-2",
+        "p=3,3 v=-1,-3",
+        "p=7,3 v=-1,-2",
+        "p=4,4 v=2,3",
+        "p=6,4 v=-1,2",
+        "p=5,5 v=2,-3",
+    ]
+
     def __init__(self, run_args):
         super(AdventDay, self).__init__(
             2024,
             14,
-            AdventDay.TEST
+            AdventDay.SYMMETRIC
         )
         self.args_parser.add_argument(
             "--width",
@@ -240,6 +266,7 @@ class AdventDay(Day.Base):
         r = [Robot(x) for x in v]
         f = Foyer((self.width, self.height), r)
         #f.display()
+        #debug(f"SYMM? {f.is_symmetric()}")
         #f.move_robots(num_steps=0)
         #debug(f"BACK? {all([x.pos == x.init_pos for x in r])}")
         #debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
