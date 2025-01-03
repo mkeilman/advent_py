@@ -17,37 +17,60 @@ class Foyer:
         )
 
     def find_tree(self, start_run=0, max_runs=100):
-        t = self.tree()
+        num_lines = 5
+        t = self.tree(trunk_width=5)
         self.move_robots(num_steps=start_run)
+        if self.is_symmetric():
+            return 1
+        #self.display(num_lines=num_lines)
+        #debug("***")
         max_matches = 0
-        debug(f"N TREE BOTS {len(t)}")
+        #debug(f"N TREE BOTS {len(t)}")
         for i in range(max_runs):
             self.move_robots()
+            if self.is_symmetric():
+                self.display(num_lines=num_lines)
+                break
+            #self.display(num_lines=num_lines)
+            #debug("***")
             p = [tuple(x.pos) for x in self.robots]
             tree_match = [x in p for x in t]
             n_matches = len([x for x in tree_match if x])
             #max_matches = max(max_matches, n_matches)
             if n_matches > max_matches:
             #if any(tree_match) and i % 100 == 0:
-                debug(f"RUN {i + 1} PARTIAL TREE {n_matches} MAX {max_matches}")
+                #debug(f"RUN {i + 1} PARTIAL TREE {n_matches} MAX {max_matches}")
                 max_matches = n_matches
             if all(tree_match):
-                debug(f"FOUND TREE RUN {i + 1}")
+                #debug(f"FOUND TREE RUN {i + 1}")
                 break
         return i
     
+    def is_symmetric(self):
+        s = True
+        for i in range(self.size[1]):
+            p = [x.pos[0] for x in self.robots if x.pos[1] == i]
+            if not p:
+                continue
+            if p[:self.size[1] // 2] == list(reversed(p[self.size[1] // 2:])):
+                debug(f"SYMM LINE {i} {p}")
+            else:
+                s = False
+        return s
+            
+
     def move_robot(self, r, num_steps=1):
         for i in (0, 1):
             r.pos[i] = ((r.pos[i] + num_steps * r.velocity[i]) + self.size[i]) % self.size[i]
 
+
     def move_robots(self, num_steps=1):
         for r in self.robots:
             self.move_robot(r, num_steps=num_steps)
-            #for i in (0, 1):
-            #    r.pos[i] = ((r.pos[i] + num_steps * r.velocity[i]) + self.size[i]) % self.size[i]
 
-    def display(self):
-        for j in range(self.size[1]):
+
+    def display(self, num_lines=None):
+        for j in range(num_lines or self.size[1]):
             s = ""
             for i in range(self.size[0]):
                 p = [i, j]
@@ -88,10 +111,10 @@ class Foyer:
         while not found:
             dx = robot.init_pos[0] + n * robot.velocity[0]
             # back to starting x, check y
-            debug(f"DX {dx} MOD {dx % self.size[0]} START {robot.init_pos[0]}")
+            #debug(f"DX {dx} MOD {dx % self.size[0]} START {robot.init_pos[0]}")
             if dx % self.size[0] == robot.init_pos[0]:
                 dy = robot.init_pos[1] + n * robot.velocity[1]
-                debug(f"DY {dy} MOD {dy % self.size[1]} START {robot.init_pos[1]}")
+                #debug(f"DY {dy} MOD {dy % self.size[1]} START {robot.init_pos[1]}")
                 found = dy % self.size[1] == robot.init_pos[1]
             n += 1
 
@@ -216,16 +239,14 @@ class AdventDay(Day.Base):
     def run(self, v):
         r = [Robot(x) for x in v]
         f = Foyer((self.width, self.height), r)
-        for i, rr in enumerate(r):
-            n = f.robot_cycle_length(rr)
-            debug(f"{i} CYCLE {n}")
         #f.display()
-        #f.move_robots(num_steps=100)
+        #f.move_robots(num_steps=0)
+        #debug(f"BACK? {all([x.pos == x.init_pos for x in r])}")
         #debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
         #f.set_robots(f.tree(trunk_width=1))
-        #f.display()
-        #n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
-        #debug(f"TREE RUNS {n + 1} FOUND? {n >= self.tree_tries}")
+        #f.display(num_lines=10)
+        n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
+        debug(f"TREE RUNS {n + 1} FOUND? {n >= self.tree_tries}")
 
 
 def main():
