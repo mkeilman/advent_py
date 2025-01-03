@@ -17,58 +17,21 @@ class Foyer:
         )
 
     def find_tree(self, start_run=0, max_runs=100):
-        num_lines = 5
-        t = self.tree(trunk_width=5)
         self.move_robots(num_steps=start_run)
         if self.has_tree_top():
-            return 1
-        #self.display(num_lines=num_lines)
-        #debug("***")
-        max_matches = 0
-        #debug(f"N TREE BOTS {len(t)}")
+            return start_run
         for i in range(max_runs):
+            if i % 100 == 0:
+                debug(i)
             self.move_robots()
             tt = self.has_tree_top()
             if tt:
                 debug(f"TT AT {tt}")
                 self.display(start_line=tt[1])
-                break
-            #self.display(num_lines=num_lines)
-            #debug("***")
-            p = [tuple(x.pos) for x in self.robots]
-            tree_match = [x in p for x in t]
-            n_matches = len([x for x in tree_match if x])
-            #max_matches = max(max_matches, n_matches)
-            if n_matches > max_matches:
-            #if any(tree_match) and i % 100 == 0:
-                #debug(f"RUN {i + 1} PARTIAL TREE {n_matches} MAX {max_matches}")
-                max_matches = n_matches
-            if all(tree_match):
-                #debug(f"FOUND TREE RUN {i + 1}")
-                break
-        return i
+                return start_run + i
+        return -1
     
-    def is_symmetric(self):
-        s = True
-        for i in range(self.size[1]):
-            p = sorted([x.pos[0] for x in self.robots if x.pos[1] == i])
-            #debug(f"CHECK LINE {i} {p}")
-            if not p:
-                continue
-            dp = 1 if len(p) % 2 else 0
-            p_front = p[:len(p) // 2]
-            p_back = [self.size[0] - x - 1 for x in list(reversed(p[len(p) // 2 + dp:]))]
-            if not p_back or not p_front:
-                continue
-            #debug(f"F/B {p_front} {p_back}")
-            if p_front == p_back:
-                #debug(f"F/B {p_front} {p_back}")
-                #debug(f"SYMM LINE {i} {p}")
-                pass
-            else:
-                s = False
-        return s
-    
+
     def has_tree_top(self):
         tree_top = [[0, 0], [-1, 1], [1, 1], [-2, 2], [2, 2], [-3, 3], [3, 3]]
         r_pos = [x.pos for x in self.robots]
@@ -111,39 +74,7 @@ class Foyer:
                     n += 1
             c.append(n)
         return c
-    
-    def robot_cycle_length(self, robot):
-        n = 0
-        nx = 0
-        Nx = 1
-        ny = 0
-        robot.reset()
-        tx = robot.init_pos[0] / robot.velocity[0]
-        ty = robot.init_pos[1] / robot.velocity[1]
-        #debug(f"X0 {robot.init_pos[0]} VX {robot.velocity[0]} TX {tx} INT? {tx % 1 == 0}")
-        #debug(f"Y0 {robot.init_pos[1]} VY {robot.velocity[1]} TX {ty} INT? {ty % 1 == 0}")
-        #self.move_robot(robot)
-        #while robot.pos != robot.init_pos:
 
-        n = 1
-        found = False
-        while not found:
-            dx = robot.init_pos[0] + n * robot.velocity[0]
-            # back to starting x, check y
-            #debug(f"DX {dx} MOD {dx % self.size[0]} START {robot.init_pos[0]}")
-            if dx % self.size[0] == robot.init_pos[0]:
-                dy = robot.init_pos[1] + n * robot.velocity[1]
-                #debug(f"DY {dy} MOD {dy % self.size[1]} START {robot.init_pos[1]}")
-                found = dy % self.size[1] == robot.init_pos[1]
-            n += 1
-
-        #n = tx * (Nx * self.size[0] - 1)
-        #while n % 1 != 0:
-        ##    Nx += 1
-        ##    #self.move_robot(robot)
-        #    n = tx * (Nx * self.size[0] - 1)
-        #debug(f"N {n} NX {Nx}")
-        return n
     
     def safety_factor(self):
         return mathutils.product(self.robot_counts())
@@ -152,38 +83,6 @@ class Foyer:
     def set_robots(self, positions):
         for i in range(min(len(positions), len(self.robots))):
             self.robots[i].pos = [positions[i][0], positions[i][1]]
-    
-
-    def tree(self, trunk_width=1):
-        assert trunk_width % 2
-
-        i = self.size[0] // 2
-        j = 0
-        k = i
-        l = 1
-        positions = [(i, j)]
-        done = False
-        while not done:
-            i -= 1
-            j += 1
-            k = i + 2 * l
-            positions.append((i, j))
-            positions.append((k, j))
-            done = i <= 0 or j >= self.size[1] or len(positions) >= len(self.robots)
-            l += 1
-        n = len(self.robots) - len(positions)
-        n_base = 2 * l - 3
-        n_trunk = trunk_width * (self.size[1] - j - 1)
-       
-        if n < n_base + n_trunk:
-            debug("NOT ENOUGH ROBOTS")
-            return positions
-        for i in range(i + 1, k):
-            positions.append((i, j))
-        for j in range(j + 1, self.size[1]):
-            for m in range(trunk_width):
-                positions.append((self.size[0] // 2 - trunk_width // 2 + m, j))
-        return positions
 
 
 
@@ -276,14 +175,12 @@ class AdventDay(Day.Base):
         r = [Robot(x) for x in v]
         f = Foyer((self.width, self.height), r)
         #f.display()
-        #debug(f"SYMM? {f.is_symmetric()}")
-        f.move_robots(num_steps=7790)
-        #debug(f"BACK? {all([x.pos == x.init_pos for x in r])}")
+        #f.move_robots(num_steps=7790)
+        #f.display()
         #debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
-        #f.set_robots(f.tree(trunk_width=1))
+        n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
+        debug(f"TREE RUNS {n + 1} FOUND? {n >= 0}")
         f.display()
-        #n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
-        #debug(f"TREE RUNS {n + 1} FOUND? {n >= self.tree_tries}")
 
 
 def main():
