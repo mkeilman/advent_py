@@ -20,7 +20,7 @@ class Foyer:
         num_lines = 5
         t = self.tree(trunk_width=5)
         self.move_robots(num_steps=start_run)
-        if self.is_symmetric():
+        if self.has_tree_top():
             return 1
         #self.display(num_lines=num_lines)
         #debug("***")
@@ -28,8 +28,10 @@ class Foyer:
         #debug(f"N TREE BOTS {len(t)}")
         for i in range(max_runs):
             self.move_robots()
-            if self.is_symmetric():
-                self.display(num_lines=num_lines)
+            tt = self.has_tree_top()
+            if tt:
+                debug(f"TT AT {tt}")
+                self.display(start_line=tt[1])
                 break
             #self.display(num_lines=num_lines)
             #debug("***")
@@ -66,7 +68,15 @@ class Foyer:
             else:
                 s = False
         return s
-            
+    
+    def has_tree_top(self):
+        tree_top = [[0, 0], [-1, 1], [1, 1], [-2, 2], [2, 2], [-3, 3], [3, 3]]
+        r_pos = [x.pos for x in self.robots]
+        for p in r_pos:
+            if all([[x[0] + p[0], x[1] + p[1]] in r_pos for x in tree_top]):
+                return p
+        return None
+
 
     def move_robot(self, r, num_steps=1):
         for i in (0, 1):
@@ -78,8 +88,8 @@ class Foyer:
             self.move_robot(r, num_steps=num_steps)
 
 
-    def display(self, num_lines=None):
-        for j in range(num_lines or self.size[1]):
+    def display(self, start_line=0, num_lines=None):
+        for j in range(start_line, num_lines or self.size[1]):
             s = ""
             for i in range(self.size[0]):
                 p = [i, j]
@@ -267,13 +277,13 @@ class AdventDay(Day.Base):
         f = Foyer((self.width, self.height), r)
         #f.display()
         #debug(f"SYMM? {f.is_symmetric()}")
-        #f.move_robots(num_steps=0)
+        f.move_robots(num_steps=7790)
         #debug(f"BACK? {all([x.pos == x.init_pos for x in r])}")
         #debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
         #f.set_robots(f.tree(trunk_width=1))
-        #f.display(num_lines=10)
-        n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
-        debug(f"TREE RUNS {n + 1} FOUND? {n >= self.tree_tries}")
+        f.display()
+        #n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
+        #debug(f"TREE RUNS {n + 1} FOUND? {n >= self.tree_tries}")
 
 
 def main():
