@@ -58,8 +58,11 @@ class Warehouse:
         g = self.grids[warehouse_size]
         for i in range(len(g)):
             s = ""
-            for j in range(len(g[0])):
-                s += self._str_at((i, j), warehouse_size=warehouse_size)
+            j = 0
+            while j in range(len(g[0])):
+                t = self._str_at((i, j), warehouse_size=warehouse_size)
+                s += t
+                j += len(t)
             debug(s)
 
 
@@ -85,7 +88,7 @@ class Warehouse:
             return t["wall"]["base"]
         if pos in self.boxes[warehouse_size]:
             return t["box"][warehouse_size]
-        if self.robot.pos == pos:
+        if self.robot.pos == list(pos):
             return t["robot"]["base"]
         return "."
 
@@ -137,7 +140,7 @@ class Warehouse:
     def _boxes(self, warehouse_size="base"):
         b = []
         for i, s in enumerate(self.grids[warehouse_size]):
-            for j in string.indices(Warehouse.TOKENS["box"]["base"], s):
+            for j in string.indices(Warehouse.TOKENS["box"][warehouse_size], s):
                 b.append((i, j))
         return b
 
@@ -242,8 +245,10 @@ class AdventDay(Day.Base):
        
 
     def run(self, v):
+        sz = self.args["warehouse_size"]
         w = self._parse(v)
-        w.display(warehouse_size=self.args["warehouse_size"])
+        w.reset_robot(warehouse_size=sz)
+        w.display(warehouse_size=sz)
         #debug(f"WALLS {w.walls} BOXES {w.boxes}")
         #debug(f"R {w.robot.init_pos} {w.robot.path}")
         #w.run_robot()
