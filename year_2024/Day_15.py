@@ -6,94 +6,146 @@ from utils import string
 from utils.debug import debug
 
 class Warehouse:
-    WALL = "#"
 
-    ROBOT = "@"
-
-    BOX = "O"
+    TOKENS = {
+        "wall": {
+            "base": "#",
+            "re": "#",
+            "double": "##",
+        },
+        "box": {
+            "base": "O",
+            "re": "O",
+            "double": "[]",
+        },
+        "space": {
+            "base": ".",
+            "re": r"\.",
+            "double": "..",
+        },
+        "robot": {
+            "base": "@",
+            "re": "@",
+            "double": "@.",
+        },
+    }
+    
 
     def __init__(self, grid):
-        self.grid = grid
-        self.boxes = self._boxes()
-        self.walls = self._walls()
+        self.grids = {
+            "base": grid,
+        }
+        self.grids["double"] = self.double()
+        self.walls = {
+            "base": self._walls(),
+            "double": self._walls(warehouse_size="double"),
+        }
+        self.robot = Robot((0, 0))
+        self.reset_boxes()
 
-        for i, s in enumerate(grid):
-            if Warehouse.ROBOT in s:
-                self.robot = Robot((i, s.index(Warehouse.ROBOT)))
-                break
 
-    def display(self):
-        for i in range(len(self.grid)):
+    def double(self):
+        g = []
+        for s in self.grids["base"]:
+            for t in Warehouse.TOKENS:
+                s = re.sub(Warehouse.TOKENS[t]["re"], Warehouse.TOKENS[t]["double"], s)
+            debug(s)
+            g.append(s)
+        return g
+
+
+    def display(self, warehouse_size="base"):
+        g = self.grids[warehouse_size]
+        for i in range(len(g)):
             s = ""
-            for j in range(len(self.grid[0])):
-                s += self._str_at((i, j))
+            for j in range(len(g[0])):
+                s += self._str_at((i, j), warehouse_size=warehouse_size)
             debug(s)
 
-    def _str_at(self, pos):
-        if pos in self.walls:
-            return Warehouse.WALL
-        if pos in self.boxes:
-            return Warehouse.BOX
+
+    def reset_boxes(self):
+        self.boxes = {
+            "base": self._boxes(),
+        }
+        self.boxes["double"] = self._boxes(warehouse_size="double")
+        
+
+    def reset_robot(self, warehouse_size=False):
+        for i, s in enumerate(self.grids[warehouse_size]):
+            r = Warehouse.TOKENS["robot"]["base"]
+            if r in s:
+                self.robot.pos = [i, s.index(r)]
+                break
+    
+
+    def _str_at(self, pos, warehouse_size="base"):
+        t = Warehouse.TOKENS
+        # walls only double at initial generation
+        if pos in self.walls[warehouse_size]:
+            return t["wall"]["base"]
+        if pos in self.boxes[warehouse_size]:
+            return t["box"][warehouse_size]
         if self.robot.pos == pos:
-            return Warehouse.ROBOT
+            return t["robot"]["base"]
         return "."
+
+
+    def gps(self):
+        return mathutils.sum([100 * x[0] + x[1] for x in self.boxes])
+    
 
     def move_robot(self):
 
         def _move_box(old_pos, direction):
             q = (old_pos[0] + direction[0], old_pos[1] + direction[1])
+            #debug(f"TRY BOX {old_pos} -> {q}")
             if q in self.walls:
-                debug(f"CANNOT PUSH BOX TO {q}")
+                #debug(f"CANNOT PUSH BOX TO {q}")
                 return old_pos
             if q in self.boxes:
-                q = _move_box(q, direction)
-            if q == old_pos:
-                return old_pos
-            debug(f"PUSH BOX {old_pos} -> {q}")
+                #debug(f"BOX HIT BOX AT {q}")
+                r = _move_box(q, direction)
+                if r == q:
+                    return old_pos
+            #debug(f"PUSH BOX {old_pos} -> {q}")
             i = self.boxes.index(old_pos)
             self.boxes = self.boxes[:i] + [q] + self.boxes[i + 1:]
             return q
 
         dir = self.robot.get_move()
-        p = (self.robot.pos[0] + dir[0], self.robot.pos[1] + dir[1])
-        if p in self.walls:
-            debug(f"HIT WALL AT {p}")
-            p = self.robot.pos
-        elif p in self.boxes:
-            debug(f"HIT BOX AT {p}")
-            q = _move_box(p, dir)
-            if q == p:
-                p = self.robot.pos
-            #q = (p[0] + dir[0], p[1] + dir[1])
-            #if q in self.boxes or q in self.walls:
-            #    debug(f"CANNOT PUSH BOX TO {q}")
-            #    p = self.robot.pos
-            #else:
-            #    _move_box(p, dir)
-            #    #i = self.boxes.index(p)
-            #    #self.boxes = self.boxes[:i] + [q] + self.boxes[i + 1:]
-        debug(f"MOVING TO {p}")
-        self.robot.move(p)
+        next_p = (self.robot.pos[0] + dir[0], self.robot.pos[1] + dir[1])
+        if next_p in self.walls:
+            #debug(f"HIT WALL AT {next_p}")
+            next_p = self.robot.pos
+        elif next_p in self.boxes:
+            #debug(f"HIT BOX AT {next_p}")
+            q = _move_box(next_p, dir)
+            if q == next_p:
+                next_p = self.robot.pos
+        #debug(f"MOVING TO {next_p}")
+        self.robot.move(next_p)
         
 
-    def run_robot(self):
+    def run_robot(self, warehouse_size="base"):
+        self.reset_boxes()
+        self.reset_robot(warehouse_size=warehouse_size)
         debug(f"START ROBOT {self.robot.init_pos}")
         while self.robot.has_moves():
             self.move_robot()
-            self.display()
     
 
-    def _boxes(self):
+    def _boxes(self, warehouse_size="base"):
         b = []
-        for i, s in enumerate(self.grid):
-            for j in string.indices(Warehouse.BOX, s):
+        for i, s in enumerate(self.grids[warehouse_size]):
+            for j in string.indices(Warehouse.TOKENS["box"]["base"], s):
                 b.append((i, j))
         return b
 
-    def _walls(self):
+
+    def _walls(self, warehouse_size="base"):
         w = []
-        for i, s in enumerate(self.grid):
-            for j in string.indices(Warehouse.WALL, s):
+        for i, s in enumerate(self.grids[warehouse_size]):
+            for j in string.indices(Warehouse.TOKENS["wall"]["base"], s):
                 w.append((i, j))
         return w
 
@@ -172,27 +224,30 @@ class AdventDay(Day.Base):
     ]
 
     def __init__(self, run_args):
+        import argparse
         super(AdventDay, self).__init__(
             2024,
             15,
-            AdventDay.TEST
+            AdventDay.TEST_LARGE
         )
         self.args_parser.add_argument(
-            "--width",
-            type=int,
-            help="foyer width",
-            default=11,
-            dest="width",
+            "--warehouse-size",
+            type=str,
+            help="base or double size",
+            choices=["base", "double"],
+            default="base",
+            dest="warehouse_size",
         )
-        self.width = self.args_parser.parse_args(run_args).width
-
+        self.add_args(run_args)
+       
 
     def run(self, v):
         w = self._parse(v)
-        w.display()
+        w.display(warehouse_size=self.args["warehouse_size"])
         #debug(f"WALLS {w.walls} BOXES {w.boxes}")
         #debug(f"R {w.robot.init_pos} {w.robot.path}")
-        w.run_robot()
+        #w.run_robot()
+        #debug(f"GPS {w.gps()}")
         #w.display()
 
     

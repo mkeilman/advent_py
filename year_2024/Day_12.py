@@ -289,20 +289,19 @@ class AdventDay(Day.Base):
     ]
 
     def __init__(self, run_args):
+        import argparse
         super(AdventDay, self).__init__(
             2024,
             12,
             AdventDay.RING
         )
         self.args_parser.add_argument(
-            "--length-type",
-            type=str,
-            help="calculation",
-            choices=["perimeter", "num-sides"],
-            default="perimeter",
-            dest="length_type",
+            "--double",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="double",
         )
-        self.length_type = self.args_parser.parse_args(run_args).length_type
+        self.double = self.args_parser.parse_args(run_args).double
 
     def run(self, v):
         p = Plot(v)
