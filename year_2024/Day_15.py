@@ -63,8 +63,15 @@ class Warehouse:
 
 
     def reset_boxes(self):
-        self.boxes = self._boxes()
-        
+        dy = int(self.size == "double")
+        self.boxes = []
+        for i, s in enumerate(self.grid):
+            for j in string.indices(Warehouse.TOKENS["box"][self.size], s):
+                p = [(i, j)]
+                if self.size == "double":
+                    p.append(i, j + 1)
+                self.boxes.append(p)
+
 
     def reset_robot(self):
         r = Warehouse.TOKENS["robot"]["single"]
@@ -81,7 +88,8 @@ class Warehouse:
         # walls only double at initial generation
         if pos in self.walls:
             return t["wall"]["single"]
-        if pos in self.boxes:
+        #if pos in [x[0] for x in self._box_ranges()]:
+        if pos in [x[0] for x in self.boxes]:
             return t["box"][self.size]
         if self.robot.pos == pos:
             return t["robot"]["single"]
@@ -89,54 +97,60 @@ class Warehouse:
 
 
     def gps(self):
-        return mathutils.sum([100 * x[0] + x[1] for x in self.boxes])
+        return mathutils.sum([100 * x[0][0] + x[0][1] for x in self.boxes])
     
 
     def move_robot(self):
 
         def _move_box(old_pos, direction):
             q = (old_pos[0] + direction[0], old_pos[1] + direction[1])
-            debug(f"TRY BOX {old_pos} -> {q}")
+            #debug(f"TRY BOX {old_pos} -> {q}")
             if q in self.walls:
-                debug(f"CANNOT PUSH BOX TO {q}")
+                #debug(f"CANNOT PUSH BOX TO {q}")
                 return old_pos
-            if q in self._box_coords():
-                debug(f"BOX HIT BOX AT {q}")
+            #if q in self._box_coords():
+            b = self._get_box(q)
+            if b and self._hits_box(b):
+                #debug(f"BOX HIT BOX AT {q}: {b}")
                 r = _move_box(q, direction)
                 if r == q:
                     return old_pos
-            debug(f"PUSH BOX {old_pos} -> {q} NEW BOXES {self._box_coords()}")
+            #debug(f"PUSH BOX {old_pos} -> {q}")
             op = old_pos
             qq = q
-            if old_pos not in self.boxes:
-                #?
-                op = (old_pos[0] - direction[0], old_pos[1] - direction[1])
-                qq = (q[0] - direction[0], q[1] +  - direction[1])
+            #if old_pos not in self.boxes:
+            #if not self._hits_box(old_pos):
+            #    #?
+            #    op = (old_pos[0] - direction[0], old_pos[1] - direction[1])
+            #    qq = (q[0] - direction[0], q[1] +  - direction[1])
             #   #_move_box((old_pos[0], old_pos[1] + 1), direction)
             #i = self.boxes.index(old_pos)
             #self.boxes = self.boxes[:i] + [q] + self.boxes[i + 1:]
-            i = self.boxes.index(op)
-            self.boxes = self.boxes[:i] + [qq] + self.boxes[i + 1:]
-            self.display()
+            b = self._get_box(op)
+            self._set_box(b, qq)
+            #i = self.boxes.index(op)
+            #self.boxes = self.boxes[:i] + [qq] + self.boxes[i + 1:]
+            #self.display()
             return qq
 
 
         dir = self.robot.get_move()
         next_p = (self.robot.pos[0] + dir[0], self.robot.pos[1] + dir[1])
-        debug(f"TRY MOVING TO {next_p}")
-        bc = self._box_coords()
-        debug(bc)
+        #debug(f"TRY MOVING TO {next_p}")
+        #bc = self._box_coords()
+        #br = self._box_ranges()
+        #debug(f"BR {br}")
         if next_p in self.walls:
-            debug(f"HIT WALL AT {next_p}")
+            #debug(f"HIT WALL AT {next_p}")
             next_p = self.robot.pos
-        elif next_p in bc:
-            debug(f"HIT BOX AT {next_p}")
+        elif self._hits_box([next_p]):
+            #debug(f"HIT BOX AT {next_p}")
             q = _move_box(next_p, dir)
             if q == next_p:
                 next_p = self.robot.pos
-        debug(f"MOVING TO {next_p}")
+        #debug(f"MOVING TO {next_p}")
         self.robot.move(next_p)
-        self.display()
+        #self.display()
         
 
     def run_robot(self):
@@ -145,20 +159,37 @@ class Warehouse:
         debug(f"START ROBOT {self.robot.init_pos}")
         while self.robot.has_moves():
             self.move_robot()
-    
 
-    def _boxes(self):
-        b = []
-        for i, s in enumerate(self.grid):
-            for j in string.indices(Warehouse.TOKENS["box"][self.size], s):
-                b.append((i, j))
-        return b
 
 
     def _box_coords(self):
         if self.size == "single":
             return self.boxes
         return self.boxes + [(x[0], x[1] + 1) for x in self.boxes]
+
+
+    def _box_ranges(self):
+        dy = int(self.size == "double")
+        return [(x, (x[0], x[1] + dy)) for x in self.boxes]
+
+
+    def _get_box(self, pos):
+        for r in self.boxes:
+            if pos in r:
+                return r
+        return None
+            
+    def _set_box(self, box, pos):
+        box[0] = pos
+        if len(box) == 2:
+            box[1] = (pos[0], pos[1] + 1)
+
+    def _hits_box(self, positions):
+        br = self.boxes
+        for p in positions:
+            if any([p in x for x in br]):
+                return True
+        return False
 
 
     def _walls(self):
@@ -275,12 +306,12 @@ class AdventDay(Day.Base):
     def run(self, v):
         w = self._parse(v)
         #w.reset_robot(warehouse_size=sz)
-        w.display()
+        #w.display()
         #debug(f"WALLS {w.walls} BOXES {w.boxes}")
         #debug(f"R {w.robot.init_pos} {w.robot.path}")
         w.run_robot()
         debug(f"GPS {w.gps()}")
-        w.display()
+        #w.display()
 
     
     def _parse(self, v):
