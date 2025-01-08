@@ -153,12 +153,14 @@ class Warehouse:
         if next_p in self.walls:
         #if self._hits_wall([next_p]):
             #debug(f"HIT WALL AT {next_p}")
-            next_p = self.robot.pos
-        elif self._hits_box([next_p]):
+            self.robot.move(None)
+            return
+        if self._hits_box([next_p]):
             #debug(f"HIT BOX AT {next_p}")
             q = _move_box(next_p, dir)
             if q == next_p:
-                next_p = self.robot.pos
+                self.robot.move(None)
+                return
         #debug(f"MOVING TO {next_p}")
         self.robot.move(next_p)
         #self.display()
@@ -189,7 +191,13 @@ class Warehouse:
             if pos in r:
                 return r
         return None
-            
+    
+    def _get_boxes(self, positions):
+        b = []
+        for p in positions:
+            b.append(self._get_box(p))
+        return [x for x in b if x]
+    
     def _set_box(self, box, pos):
         box[0] = pos
         if len(box) == 2:
@@ -202,6 +210,11 @@ class Warehouse:
                 return True
         return False
 
+    def _hits_boxes(self, box, direction):
+        q = [(x[0] + direction[0], x[1] + direction[1]) for x in box]
+        debug(f"CHECK BOXES {box}: {q}")
+        return self._hits_box(q)
+    
     def _hits_wall(self, box, direction):
         q = [(x[0] + direction[0], x[1] + direction[1]) for x in box]
         return any([x in self.walls for x in q])
@@ -237,7 +250,8 @@ class Robot:
         return Robot.move_map[self.path[self.path_index]]
     
     def move(self, next_pos):
-        self.pos = next_pos
+        if next_pos:
+            self.pos = next_pos
         self.path_index += 1
 
     def set_path(self, txt):
