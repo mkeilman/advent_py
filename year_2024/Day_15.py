@@ -102,30 +102,49 @@ class Warehouse:
 
     def move_robot(self):
 
-        def _move_box(old_pos, direction):
-            b0 = self._get_box(old_pos)
-            q = (old_pos[0] + direction[0], old_pos[1] + direction[1])
-            #debug(f"TRY BOX {b0} {old_pos} -> {q}")
-            #debug(f"{b0} HITS WALL? {self._hits_wall(b0, direction)}")
-            #if q in self.walls:
+        def _can_all_move(boxes, direction):
+            return all([_move_box(x, direction, check_only=True) for x in boxes])
+
+        #def _move_box(old_pos, direction):
+        def _move_box(b0, direction, check_only=False):
+            #b0 = self._get_box(old_pos)
+            # the "core" of the box is the first position
+            q0 = (b0[0][0] + direction[0], b0[0][1] + direction[1])
+            #debug(f"TRY BOX {b0} -> {q0}")
             if self._hits_wall(b0, direction):
-                #debug(f"CANNOT PUSH BOX TO {q}")
-                return old_pos
-            #if q in self._box_coords():
-            b = self._get_box(q)
+                return False
+                #return old_pos
+            #b = self._get_box(q)
+            bb = [y for y in self._get_boxes([(x[0] + direction[0], x[1] + direction[1]) for x in b0]) if y != b0]
+            #debug(f"BB {bb}")
+            # not needed with using core (???)
             # pushing one side of a box into the other side
-            if b == b0:
-                q = (q[0] + direction[0], q[1] + direction[1])
-                #debug(f"PUSHING BOX INTO ITSELF, PUSH NEXT SIDE {q}")
-                b = self._get_box(q)
-            if b and self._hits_box(b):
-                #debug(f"BOX HIT BOX AT {q}: {b}")
-                r = _move_box(q, direction)
-                if r == q:
-                    return old_pos
+            #if b == b0:
+            #    q = (q[0] + direction[0], q[1] + direction[1])
+            #    debug(f"PUSHING BOX INTO ITSELF, PUSH NEXT SIDE {q}")
+            #    b = self._get_box(q)
+            can_move = _can_all_move(bb, direction)
+            if not can_move:
+                #debug(f"SOME BOXES BLOCKED {bb}")
+                return False
+            for b in bb:
+                #q = (b[0][0] + direction[0], b[0][1] + direction[1])
+                #if self._hits_box(b):
+                #debug(f"BOX {b0} HIT BOX {b} AT {q0}")
+                _move_box(b, direction)
+                #can_move = can_move and not _move_box(b, direction, check_only=True)
+                #if not _move_box(b, direction): #== q0:
+                #    return False
+                #    #return old_pos
+
+            
+            #if b and self._hits_box(b):
+            #    debug(f"BOX {b0} HIT BOX AT {q}: {b}")
+            #    if _move_box(q, direction) == q:
+            #        return old_pos
                 
 
-            #debug(f"PUSH BOX {old_pos} -> {q}")
+            #debug(f"PUSH BOX {b0} -> {q0}")
             #op = old_pos
             #qq = q
             #if old_pos not in self.boxes:
@@ -136,20 +155,20 @@ class Warehouse:
             #   #_move_box((old_pos[0], old_pos[1] + 1), direction)
             #i = self.boxes.index(old_pos)
             #self.boxes = self.boxes[:i] + [q] + self.boxes[i + 1:]
-            b = self._get_box(old_pos)
-            self._set_box(b, q)
+            #b = self._get_box(old_pos)
+            if not check_only:
+                debug(f"PUSH BOX {b0} -> {q0}")
+                self._set_box(b0, q0)
             #i = self.boxes.index(op)
             #self.boxes = self.boxes[:i] + [qq] + self.boxes[i + 1:]
-            #self.display()
-            return q
+            self.display()
+            return True
+            #return q0
 
 
         dir = self.robot.get_move()
         next_p = (self.robot.pos[0] + dir[0], self.robot.pos[1] + dir[1])
-        #debug(f"TRY MOVING TO {next_p}")
-        #bc = self._box_coords()
-        #br = self._box_ranges()
-        #debug(f"BR {br}")
+        #debug(f"TRY MOVING {self.robot.pos} -> {next_p}")
         if next_p in self.walls:
         #if self._hits_wall([next_p]):
             #debug(f"HIT WALL AT {next_p}")
@@ -157,13 +176,15 @@ class Warehouse:
             return
         if self._hits_box([next_p]):
             #debug(f"HIT BOX AT {next_p}")
-            q = _move_box(next_p, dir)
-            if q == next_p:
+            #q = _move_box(next_p, dir)
+            q = _move_box(self._get_box(next_p), dir)
+            if not q:
+            #if q == next_p:
                 self.robot.move(None)
                 return
         #debug(f"MOVING TO {next_p}")
         self.robot.move(next_p)
-        #self.display()
+        self.display()
         
 
     def run_robot(self):
@@ -172,14 +193,6 @@ class Warehouse:
         debug(f"START ROBOT {self.robot.init_pos}")
         while self.robot.has_moves():
             self.move_robot()
-
-
-
-    def _box_coords(self):
-        if self.size == "single":
-            return self.boxes
-        return self.boxes + [(x[0], x[1] + 1) for x in self.boxes]
-
 
     def _box_ranges(self):
         dy = int(self.size == "double")
@@ -275,6 +288,19 @@ class AdventDay(Day.Base):
         "#######",
         "",
         "<vv<<^^<<^^",
+    ]
+
+    RIGHT = [
+        "#########",
+        "#.#.....#",
+        "#.......#",
+        "#.OOO...#",
+        "#..OO@..#",
+        "#..O....#",
+        "#.......#",
+        "#########",
+        "",
+        "<vv<<^",
     ]
 
     TEST = [
