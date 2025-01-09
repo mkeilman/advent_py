@@ -112,6 +112,7 @@ class Warehouse:
             q0 = (b0[0][0] + direction[0], b0[0][1] + direction[1])
             #debug(f"TRY BOX {b0} -> {q0}")
             if self._hits_wall(b0, direction):
+                #debug(f"BOX HIT WALL")
                 return False
                 #return old_pos
             #b = self._get_box(q)
@@ -157,11 +158,11 @@ class Warehouse:
             #self.boxes = self.boxes[:i] + [q] + self.boxes[i + 1:]
             #b = self._get_box(old_pos)
             if not check_only:
-                debug(f"PUSH BOX {b0} -> {q0}")
+                #debug(f"PUSH BOX {b0} -> {q0}")
                 self._set_box(b0, q0)
             #i = self.boxes.index(op)
             #self.boxes = self.boxes[:i] + [qq] + self.boxes[i + 1:]
-            self.display()
+            #self.display()
             return True
             #return q0
 
@@ -171,7 +172,7 @@ class Warehouse:
         #debug(f"TRY MOVING {self.robot.pos} -> {next_p}")
         if next_p in self.walls:
         #if self._hits_wall([next_p]):
-            #debug(f"HIT WALL AT {next_p}")
+            #debug(f"ROBOT HIT WALL")
             self.robot.move(None)
             return
         if self._hits_box([next_p]):
@@ -184,7 +185,7 @@ class Warehouse:
                 return
         #debug(f"MOVING TO {next_p}")
         self.robot.move(next_p)
-        self.display()
+        #self.display()
         
 
     def run_robot(self):
@@ -206,10 +207,12 @@ class Warehouse:
         return None
     
     def _get_boxes(self, positions):
-        b = []
+        boxes = []
         for p in positions:
-            b.append(self._get_box(p))
-        return [x for x in b if x]
+            b = self._get_box(p)
+            if b not in boxes:
+                boxes.append(b)
+        return [x for x in boxes if x]
     
     def _set_box(self, box, pos):
         box[0] = pos
@@ -266,6 +269,7 @@ class Robot:
         if next_pos:
             self.pos = next_pos
         self.path_index += 1
+        
 
     def set_path(self, txt):
         self.path = txt
@@ -294,13 +298,13 @@ class AdventDay(Day.Base):
         "#########",
         "#.#.....#",
         "#.......#",
-        "#.OOO...#",
-        "#..OO@..#",
-        "#..O....#",
         "#.......#",
+        "#..O....#",
+        "#..O....#",
+        "#..@....#",
         "#########",
         "",
-        "<vv<<^",
+        "^",
     ]
 
     TEST = [
