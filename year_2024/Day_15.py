@@ -36,6 +36,7 @@ class Warehouse:
         self.base_grid = grid
         self.grid = self.base_grid if self.size == "single" else self.double()
         self.walls = self._walls()
+        self.box_hits = 0
         self.robot = Robot()
         self.reset_robot()
         self.reset_boxes()
@@ -124,7 +125,12 @@ class Warehouse:
             #debug(f"PUSH BOX {b0} -> {q0}")
             if not check_only:
                 #debug(f"PUSH BOX {b0} -> {q0}")
+                #predict = self.gps() + 100 * direction[0] + direction[1]
+                #debug(f"PREDICTED GPS {predict}")
+                #self.display()
                 self._set_box(b0, q0)
+                #if predict != self.gps():
+                #    debug(f"BAD GPS!")
             #self.display()
             return True
 
@@ -137,14 +143,18 @@ class Warehouse:
             #debug(f"ROBOT HIT WALL")
             self.robot.move(None)
             return
-        if self._hits_box([next_p]):
-            #debug(f"HIT BOX AT {next_p}")
+        hb = self._hits_box([next_p])
+        if hb:
+            self.box_hits += 1
+            debug(f"{self.robot.path_index} {self.robot.get_move_symbol()} HIT BOX AT {next_p} {self.box_hits}")
             q = _move_box(self._get_box(next_p), dir)
             if not q:
                 self.robot.move(None)
                 return
         #debug(f"MOVING TO {next_p}")
         self.robot.move(next_p)
+        #if hb:
+        #    self.display()
         #if not self.robot.path_index % 1000:
         #    self.display()
         #self.display()
@@ -204,8 +214,9 @@ class Robot:
         ">": (0, 1),
     }
 
-    def __init__(self, init_pos=(0,0)):
+    def __init__(self, init_pos=(0,0), max_moves=0):
         self.init_pos = init_pos
+        self.max_moves = max_moves
         self.path = ""
         self.reset()
 
@@ -213,18 +224,22 @@ class Robot:
         return self.path_index < len(self.path)
     
     def get_move(self):
-        return Robot.move_map[self.path[self.path_index]]
+        return Robot.move_map[self.get_move_symbol()]
+    
+    def get_move_symbol(self):
+        return self.path[self.path_index]
     
     def move(self, next_pos):
         if next_pos:
             self.pos = next_pos
         self.path_index += 1
-        if not self.path_index % 500:
-            debug(f"MOVE {self.path_index} DONE")
+        
 
     def set_path(self, txt):
-        self.path = txt
-        #debug(f"N {len(self.path)}")
+        #self.path = txt
+        self.max_moves = self.max_moves or len(txt)
+        debug(f"N {self.max_moves}")
+        self.path = txt[0:self.max_moves]
         self.reset()
 
     def reset(self):
@@ -311,15 +326,22 @@ class AdventDay(Day.Base):
             default="single",
             dest="warehouse_size",
         )
+        self.args_parser.add_argument(
+            "--max-moves",
+            type=int,
+            help="max moves the robot can make (0 = all)",
+            default=0,
+            dest="max_moves",
+        )
         self.add_args(run_args)
        
 
     def run(self, v):
         w = self._parse(v)
-        w.display()
+        #w.display()
         w.run_robot()
         debug(f"GPS {w.gps()}")
-        w.display()
+        #w.display()
 
     
     def _parse(self, v):
@@ -331,6 +353,7 @@ class AdventDay(Day.Base):
             j += 1
             s = v[j]
         wh = Warehouse(w, size=self.args["warehouse_size"])
+        wh.robot.max_moves = self.args["max_moves"]
         wh.robot.set_path("".join(v[j + 1:]))
         return wh
 
