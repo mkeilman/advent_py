@@ -105,66 +105,29 @@ class Warehouse:
         def _can_all_move(boxes, direction):
             return all([_move_box(x, direction, check_only=True) for x in boxes])
 
-        #def _move_box(old_pos, direction):
         def _move_box(b0, direction, check_only=False):
-            #b0 = self._get_box(old_pos)
             # the "core" of the box is the first position
             q0 = (b0[0][0] + direction[0], b0[0][1] + direction[1])
             #debug(f"TRY BOX {b0} -> {q0}")
             if self._hits_wall(b0, direction):
                 #debug(f"BOX HIT WALL")
                 return False
-                #return old_pos
-            #b = self._get_box(q)
             bb = [y for y in self._get_boxes([(x[0] + direction[0], x[1] + direction[1]) for x in b0]) if y != b0]
             #debug(f"BB {bb}")
-            # not needed with using core (???)
-            # pushing one side of a box into the other side
-            #if b == b0:
-            #    q = (q[0] + direction[0], q[1] + direction[1])
-            #    debug(f"PUSHING BOX INTO ITSELF, PUSH NEXT SIDE {q}")
-            #    b = self._get_box(q)
             can_move = _can_all_move(bb, direction)
             if not can_move:
                 #debug(f"SOME BOXES BLOCKED {bb}")
                 return False
             for b in bb:
-                #q = (b[0][0] + direction[0], b[0][1] + direction[1])
-                #if self._hits_box(b):
                 #debug(f"BOX {b0} HIT BOX {b} AT {q0}")
                 _move_box(b, direction)
-                #can_move = can_move and not _move_box(b, direction, check_only=True)
-                #if not _move_box(b, direction): #== q0:
-                #    return False
-                #    #return old_pos
-
-            
-            #if b and self._hits_box(b):
-            #    debug(f"BOX {b0} HIT BOX AT {q}: {b}")
-            #    if _move_box(q, direction) == q:
-            #        return old_pos
-                
 
             #debug(f"PUSH BOX {b0} -> {q0}")
-            #op = old_pos
-            #qq = q
-            #if old_pos not in self.boxes:
-            #if not self._hits_box(old_pos):
-            #    #?
-            #    op = (old_pos[0] - direction[0], old_pos[1] - direction[1])
-            #    qq = (q[0] - direction[0], q[1] +  - direction[1])
-            #   #_move_box((old_pos[0], old_pos[1] + 1), direction)
-            #i = self.boxes.index(old_pos)
-            #self.boxes = self.boxes[:i] + [q] + self.boxes[i + 1:]
-            #b = self._get_box(old_pos)
             if not check_only:
                 #debug(f"PUSH BOX {b0} -> {q0}")
                 self._set_box(b0, q0)
-            #i = self.boxes.index(op)
-            #self.boxes = self.boxes[:i] + [qq] + self.boxes[i + 1:]
             #self.display()
             return True
-            #return q0
 
 
         dir = self.robot.get_move()
