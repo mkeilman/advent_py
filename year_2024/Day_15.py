@@ -236,6 +236,7 @@ class Robot:
 
     def set_path(self, txt):
         self.path = txt
+        #debug(f"N {len(self.path)}")
         self.reset()
 
     def reset(self):
@@ -262,12 +263,12 @@ class AdventDay(Day.Base):
         "#.#.....#",
         "#.......#",
         "#.......#",
-        "#..O....#",
-        "#..O....#",
-        "#..@....#",
+        "#@.O....#",
+        "#..OO...#",
+        "#...#...#",
         "#########",
         "",
-        "^",
+        ">>>>^>v",
     ]
 
     TEST = [
@@ -312,7 +313,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             15,
-            AdventDay.TEST_LARGE
+            AdventDay.PYRAMID
         )
         self.args_parser.add_argument(
             "--warehouse-size",
