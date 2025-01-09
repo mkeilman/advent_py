@@ -88,7 +88,6 @@ class Warehouse:
         # walls only double at initial generation
         if pos in self.walls:
             return t["wall"]["single"]
-        #if pos in [x[0] for x in self._box_ranges()]:
         if pos in [x[0] for x in self.boxes]:
             return t["box"][self.size]
         if self.robot.pos == pos:
@@ -140,14 +139,14 @@ class Warehouse:
             return
         if self._hits_box([next_p]):
             #debug(f"HIT BOX AT {next_p}")
-            #q = _move_box(next_p, dir)
             q = _move_box(self._get_box(next_p), dir)
             if not q:
-            #if q == next_p:
                 self.robot.move(None)
                 return
         #debug(f"MOVING TO {next_p}")
         self.robot.move(next_p)
+        #if not self.robot.path_index % 1000:
+        #    self.display()
         #self.display()
         
 
@@ -157,11 +156,6 @@ class Warehouse:
         debug(f"START ROBOT {self.robot.init_pos}")
         while self.robot.has_moves():
             self.move_robot()
-
-    def _box_ranges(self):
-        dy = int(self.size == "double")
-        return [(x, (x[0], x[1] + dy)) for x in self.boxes]
-
 
     def _get_box(self, pos):
         for r in self.boxes:
@@ -188,16 +182,10 @@ class Warehouse:
             if any([p in x for x in br]):
                 return True
         return False
-
-    def _hits_boxes(self, box, direction):
-        q = [(x[0] + direction[0], x[1] + direction[1]) for x in box]
-        debug(f"CHECK BOXES {box}: {q}")
-        return self._hits_box(q)
     
     def _hits_wall(self, box, direction):
         q = [(x[0] + direction[0], x[1] + direction[1]) for x in box]
         return any([x in self.walls for x in q])
-
 
     def _walls(self):
         w = []
@@ -206,7 +194,6 @@ class Warehouse:
                 w.append((i, j))
         return w
 
-        
 
 class Robot:
 
@@ -232,7 +219,8 @@ class Robot:
         if next_pos:
             self.pos = next_pos
         self.path_index += 1
-        
+        if not self.path_index % 500:
+            debug(f"MOVE {self.path_index} DONE")
 
     def set_path(self, txt):
         self.path = txt
@@ -260,15 +248,15 @@ class AdventDay(Day.Base):
 
     RIGHT = [
         "#########",
-        "#.#.....#",
+        "#...@...#",
+        "#..O....#",
+        "#.#O....#",
+        "#..O....#",
         "#.......#",
         "#.......#",
-        "#@.O....#",
-        "#..OO...#",
-        "#...#...#",
         "#########",
         "",
-        ">>>>^>v",
+        "v<>vv<>^^<^<vvv>vv<^",
     ]
 
     TEST = [
@@ -313,7 +301,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             15,
-            AdventDay.PYRAMID
+            AdventDay.RIGHT
         )
         self.args_parser.add_argument(
             "--warehouse-size",
