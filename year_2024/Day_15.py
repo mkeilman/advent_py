@@ -114,12 +114,13 @@ class Warehouse:
                 return False
             bb = [y for y in self._get_boxes([(x[0] + direction[0], x[1] + direction[1]) for x in b0]) if y != b0]
             #debug(f"BB {bb}")
-            can_move = _can_all_move(bb, direction)
-            if not can_move:
-                #debug(f"SOME BOXES BLOCKED {bb}")
+            if not _can_all_move(bb, direction):
+                self.box_hits += 1
+                if self.robot.path_index > 468:
+                    debug(f"{self.robot.path_index} {self.robot.get_move_symbol()} SOME BOXES BLOCKED {bb}")
+                    self.display()
                 return False
             for b in bb:
-                #debug(f"BOX {b0} HIT BOX {b} AT {q0}")
                 _move_box(b, direction)
 
             #debug(f"PUSH BOX {b0} -> {q0}")
@@ -145,8 +146,8 @@ class Warehouse:
             return
         hb = self._hits_box([next_p])
         if hb:
-            self.box_hits += 1
-            debug(f"{self.robot.path_index} {self.robot.get_move_symbol()} HIT BOX AT {next_p} {self.box_hits}")
+            #self.box_hits += 1
+            #debug(f"{self.robot.path_index} {self.robot.get_move_symbol()} HIT BOX AT {next_p} {self.box_hits}")
             q = _move_box(self._get_box(next_p), dir)
             if not q:
                 self.robot.move(None)
@@ -340,7 +341,7 @@ class AdventDay(Day.Base):
         w = self._parse(v)
         #w.display()
         w.run_robot()
-        debug(f"GPS {w.gps()}")
+        debug(f"GPS {w.gps()} BOX STUCK {w.box_hits}")
         #w.display()
 
     
