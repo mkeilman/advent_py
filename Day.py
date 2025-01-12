@@ -37,9 +37,19 @@ class Grid:
         "row": ((-1, 0), (1, 0)),
     }
 
+    @staticmethod
+    def grid_of_size(num_rows, num_cols):
+        g = []
+        for i in range(num_rows):
+            r = []
+            for j in range(num_cols):
+                r.append((i, j))
+            g.append(r)
+        return Grid(g)
+
     def __init__(self, coord_array):
         self.coord_array = coord_array
-        self.size = [len(self.coord_array), len(self.coord_array[0])]
+        self.size = (len(self.coord_array), len(self.coord_array[0]))
 
     def contains(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
