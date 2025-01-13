@@ -27,73 +27,78 @@ class Maze:
         self.end = self._token_pos(Maze.END)
     
 
+    def display_path(self, path):
+        for r in self.coord_grid.coord_array:
+            s = ""
+            for c in r:
+                s += ("X" if c in path else ".")
+            debug(s)
+
     # note these are not necessarily "good" mazes in that they can contain islands,
     # and thus "left hand on the wall" will not work
     def path_tree(self):
 
+        def _dir(pos1, pos2):
+            return (mathutils.sign(pos2[0] - pos1[0]), mathutils.sign(pos2[1] - pos1[1]))
+        
+        def _dirs_taken(path):
+            return [_dir(path[i - 1], path[i]) for i, _ in path[1:]]
+
+        def _get_pos(curr_pos, direction):
+            return (curr_pos[0] + direction[0], curr_pos[1] + direction[1])
+        
         def _next_dir(direction):
             i = (Maze.DIRECTIONS.index(direction) + 1) % len(Maze.DIRECTIONS)
             return Maze.DIRECTIONS[i]
         
+        def _open_dirs(pos):
+            dirs = []
+            for d in Maze.DIRECTIONS:
+                q = _get_pos(pos, d)
+                if q not in self.walls:
+                    dirs.append(q)
+            return dirs
+
         def _opposite_dir(direction):
             i = (Maze.DIRECTIONS.index(direction) + 2) % len(Maze.DIRECTIONS)
             return Maze.DIRECTIONS[i]
         
-        def _get_pos(curr_pos, direction):
-            return (curr_pos[0] + direction[0], curr_pos[1] + direction[1])
-        
-        def _dir(pos1, pos2):
-            return (mathutils.sign(pos2[0] - pos1[0]), mathutils.sign(pos2[1] - pos1[1]))
-
-
-        def _next_pos(path, direction):
-            debug(f"NEXT POS FROM {path} DIR {direction}")
-            if not path:
-                return None, direction
-            pos = path[-1]
-            p = _get_pos(pos, direction)
-            if not self.coord_grid.contains(p):
-                return None, direction
-            debug(f"CHECK P {p}")
-            if p in self.walls:
-                debug(f"HIT WALL {p}")
-                # check +/- 90 degrees
-                d = _next_dir(direction)
-                q = _get_pos(p, d)
-                if q not in self.walls:
-                    return _next_pos(q, d)
-                d = _opposite_dir(d)
-                q = _get_pos(p, d)
-                if q not in self.walls:
-                    return _next_pos(q, d)
-                debug("DEAD END")
-                # prune
-                del path[-1]
-                return _next_pos(path, d)
-
-                        
-                direction = d
-            return p, direction
 
         def _path():
+
+            def _multi_dir_positions(dir_dict):
+                return {k:v for k, v in dir_dict.items() if len(v) > 1}
             
+
             ctl_loops = 0
             path = [self.start]
             pos = self.start
             dir = (0, 1)
-            
-            while ctl_loops < 20 and pos != self.end:
+            open_dirs = {
+                pos: _open_dirs(pos)
+            }
+
+            while ctl_loops < 60 and pos != self.end:
                 ctl_loops += 1
                 next_pos = _get_pos(pos, dir)
-                if pos in path:
+                if next_pos in path:
                     # we've done a loop
-                    i = path.index(pos)
-                    old_dir = _dir(pos, path[i + 1])
-                    debug(f"LOOPED TO {pos}; change direction {old_dir}")
-                    pass
+                    mp = _multi_dir_positions(open_dirs)
+                    non_mp = {k:v for k, v in mp.items() if any([x not in path for x in v])}
+                    debug(f"PATH {path} NON {non_mp}")
+                    lmp = list(mp.keys())[-1]
+                    nmp = list(non_mp.keys())[-1]
+                    nmv = [x for x in non_mp[nmp] if x not in path][0]
+                    i = path.index(nmp)
+                    lmv = mp[lmp]
+                    debug(f"LOOPED TO {next_pos} STEP {ctl_loops}; LAST OPEN DIRS {nmp} {nmv} STEP {i} / {len(path)} DIR TAKEN {_dir(path[i - 1], nmp)}")
+                    dir = _dir(nmp, nmv)
+                    next_pos = nmv
+                    del path[i + 1:]
                 if next_pos not in self.walls:
                     path.append(next_pos)
                     pos = next_pos
+                    open_dirs[pos] = _open_dirs(pos)
                     continue
                 debug(f"HIT WALL {next_pos}")
                 # check +/- 90 degrees
@@ -105,6 +110,7 @@ class Maze:
                         if q not in self.walls:
                             path.append(q)
                             pos = q
+                            open_dirs[pos] = _open_dirs(pos)
                             dir = d
                             found_turn = True
                             break
@@ -117,25 +123,9 @@ class Maze:
 
 
         t = []
-        has_more_paths = True
-        last_good_pos = self.start
-        last_dir = (0, 1)
         path = _path()
-        #while has_more_paths:
-        #for i in range(10):
-        #    path_done = False
-        #    path = [last_good_pos]
-        #    d = last_dir
-        #    #while not path_done:
-        #    for j in range(10):
-        #        p, d = _next_pos(path, d)
-        #        if not p:
-        #            break
-        ###        path.append(p)
-        ##        path_done = p == self.end
-        #    t.append(path)
-        #    has_more_paths = False
-
+        self.display_path(path)
+        #debug(f"PATH LEN {len(path)}")
         t.append(path)
         return t
 
