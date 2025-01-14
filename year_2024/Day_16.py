@@ -89,7 +89,7 @@ class Maze:
                         if od in v:
                             del v[v.index(od)]
                     del open_directions[od]
-                del path[i + 1:]
+                del path[index + 1:]
 
             ctl_loops = 0
             path = [self.start]
@@ -110,19 +110,9 @@ class Maze:
                     #debug(f"LOOPED TO {next_pos}")
                     p, q = _most_recent_multi(path, open_dirs)
                     #debug(f"MRM {p} -> {q}")
-                    i = path.index(p)
-                    #debug(f"LOOPED TO {next_pos} STEP {ctl_loops}; LAST OPEN DIRS {nmp} {nmv} STEP {i} / {len(path)} DIR TAKEN {_dir(path[i - 1], nmp)}")
                     dir = _dir(p, q)
                     next_pos = q
-                    #debug(f"DELETING {path[i + 1:]}")
-                    _prune(path, open_dirs, i)
-                    #for od in path[i + 1:]:
-                    #    for k in open_dirs:
-                    #        v = open_dirs[k]
-                    #        if od in v:
-                    #            del v[v.index(od)]
-                    #    del open_dirs[od]
-                    #del path[i + 1:]
+                    _prune(path, open_dirs, path.index(p))
                 if next_pos not in self.walls:
                     path.append(next_pos)
                     pos = next_pos
@@ -137,10 +127,6 @@ class Maze:
                     #debug(f"TURNS FOR {pos} {open_dirs[pos]}")
                     for d in (_next_dir(dir), _opposite_dir(_next_dir(dir))):
                         q = _get_pos(pos, d)
-                        #debug(f"CHECK {q}")
-                        #if q in path:
-                        #    debug(f"PATH HAS {q}")
-                        #    continue
                         if q not in self.walls:
                             path.append(q)
                             pos = q
@@ -151,26 +137,11 @@ class Maze:
                     if found_turn:
                         continue
                     #debug(f"DEAD END {pos} BACK TO? {_most_recent_multi(path, open_dirs)}")
-                    x, y = _most_recent_multi(path, open_dirs)
-                    i = path.index(x)
+                    pos, q = _most_recent_multi(path, open_dirs)
                     #debug(f"SHOULD USE POS {x} DIR {_dir(x, y)}")
-                    dir = _dir(x, y)
-                    pos = x
-                    # prune
-                    #debug(f"DELETING {path[i + 1:]}")
-                    _prune(path, open_dirs, i)
-                    #for od in path[i + 1:]:
-                    #    for k in open_dirs:
-                    #        v = open_dirs[k]
-                    #        if od in v:
-                    #            del v[v.index(od)]
-                    #    del open_dirs[od]
-                    #del path[i + 1:]
+                    dir = _dir(pos, q)
+                    _prune(path, open_dirs, path.index(pos))
                     break
-                    #del path[-1]
-                    #popped = path.pop()
-                    #debug(f"REMOVED {popped}")
-                    #rejected.add(popped)
             return path          
 
 
