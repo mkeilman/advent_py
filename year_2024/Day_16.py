@@ -82,6 +82,14 @@ class Maze:
             def _multi_dir_positions(dir_dict):
                 return {k:v for k, v in dir_dict.items() if len(v) > 1}
             
+            def _prune(path, open_directions, index):
+                for od in path[index + 1:]:
+                    for k in open_directions:
+                        v = open_directions[k]
+                        if od in v:
+                            del v[v.index(od)]
+                    del open_directions[od]
+                del path[i + 1:]
 
             ctl_loops = 0
             path = [self.start]
@@ -95,8 +103,6 @@ class Maze:
             while pos != self.end:
                 ctl_loops += 1
                 next_pos = _get_pos(pos, dir)
-                #if ctl_loops >= 699:
-                #        debug(f"{ctl_loops} {path[-10:]}")
                 #debug(f"POS {pos} DIR {dir} NEXT {next_pos}")
                 if next_pos in path:
                     # we've done a loop
@@ -109,14 +115,14 @@ class Maze:
                     dir = _dir(p, q)
                     next_pos = q
                     #debug(f"DELETING {path[i + 1:]}")
-                    for od in path[i + 1:]:
-                        for k in open_dirs:
-                            v = open_dirs[k]
-                            if od in v:
-                                del v[v.index(od)]
-                        del open_dirs[od]
-
-                    del path[i + 1:]
+                    _prune(path, open_dirs, i)
+                    #for od in path[i + 1:]:
+                    #    for k in open_dirs:
+                    #        v = open_dirs[k]
+                    #        if od in v:
+                    #            del v[v.index(od)]
+                    #    del open_dirs[od]
+                    #del path[i + 1:]
                 if next_pos not in self.walls:
                     path.append(next_pos)
                     pos = next_pos
@@ -152,16 +158,14 @@ class Maze:
                     pos = x
                     # prune
                     #debug(f"DELETING {path[i + 1:]}")
-                    for od in path[i + 1:]:
-                        for k in open_dirs:
-                            #if k == (131, 120):
-                            #    debug("DEL 131 120")
-                            v = open_dirs[k]
-                            if od in v:
-                                del v[v.index(od)]
-                        del open_dirs[od]
-
-                    del path[i + 1:]
+                    _prune(path, open_dirs, i)
+                    #for od in path[i + 1:]:
+                    #    for k in open_dirs:
+                    #        v = open_dirs[k]
+                    #        if od in v:
+                    #            del v[v.index(od)]
+                    #    del open_dirs[od]
+                    #del path[i + 1:]
                     break
                     #del path[-1]
                     #popped = path.pop()
