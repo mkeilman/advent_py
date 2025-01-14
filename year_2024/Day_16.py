@@ -24,7 +24,9 @@ class Maze:
         self.coord_grid = Day.Grid.grid_of_size(len(self.grid), len(self.grid[0]))
         self.walls = self._walls()
         self.start = self._token_pos(Maze.START)
+        self.start_dir = (0, 1)
         self.end = self._token_pos(Maze.END)
+        self.pos_with_choices = {}
     
 
     def display_path(self, path):
@@ -34,15 +36,25 @@ class Maze:
                 s += ("X" if c in path else ".")
             debug(s)
 
+    def score(self, path):
+        s = len(path) - 1
+        dirs = [self._dir(path[i - 1], path[i]) for i in range(1, len(path))]
+        d0 = self.start_dir
+        for i, d in enumerate(dirs):
+            if d != d0:
+                #debug(f"CHANGE DIR {d0} -> {d} AT {i}")
+                s += 1000
+                d0 = d
+        #debug(f"DIRS {dirs}")
+        return s
+    
+
     # note these are not necessarily "good" mazes in that they can contain islands,
     # and thus "left hand on the wall" will not work
     def path_tree(self):
 
         def _dir(pos1, pos2):
-            return (mathutils.sign(pos2[0] - pos1[0]), mathutils.sign(pos2[1] - pos1[1]))
-        
-        def _dirs_taken(path):
-            return [_dir(path[i - 1], path[i]) for i, _ in path[1:]]
+            return self._dir(pos1, pos2)
 
         def _get_pos(curr_pos, direction):
             return (curr_pos[0] + direction[0], curr_pos[1] + direction[1])
@@ -64,20 +76,19 @@ class Maze:
             return Maze.DIRECTIONS[i]
         
 
-        def _path():
+        def _path(initial_path=None, initial_choices=None):
 
             def _unexplored(path, open_directions):
                 return {k:v for k, v in _multi_dir_positions(open_directions).items() if any([x not in path for x in v])}
-            
 
             def _most_recent_multi(path, open_directions):
                 unexplored = _unexplored(path, open_directions)
+                if not unexplored:
+                    return None, None
                 base_pos = list(unexplored.keys())[-1]
                 up = [x for x in unexplored[base_pos] if x not in path]
-                #debug(f"BASE {base_pos} UNEX {up}")
                 unex_pos = up[0]
                 return base_pos, unex_pos
-
 
             def _multi_dir_positions(dir_dict):
                 return {k:v for k, v in dir_dict.items() if len(v) > 1}
@@ -92,13 +103,18 @@ class Maze:
                 del path[index + 1:]
 
             ctl_loops = 0
-            path = [self.start]
-            pos = self.start
-            dir = (0, 1)
-            open_dirs = {
-                pos: _open_dirs(pos)
-            }
-            rejected = set()
+            path = initial_path or [self.start]
+            pos = path[-1]
+
+            if initial_path:
+                if len(initial_path) < 2:
+                    dir = self._dir(self.start_dir, initial_path[0])
+                else:
+                    dir = self._dir(initial_path[-2], initial_path[-1])
+            else:
+                dir = self.start_dir
+
+            open_dirs = initial_choices or {pos: _open_dirs(pos)}
 
             while pos != self.end:
                 ctl_loops += 1
@@ -109,6 +125,8 @@ class Maze:
                     #self.display_path(path)
                     #debug(f"LOOPED TO {next_pos}")
                     p, q = _most_recent_multi(path, open_dirs)
+                    if p is None or q is None:
+                        return [], {}
                     #debug(f"MRM {p} -> {q}")
                     dir = _dir(p, q)
                     next_pos = q
@@ -122,7 +140,6 @@ class Maze:
                 # check +/- 90 degrees
                 found_turn = False
                 while path and not found_turn:
-                    #debug(f"REJECTED {rejected}")
                     pos = path[-1]
                     #debug(f"TURNS FOR {pos} {open_dirs[pos]}")
                     for d in (_next_dir(dir), _opposite_dir(_next_dir(dir))):
@@ -138,21 +155,36 @@ class Maze:
                         continue
                     #debug(f"DEAD END {pos} BACK TO? {_most_recent_multi(path, open_dirs)}")
                     pos, q = _most_recent_multi(path, open_dirs)
-                    #debug(f"SHOULD USE POS {x} DIR {_dir(x, y)}")
+                    if pos is None or q is None:
+                        return [], {}
                     dir = _dir(pos, q)
                     _prune(path, open_dirs, path.index(pos))
                     break
-            return path          
+            u = {k:[x for x in v if x not in path] for k, v in  _unexplored(path, open_dirs).items()}
+            #debug(f"MDIRS {u}")
+            return path, u
 
 
         t = []
-        path = _path()
+        path, choices = _path()
         self.display_path(path)
-        #debug(f"PATH LEN {len(path)}")
+        debug(f"PATH LEN {len(path)} SCORE {self.score(path)}")
         t.append(path)
+        for p in choices:
+            i = path.index(p)
+            p2 = path[:i + 1] + [choices[p][0]]
+            del choices[p][0]
+            np, c = _path(initial_path=p2, initial_choices=choices.copy())
+            #debug(f"NEW PATH {np} CH {c} LEN {len(np)} SCORE {self.score(np)}")
+            if np:
+                self.display_path(np)
+                debug(f"NEW PATH LEN {len(np)} SCORE {self.score(np)}")
         return t
 
 
+    def _dir(self, pos1, pos2):
+        return (mathutils.sign(pos2[0] - pos1[0]), mathutils.sign(pos2[1] - pos1[1]))
+    
     def _token_pos(self, token):
         for i, r in enumerate(self.grid):
             if token in r:
@@ -195,6 +227,14 @@ class AdventDay(Day.Base):
     ]
 
     TEST_LARGE = [
+    ]
+
+    IMPOSSIBLE = [
+        "###############",
+        "#.......#....E#",
+        "#####.#.#.#.###",
+        "#S..#.....#...#",
+        "###############",
     ]
 
     def __init__(self, run_args):
