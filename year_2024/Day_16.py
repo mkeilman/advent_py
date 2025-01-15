@@ -27,6 +27,7 @@ class Maze:
         self.start_dir = (0, 1)
         self.end = self._token_pos(Maze.END)
         self.pos_with_choices = {}
+        self.min_path_score = 1e23
     
 
     def display_path(self, path):
@@ -114,6 +115,8 @@ class Maze:
             else:
                 dir = self.start_dir
 
+            #debug(f"INIT PATH {initial_path} INIT DIR {dir}")
+
             open_dirs = initial_choices or {pos: _open_dirs(pos)}
 
             while pos != self.end:
@@ -165,20 +168,54 @@ class Maze:
             return path, u
 
 
+        def _paths(initial_path=None, initial_choices=None):
+            paths = []
+            # first path
+            path, choices = _path(initial_path=initial_path, initial_choices=initial_choices)
+            if not path:
+                return paths
+            paths.append(path)
+            for p in choices:
+                debug(f"TRY NEW PATH START {p} -> {choices[p][0]}")
+                i = path.index(p)
+                p2 = path[:i + 1] + [choices[p][0]]
+                del choices[p][0]
+                new_choices = {}
+                # omit choices past the given branch point
+                for k in choices.keys():
+                    new_choices[k] = choices[k]
+                    if k == p:
+                        break
+                for p in _paths(initial_path=p2, initial_choices=new_choices):
+                    if p and p not in paths:
+                        paths.append(p)
+            return paths
+                
+
         t = []
-        path, choices = _path()
-        self.display_path(path)
-        debug(f"PATH LEN {len(path)} SCORE {self.score(path)}")
-        t.append(path)
-        for p in choices:
-            i = path.index(p)
-            p2 = path[:i + 1] + [choices[p][0]]
-            del choices[p][0]
-            np, c = _path(initial_path=p2, initial_choices=choices.copy())
-            #debug(f"NEW PATH {np} CH {c} LEN {len(np)} SCORE {self.score(np)}")
-            if np:
-                self.display_path(np)
-                debug(f"NEW PATH LEN {len(np)} SCORE {self.score(np)}")
+        #path, choices = _path()
+        t = _paths()
+        #self.display_path(path)
+        #debug(f"PATH LEN {len(path)} SCORE {self.score(path)}")
+        #t.append(path)
+        #for p in choices:
+        #    debug(f"TRY NEW PATH START {p} -> {choices[p][0]}")
+        #    i = path.index(p)
+        #    p2 = path[:i + 1] + [choices[p][0]]
+        #    del choices[p][0]
+        #    new_choices = {}
+        #    # omit choices past the given branch point
+        #    for k in choices.keys():
+        #        new_choices[k] = choices[k]
+        #        if k == p:
+        #            break
+        #        
+        #    np, c = _path(initial_path=p2, initial_choices=new_choices)
+        #    #debug(f"NEW PATH {np} CH {c} LEN {len(np)} SCORE {self.score(np)}")
+        #    if np:
+        #        #self.display_path(np)
+        #        debug(f"NEW PATH LEN {len(np)} SCORE {self.score(np)}")
+        #        t.append(np)
         return t
 
 
@@ -227,6 +264,23 @@ class AdventDay(Day.Base):
     ]
 
     TEST_LARGE = [
+        "#################",
+        "#...#...#...#..E#",
+        "#.#.#.#.#.#.#.#.#",
+        "#.#.#.#...#...#.#",
+        "#.#.#.#.###.#.#.#",
+        "#...#.#.#.....#.#",
+        "#.#.#.#.#.#####.#",
+        "#.#...#.#.#.....#",
+        "#.#.#####.#.###.#",
+        "#.#.#.......#...#",
+        "#.#.###.#####.###",
+        "#.#.#...#.....#.#",
+        "#.#.#.#####.###.#",
+        "#.#.#.........#.#",
+        "#.#.#.#########.#",
+        "#S#.............#",
+        "#################",
     ]
 
     IMPOSSIBLE = [
@@ -260,7 +314,7 @@ class AdventDay(Day.Base):
         r = Reindeer(m.start)
         debug(f"RUN START {m.start} END {m.end}")
         t = m.path_tree()
-        #debug(f"T {t}")
+        debug(f"NUM PATHS {len(t)} MIN SCORE {min([m.score(x) for x in t])}")
 
 
 
