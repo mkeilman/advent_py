@@ -80,11 +80,11 @@ class Maze:
             i = (Maze.DIRECTIONS.index(direction) + 1) % len(Maze.DIRECTIONS)
             return Maze.DIRECTIONS[i]
         
-        def _open_dirs(pos):
+        def _open_dirs(pos, path=[]):
             dirs = []
             for d in Maze.DIRECTIONS:
                 q = _get_pos(pos, d)
-                if q not in self.walls:
+                if q not in self.walls and q not in path:
                     dirs.append(q)
             return dirs
 
@@ -110,15 +110,17 @@ class Maze:
             def _multi_dir_positions(dir_dict):
                 return {k:v for k, v in dir_dict.items() if len(v) > 1}
             
-            def _next_branch(path, dir_dict):
+            def _prev_branch(path, dir_dict):
                 p, q = _most_recent_multi(path, dir_dict)
                 if p is None or q is None:
                     return None, None, None
+                #debug(f"MRM {p} {dir_dict[p]}")
                 _prune(path, dir_dict, path.index(p))
                 return p, q, _dir(p, q)
 
 
             def _prune(path, dir_dict, index):
+                #debug(f"PRUNE PATH AFTER {index} {path[index + 1:]}")
                 for od in path[index + 1:]:
                     for k in dir_dict:
                         v = dir_dict[k]
@@ -126,6 +128,7 @@ class Maze:
                             del v[v.index(od)]
                     del dir_dict[od]
                 del path[index + 1:]
+                
 
             ctl_loops = 0
             path = initial_path or [self.start]
@@ -143,28 +146,26 @@ class Maze:
 
             while pos != self.end:
                 ctl_loops += 1
+                if self.score(path) > max_score:
+                    #debug(f"SCORE {self.score(path)} TOO HIGH")
+                    pos, q, dir = _prev_branch(path, open_dirs)
+                    if pos is None:
+                        return [], {}
                 next_pos = _get_pos(pos, dir)
                 #debug(f"POS {pos} DIR {dir} NEXT {next_pos}")
                 if next_pos in path:
                     # we've done a loop
-                    #self.display_path(path)
-                    p, q, d = _next_branch(path, open_dirs)
-                    #p, q = _most_recent_multi(path, open_dirs)
+                    p, q, d = _prev_branch(path, open_dirs)
                     if p is None:
                         return [], {}
-                    #dir = _dir(p, q)
                     next_pos = q
                     dir = d
-                    #_prune(path, open_dirs, path.index(p))
                 if next_pos not in self.walls:
                     path.append(next_pos)
-                    #if self.score(path) > max_score:
-                    #    debug(f"SCORE {self.score(path)} TOO HIGH")
-                    #    return path, {}
                     pos = next_pos
-                    open_dirs[pos] = _open_dirs(pos)
+                    open_dirs[pos] = _open_dirs(pos, path=path)
                     continue
-                #debug(f"HIT WALL {next_pos}")
+                #debug(f"HIT WALL {next_pos} SCORE {self.score(path)}")
                 # check +/- 90 degrees
                 found_turn = False
                 while path and not found_turn:
@@ -173,26 +174,16 @@ class Maze:
                         q = _get_pos(pos, d)
                         if q not in self.walls:
                             path.append(q)
-                            #if self.score(path) > max_score:
-                            #    debug(f"SCORE {self.score(path)} TOO HIGH")
-                            #    return path, {}
                             pos = q
-                            open_dirs[pos] = _open_dirs(pos)
+                            open_dirs[pos] = _open_dirs(pos, path=path)
                             dir = d
                             found_turn = True
                             break
                     if found_turn:
                         continue
-                    #debug(f"DEAD END {pos} BACK TO? {_most_recent_multi(path, open_dirs)}")
-                    pos, q, d = _next_branch(path, open_dirs)
+                    pos, q, dir = _prev_branch(path, open_dirs)
                     if pos is None:
                         return [], {}
-                    #pos, q = _most_recent_multi(path, open_dirs)
-                    #if pos is None or q is None:
-                    #    return [], {}
-                    #dir = _dir(pos, q)
-                    dir = d
-                    #_prune(path, open_dirs, path.index(pos))
                     break
             u = {k:[x for x in v if x not in path] for k, v in  _unexplored(path, open_dirs).items()}
             return path, u
@@ -214,7 +205,6 @@ class Maze:
                 keys = list(choices.keys())
                 # omit choices past the given branch point
                 new_choices = {k:v for k, v in choices.items() if v and keys.index(k) <= keys.index(p)}
-                #debug(f"NUM CHOICES {new_choices}")
                 #q, c = _path(initial_path=p2, initial_choices=new_choices)
                 #if not q:
                 #    continue
