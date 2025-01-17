@@ -5,21 +5,6 @@ from utils import mathutils
 from utils import string
 from utils.debug import debug
 
-class PathNode:
-    def __init__(self, pos, grid, walls):
-        self.pos = pos
-        self.grid = grid
-        self.walls = walls
-        self.children = []
-        self._generate()
-
-    def _generate(self):
-        n = self.grid.neighborhood(self.pos)
-        debug(f"P {self.pos} N {[x for x in n if x not in self.walls]}")
-        #for p in [x for x in n if x not in self.walls]:
-        #    if not any([x.pos for x in self.children]):
-        #        self.children.append(PathNode(p, self.grid, self.walls))
-        
 
 class Maze:
 
@@ -42,8 +27,6 @@ class Maze:
         self.start = self._token_pos(Maze.START)
         self.start_dir = (0, 1)
         self.end = self._token_pos(Maze.END)
-        self.pos_with_choices = {}
-        self.min_path_score = 1e23
     
 
     def display_path(self, path):
@@ -59,10 +42,8 @@ class Maze:
         d0 = self.start_dir
         for i, d in enumerate(dirs):
             if d != d0:
-                #debug(f"CHANGE DIR {d0} -> {d} AT {i}")
                 s += 1000
                 d0 = d
-        #debug(f"DIRS {dirs}")
         return s
     
 
@@ -114,13 +95,11 @@ class Maze:
                 p, q = _most_recent_multi(path, dir_dict)
                 if p is None or q is None:
                     return None, None, None
-                #debug(f"MRM {p} {dir_dict[p]}")
                 _prune(path, dir_dict, path.index(p))
                 return p, q, _dir(p, q)
 
 
             def _prune(path, dir_dict, index):
-                #debug(f"PRUNE PATH AFTER {index} {path[index + 1:]}")
                 for od in path[index + 1:]:
                     for k in dir_dict:
                         v = dir_dict[k]
@@ -133,6 +112,7 @@ class Maze:
             ctl_loops = 0
             path = initial_path or [self.start]
             pos = path[-1]
+
 
             if initial_path:
                 if len(initial_path) < 2:
@@ -147,7 +127,6 @@ class Maze:
             while pos != self.end:
                 ctl_loops += 1
                 if self.score(path) > max_score:
-                    #debug(f"SCORE {self.score(path)} TOO HIGH")
                     pos, q, dir = _prev_branch(path, open_dirs)
                     if pos is None:
                         return [], {}
@@ -155,17 +134,15 @@ class Maze:
                 #debug(f"POS {pos} DIR {dir} NEXT {next_pos}")
                 if next_pos in path:
                     # we've done a loop
-                    p, q, d = _prev_branch(path, open_dirs)
+                    p, next_pos, dir = _prev_branch(path, open_dirs)
                     if p is None:
                         return [], {}
-                    next_pos = q
-                    dir = d
                 if next_pos not in self.walls:
                     path.append(next_pos)
                     pos = next_pos
                     open_dirs[pos] = _open_dirs(pos, path=path)
                     continue
-                #debug(f"HIT WALL {next_pos} SCORE {self.score(path)}")
+                #debug(f"HIT WALL {next_pos}")
                 # check +/- 90 degrees
                 found_turn = False
                 while path and not found_turn:
@@ -193,37 +170,35 @@ class Maze:
             paths = []
             path, choices = _path(initial_path=initial_path, initial_choices=initial_choices, max_score=max_score)
             if not path:
-                debug(f"{depth} DONE EMPTY")
+                #debug(f"{depth} DONE EMPTY")
                 return paths
             s = self.score(path)
             max_score = min(max_score, s)
             debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
             paths.append(path)
             for p in choices:
-                debug(f"{depth} TRY NEW PATH START {p} -> {choices[p][0]}")
-                p2 = path[:path.index(p) + 1] + [choices[p].pop(0)]
+                q2 = choices[p].pop(0)
+                p2 = path[:path.index(p) + 1] + [q2]
+                if (p, q2) in empty_choices:
+                    #debug(f"{depth} THIS START EMPTY {p} -> {q2}")
+                    continue
+                #debug(f"{depth} TRY NEW PATH START {p} -> {q2}")
                 keys = list(choices.keys())
                 # omit choices past the given branch point
                 new_choices = {k:v for k, v in choices.items() if v and keys.index(k) <= keys.index(p)}
-                #q, c = _path(initial_path=p2, initial_choices=new_choices)
-                #if not q:
-                #    continue
-                #s = self.score(q)
-                #self.min_path_score = min(self.min_path_score, s)
-                #debug(f"NEW PATH SCORE {s} MIN {self.min_path_score}")
-                #paths.append(q)
-                #paths.extend(_paths(initial_path=p2, initial_choices=new_choices))
-                for q in _paths(initial_path=p2, initial_choices=new_choices, depth=depth + 1, max_score=max_score):
-                    if not q or q in paths:
-                        continue
+                cp = _paths(initial_path=p2, initial_choices=new_choices, depth=depth + 1, max_score=max_score)
+                if not cp:
+                    #debug(f"{depth} CHOICE EMPTY")
+                    empty_choices.append((p, q2))
+                for q in cp:
                     s = self.score(q)
                     max_score = min(max_score, s)
-                    debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
+                    #debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
                     paths.append(q)
             debug(f"{depth} DONE")
             return paths
                 
-
+        empty_choices = []
         return _paths()
 
 
@@ -319,11 +294,14 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         m = Maze(v)
-        #p = PathNode(m.start, m.coord_grid, m.walls)
-        #debug(f"PN {p.children}")
         debug(f"RUN START {m.start} END {m.end}")
         t = m.path_tree()
-        debug(f"NUM PATHS {len(t)} MIN SCORE {min([m.score(x) for x in t])}")
+        min_score = min([m.score(x) for x in t])
+        debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
+        p = [x for x in t if m.score(x) == min_score][0]
+        m.display_path(p)
+        debug(f"MIN PATH LEN {len(p)}")
+
 
 
 
