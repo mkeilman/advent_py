@@ -15,6 +15,13 @@ class Maze:
         (-1, 0)
     ]
 
+    DIR_SYMBOLS = {
+        (0, 1): ">",
+        (1, 0): "v",
+        (0, -1): "<",
+        (-1, 0): "^",
+    }
+
     START = "S"
     END = "E"
 
@@ -33,17 +40,27 @@ class Maze:
         for r in self.coord_grid.coord_array:
             s = ""
             for c in r:
-                s += ("X" if c in path else ".")
+                #if c in self.walls:
+                #    s += "#"
+                if c not in path:
+                    s += "."
+                else:
+                    i = path.index(c)
+                    d =  self._dir(path[i - 1], path[i])
+                    s += Maze.START if i == 0 else (Maze.DIR_SYMBOLS[d] if i < len(path) - 1 else "E")
             debug(s)
 
     def score(self, path):
         s = len(path) - 1
+        nt = 0
         dirs = [self._dir(path[i - 1], path[i]) for i in range(1, len(path))]
         d0 = self.start_dir
         for i, d in enumerate(dirs):
             if d != d0:
+                nt += 1
                 s += 1000
                 d0 = d
+        #debug(f"L {len(path) - 1} T {nt}")
         return s
     
 
@@ -174,7 +191,7 @@ class Maze:
                 return paths
             s = self.score(path)
             max_score = min(max_score, s)
-            debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
+            #debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
             paths.append(path)
             for p in choices:
                 q2 = choices[p].pop(0)
@@ -195,7 +212,7 @@ class Maze:
                     max_score = min(max_score, s)
                     #debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
                     paths.append(q)
-            debug(f"{depth} DONE")
+            #debug(f"{depth} DONE")
             return paths
                 
         empty_choices = []
@@ -279,7 +296,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.TEST
+            AdventDay.TEST_LARGE
         )
         self.args_parser.add_argument(
             "--warehouse-size",
