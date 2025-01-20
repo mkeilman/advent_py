@@ -34,9 +34,10 @@ class Maze:
         self.start = self._token_pos(Maze.START)
         self.start_dir = (0, 1)
         self.end = self._token_pos(Maze.END)
+        self.connections = {k:[x for x in v if x not in self.walls] for k, v in self.coord_grid.coord_neighborhoods.items()}
     
-
     def display_path(self, path):
+        #debug(path)
         for r in self.coord_grid.coord_array:
             s = ""
             for c in r:
@@ -46,23 +47,97 @@ class Maze:
                     s += "."
                 else:
                     i = path.index(c)
-                    d =  self._dir(path[i - 1], path[i])
-                    s += Maze.START if i == 0 else (Maze.DIR_SYMBOLS[d] if i < len(path) - 1 else "E")
+                    if c == self.start:
+                        s += Maze.START
+                        continue
+                    if c == self.end:
+                        s += Maze.END
+                        continue
+                    #debug(f"{path[i - 1]} -> {c}")
+                    d =  self._dir(path[i - 1], c)
+                    if d in Maze.DIR_SYMBOLS:
+                        s +=  Maze.DIR_SYMBOLS[d]
+                    else:
+                        s += "*"
             debug(s)
+        debug("")
 
     def score(self, path):
         s = len(path) - 1
-        nt = 0
         dirs = [self._dir(path[i - 1], path[i]) for i in range(1, len(path))]
         d0 = self.start_dir
         for i, d in enumerate(dirs):
             if d != d0:
-                nt += 1
                 s += 1000
                 d0 = d
-        #debug(f"L {len(path) - 1} T {nt}")
         return s
     
+    def _t(self):
+
+        def _conn(p, q, path):
+            return [x for x in self.connections[q] if x != p and x not in path]
+        
+        def _trim(arr, n):
+            for i in range(n):
+                arr.pop()
+
+        def _pp(pos, path=None, depth=0):
+            pp = path or [pos]
+            while pos != self.end:
+                # loop through the connections to this position
+                #debug(f"{depth} GET PCON FOR {pos}")
+                #p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1]]
+                #n = 0
+                for p in [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1]]:
+                #while n < len(p_con):
+                    #p = p_con[n]
+                    debug(f"{depth} CHECK {pos} -> {p}")
+                    if p in pp:
+                        i = -1
+                        q = pp[i]
+                        debug(f"{depth} LOOP: {pos} -> {p}")
+                        c = _conn(p, q, pp)
+                        while not len(c):
+                            if i == -len(pp):
+                                return None, None
+                            i -= 1
+                            q = pp[i]
+                            c = _conn(p, q, pp)
+                        #debug(f"{depth} TRIM TO {q} {c} {self.connections[q]} {pp.index(q) + 1}")
+                        #pp = pp[:pp.index(q) + 1]
+                        #_trim(pp, len(pp) - (pp.index(q) + 1))
+                        #self.display_path(pp)
+                        debug(f"{depth} RETURN REMOVAL {q}")
+                        pp.pop()
+                        return None, q
+                    pp.append(p)
+                    #pos = p
+                    self.display_path(pp)
+                    to_add, to_remove = _pp(p, path=pp, depth=depth + 1)
+                    if to_remove:
+                        debug(f"{depth} POS {pos} TRIM TO {to_remove} {pp.index(to_remove) + 1}")
+                        if pos != to_remove:
+                            r = pp.pop()
+                            debug(r)
+                            self.display_path(pp)
+                            return None, to_remove
+                        #_trim(pp, len(pp) - (pp.index(to_remove) + 1))
+                        #n += 1
+                        self.display_path(pp)
+                        continue
+                    if to_add:
+                        pp.extend(to_add)
+                    debug(f"{depth} {p} NEXT {to_add} {pp}")
+                    #n += 1
+                    #pp.extend(next)
+            debug(f"{depth} RETURN {pp}")
+            return pp, None
+            #return pp
+
+        paths = []
+        paths.append(_pp(self.start))
+        return paths
+
 
     # note these are not necessarily "good" mazes in that they can contain islands,
     # and thus "left hand on the wall" will not work
@@ -187,17 +262,17 @@ class Maze:
             paths = []
             path, choices = _path(initial_path=initial_path, initial_choices=initial_choices, max_score=max_score)
             if not path:
-                #debug(f"{depth} DONE EMPTY")
+                debug(f"{depth} DONE EMPTY")
                 return paths
             s = self.score(path)
             max_score = min(max_score, s)
-            #debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
+            debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
             paths.append(path)
             for p in choices:
                 q2 = choices[p].pop(0)
                 p2 = path[:path.index(p) + 1] + [q2]
                 if (p, q2) in empty_choices:
-                    #debug(f"{depth} THIS START EMPTY {p} -> {q2}")
+                    debug(f"{depth} THIS START EMPTY {p} -> {q2}")
                     continue
                 #debug(f"{depth} TRY NEW PATH START {p} -> {q2}")
                 keys = list(choices.keys())
@@ -205,14 +280,14 @@ class Maze:
                 new_choices = {k:v for k, v in choices.items() if v and keys.index(k) <= keys.index(p)}
                 cp = _paths(initial_path=p2, initial_choices=new_choices, depth=depth + 1, max_score=max_score)
                 if not cp:
-                    #debug(f"{depth} CHOICE EMPTY")
+                    debug(f"{depth} CHOICE EMPTY")
                     empty_choices.append((p, q2))
                 for q in cp:
                     s = self.score(q)
                     max_score = min(max_score, s)
-                    #debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
+                    debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
                     paths.append(q)
-            #debug(f"{depth} DONE")
+            debug(f"{depth} DONE")
             return paths
                 
         empty_choices = []
@@ -312,12 +387,13 @@ class AdventDay(Day.Base):
     def run(self, v):
         m = Maze(v)
         debug(f"RUN START {m.start} END {m.end}")
-        t = m.path_tree()
-        min_score = min([m.score(x) for x in t])
-        debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
-        p = [x for x in t if m.score(x) == min_score][0]
-        m.display_path(p)
-        debug(f"MIN PATH LEN {len(p)}")
+        debug(f"T {m._t()}")
+        #t = m.path_tree()
+        #min_score = min([m.score(x) for x in t])
+        #debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
+        #p = [x for x in t if m.score(x) == min_score][0]
+        #m.display_path(p)
+        #debug(f"MIN PATH LEN {len(p)}")
 
 
 

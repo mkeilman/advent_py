@@ -49,7 +49,9 @@ class Grid:
 
     def __init__(self, coord_array):
         self.coord_array = coord_array
+        self.flat_array = [x for y in coord_array for x in y]
         self.size = (len(self.coord_array), len(self.coord_array[0]))
+        self.coord_neighborhoods = {x:self.neighborhood(x) for x in self.flat_array}
 
     def contains(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
@@ -64,4 +66,6 @@ class Grid:
             if self.contains(q):
                 n.append(q)
         return n
+    
+
     
