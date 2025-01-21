@@ -81,61 +81,73 @@ class Maze:
             for i in range(n):
                 arr.pop()
 
+        def _prev_branch(curr_pos, path):
+            i = -1
+            q = path[i]
+            c = _conn(curr_pos, q, path)
+            while not len(c):
+                if i == -len(path):
+                    debug(f"NO PATH")
+                    return None
+                i -= 1
+                q = path[i]
+                c = _conn(curr_pos, q, path)
+            path.pop()
+            return q
+
         def _pp(pos, path=None, depth=0):
             pp = path or [pos]
-            while pos != self.end:
+            empty_choices[pos] = []
+            if pos != self.end:
                 # loop through the connections to this position
-                #debug(f"{depth} GET PCON FOR {pos}")
-                #p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1]]
-                #n = 0
-                for p in [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1]]:
-                #while n < len(p_con):
-                    #p = p_con[n]
+                p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1]]
+                debug(f"{depth} CONNECTIONS {pos}: {p_con}")
+                if not p_con:
+                    debug(f"{depth} NO ROUTE FROM {pos}")
+                    return _prev_branch(pos, pp)
+                for p in p_con:
+                    #TODO: multiple paths
                     debug(f"{depth} CHECK {pos} -> {p}")
                     if p in pp:
-                        i = -1
-                        q = pp[i]
                         debug(f"{depth} LOOP: {pos} -> {p}")
-                        c = _conn(p, q, pp)
-                        while not len(c):
-                            if i == -len(pp):
-                                return None, None
-                            i -= 1
-                            q = pp[i]
-                            c = _conn(p, q, pp)
-                        #debug(f"{depth} TRIM TO {q} {c} {self.connections[q]} {pp.index(q) + 1}")
-                        #pp = pp[:pp.index(q) + 1]
-                        #_trim(pp, len(pp) - (pp.index(q) + 1))
-                        #self.display_path(pp)
+                        q = _prev_branch(p, pp)
                         debug(f"{depth} RETURN REMOVAL {q}")
-                        pp.pop()
-                        return None, q
+                        #pp.pop()
+                        return q
                     pp.append(p)
+                    debug(f"{depth} ADDED {p} {pp}")
                     #pos = p
-                    self.display_path(pp)
-                    to_add, to_remove = _pp(p, path=pp, depth=depth + 1)
+                    #self.display_path(pp)
+                    debug(f"{depth} GENERATE NEXT")
+                    to_remove = _pp(p, path=pp, depth=depth + 1)
+                    debug(f"{depth} WILL REMOVE AFTER {to_remove}")
                     if to_remove:
-                        debug(f"{depth} POS {pos} TRIM TO {to_remove} {pp.index(to_remove) + 1}")
                         if pos != to_remove:
                             r = pp.pop()
-                            debug(r)
-                            self.display_path(pp)
-                            return None, to_remove
-                        #_trim(pp, len(pp) - (pp.index(to_remove) + 1))
-                        #n += 1
-                        self.display_path(pp)
-                        continue
-                    if to_add:
-                        pp.extend(to_add)
-                    debug(f"{depth} {p} NEXT {to_add} {pp}")
-                    #n += 1
+                            #self.display_path(pp)
+                            return to_remove
+                        #self.display_path(pp)
+                        debug(f"NO GOOD {pos} -> {p}")
+                        empty_choices[pos].append(p)
+                        #continue
+                    #if to_add:
+                    #    #pp.append(to_add)
+                    #    debug(f"{depth} ADDED FROM RTN {to_add} {pp}")
+                    #    have_added = True
+                    #debug(f"{depth} {p} NEXT {to_add} {pp}")
                     #pp.extend(next)
-            debug(f"{depth} RETURN {pp}")
-            return pp, None
+                debug(f"{depth} CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in empty_choices.items() if v} }")
+                #if all([x in p_con for x in empty_choices.get(pos, [])]):
+                #    debug(f"NO BRANCHES LEFT FOR {pos}")
+                #    return _prev_branch(pos, pp)
+            debug(f"{depth} DONE RETURN {pos}")
+            self.display_path(pp)
+            return None
             #return pp
 
-        paths = []
-        paths.append(_pp(self.start))
+        empty_choices = {}
+        paths = [self.start]
+        _pp(self.start, path=paths)
         return paths
 
 
@@ -387,7 +399,9 @@ class AdventDay(Day.Base):
     def run(self, v):
         m = Maze(v)
         debug(f"RUN START {m.start} END {m.end}")
-        debug(f"T {m._t()}")
+        t = m._t()
+        m.display_path(t)
+        debug(f"T {t}")
         #t = m.path_tree()
         #min_score = min([m.score(x) for x in t])
         #debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
