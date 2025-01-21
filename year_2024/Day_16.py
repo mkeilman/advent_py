@@ -104,7 +104,7 @@ class Maze:
                 debug(f"{depth} CONNECTIONS {pos}: {p_con}")
                 if not p_con:
                     debug(f"{depth} NO ROUTE FROM {pos}")
-                    return _prev_branch(pos, pp)
+                    return _prev_branch(pos, pp), False
                 for p in p_con:
                     #TODO: multiple paths
                     debug(f"{depth} CHECK {pos} -> {p}")
@@ -112,42 +112,36 @@ class Maze:
                         debug(f"{depth} LOOP: {pos} -> {p}")
                         q = _prev_branch(p, pp)
                         debug(f"{depth} RETURN REMOVAL {q}")
-                        #pp.pop()
-                        return q
+                        return q, False
                     pp.append(p)
                     debug(f"{depth} ADDED {p} {pp}")
-                    #pos = p
-                    #self.display_path(pp)
                     debug(f"{depth} GENERATE NEXT")
-                    to_remove = _pp(p, path=pp, depth=depth + 1)
+                    to_remove, done = _pp(p, path=pp, depth=depth + 1)
                     debug(f"{depth} WILL REMOVE AFTER {to_remove}")
+                    if done:
+                        debug("DONE?")
+                        return None, True
                     if to_remove:
                         if pos != to_remove:
                             r = pp.pop()
                             #self.display_path(pp)
-                            return to_remove
+                            return to_remove, False
                         #self.display_path(pp)
                         debug(f"NO GOOD {pos} -> {p}")
                         empty_choices[pos].append(p)
-                        #continue
-                    #if to_add:
-                    #    #pp.append(to_add)
-                    #    debug(f"{depth} ADDED FROM RTN {to_add} {pp}")
-                    #    have_added = True
-                    #debug(f"{depth} {p} NEXT {to_add} {pp}")
-                    #pp.extend(next)
                 debug(f"{depth} CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in empty_choices.items() if v} }")
                 #if all([x in p_con for x in empty_choices.get(pos, [])]):
                 #    debug(f"NO BRANCHES LEFT FOR {pos}")
                 #    return _prev_branch(pos, pp)
-            debug(f"{depth} DONE RETURN {pos}")
-            self.display_path(pp)
-            return None
-            #return pp
+            else:
+                debug(f"{depth} DONE! {pos}")
+                self.display_path(pp)
+                return None, True
+            return None, False
 
         empty_choices = {}
         paths = [self.start]
-        _pp(self.start, path=paths)
+        r, done = _pp(self.start, path=paths)
         return paths
 
 
@@ -383,7 +377,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.TEST_LARGE
+            AdventDay.IMPOSSIBLE
         )
         self.args_parser.add_argument(
             "--warehouse-size",
