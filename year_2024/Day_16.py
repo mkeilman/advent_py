@@ -75,6 +75,7 @@ class Maze:
     def _t(self):
 
         def _exclude(pos, connection, exclusions):
+            #debug(f"EXCLUDE {connection} FROM {pos}")
             if not exclusions.get(pos):
                 exclusions[pos] = []
             exclusions[pos].append(connection)
@@ -82,33 +83,33 @@ class Maze:
         def _conn(pos, path, exclusions={}):
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
         
-        def _pop_and_trim_to(pos, path, exlcusions):
+        def _trim_to_pos(pos, path, exlcusions):
             n = len(path) - path.index(pos) - 1
             if n:
                 debug(f"POP {n} TO REACH {pos} LEN {len(path)}")
+                #_exclude(path[-2], path[-1], exlcusions)
             for i in range(n):
+                pass
                 # exclude intervening postions if they have no valid connections
-                debug(f"NONEX CONN {path[-i - 2]}: {_conn(path[-i - 2], path)}")
+                #debug(f"NONEX CONN {path[-i - 2]}: {_conn(path[-i - 2], path)} ALL COMM {self.connections[path[-i - 2]]}")
                 _exclude(path[-i - 2], path[-i - 1], exlcusions)
             _trim(path, n)
 
         def _pp(pos):
             pp = [pos]
             done = False
+            n_loops = 0
             while not done and pos != self.end:
                 # loop through the connections to this position, not counting the preivous position and excluded positions
-                #p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1] and not excluded.get(x)]
-                #p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1] and x not in excluded.get(pos, [])]
-                p_con = _conn(pos, pp, exclusions=excluded)
+                p_con = _conn(pos, pp, exclusions=exclusions)
                 #debug(f"CONNECTIONS {pos}: {p_con}")
                 if not p_con:
                     #debug(f"NO ROUTE FROM {pos}")
-                    q = _prev_branch(pp, exclusions=excluded)
+                    q = _prev_branch(pp, exclusions=exclusions)
                     if not q:
-                        #debug("MNO!")
                         done = True
                         break
-                    _pop_and_trim_to(q, pp, excluded)
+                    _trim_to_pos(q, pp, exclusions)
                     pos = q
                     continue
                 for p in p_con:
@@ -116,60 +117,47 @@ class Maze:
                     #debug(f"CHECK {pos} -> {p}")
                     if p in pp:
                         #debug(f"LOOP: {pos} -> {p}")    
-                        q = _prev_branch(pp, exclusions=excluded)
+                        q = _prev_branch(pp, exclusions=exclusions)
                         if not q:
                             done = True
                             break
-                        _pop_and_trim_to(q, pp, excluded)
+                        _trim_to_pos(q, pp, exclusions)
                         pos = q
                         continue
                     pp.append(p)
                     pos = p
                     #debug(f"ADDED {p}")
                     break
-                    #debug(f"GENERATE NEXT")
-                    #to_remove, done = _pp(p)
-                    #if done:
-                    #    debug("DONE?")
-                    #    #return None, True
-                    #if to_remove:
-                    #    #debug(f"WILL REMOVE AFTER {to_remove}")
-                    #    if pos != to_remove:
-                    #        r = pp.pop()
-                    #        #self.display_path(pp)
-                    #        return to_remove, False
-                    #    #self.display_path(pp)
-                    #    #debug(f"NO GOOD {pos} -> {p}")
-                    #    excluded[pos].append(p)
-                #debug(f"CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in excluded.items() if v} } PP {pp}")
-                if all([x in p_con for x in excluded.get(pos, [])]):
+                #debug(f"CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in exclusions.items() if v} } PP {pp}")
+                if all([x in p_con for x in exclusions.get(pos, [])]):
                     #debug(f"NO BRANCHES LEFT FOR {pos}")
-                    q = _prev_branch(pp, exclusions=excluded)
+                    q = _prev_branch(pp)
                     if not q:
                         done = True
                         continue
-                    _pop_and_trim_to(q, pp, excluded)
+                    _trim_to_pos(q, pp, exclusions)
                     pos = q
-            else:
-                debug(f"DONE! {pos} EX {excluded.get(pos)} CONN {self.connections[pos]}")
-                #if pos != self.end:
-                #    pp = []
-                self.display_path(pp)
-                return pp
+                n_loops += 1
+            #else:
+            debug(f"DONE! IN {n_loops} {pos} EX {exclusions.get(pos)} CONN {self.connections[pos]}")
+            #if pos != self.end:
+            #    pp = []
+            self.display_path(pp)
             return pp
+            #return pp
 
         def _prev_branch(path, exclusions={}):
             i = -1
             q = path[i]
             c = _conn(q, path, exclusions=exclusions)
-            #debug(f"CURR {curr_pos} LAST POS {q} CONECTIONS {c}")
+            #debug(f"OUT CONN {q}: {c} P {path}")
             while not len(c):
                 if i == -len(path):
-                    #debug(f"NO PATH")
                     return None
                 i -= 1
                 q = path[i]
                 c = _conn(q, path, exclusions=exclusions)
+                #debug(f"IN CONN {q}: {c}")
             return q
         
 
@@ -178,7 +166,7 @@ class Maze:
                 arr.pop()
 
  
-        excluded = {}
+        exclusions = {}
         paths = [self.start]
         r = _pp(self.start)
         return r
@@ -416,7 +404,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.TEST
+            AdventDay.TEST_LARGE
         )
         self.args_parser.add_argument(
             "--warehouse-size",
