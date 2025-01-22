@@ -42,7 +42,7 @@ class Maze:
             s = ""
             for c in r:
                 #if c in self.walls:
-                #    s += "#"
+                #    s += Maze.WALL
                 if c not in path:
                     s += "."
                 else:
@@ -74,77 +74,114 @@ class Maze:
     
     def _t(self):
 
-        def _conn(p, q, path):
-            return [x for x in self.connections[q] if x != p and x not in path]
+        def _exclude(pos, connection, exclusions):
+            if not exclusions.get(pos):
+                exclusions[pos] = []
+            exclusions[pos].append(connection)
         
-        def _trim(arr, n):
+        def _conn(pos, path, exclusions={}):
+            return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
+        
+        def _pop_and_trim_to(pos, path, exlcusions):
+            n = len(path) - path.index(pos) - 1
+            if n:
+                debug(f"POP {n} TO REACH {pos} LEN {len(path)}")
             for i in range(n):
-                arr.pop()
+                # exclude intervening postions if they have no valid connections
+                debug(f"NONEX CONN {path[-i - 2]}: {_conn(path[-i - 2], path)}")
+                _exclude(path[-i - 2], path[-i - 1], exlcusions)
+            _trim(path, n)
 
-        def _prev_branch(curr_pos, path):
+        def _pp(pos):
+            pp = [pos]
+            done = False
+            while not done and pos != self.end:
+                # loop through the connections to this position, not counting the preivous position and excluded positions
+                #p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1] and not excluded.get(x)]
+                #p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1] and x not in excluded.get(pos, [])]
+                p_con = _conn(pos, pp, exclusions=excluded)
+                #debug(f"CONNECTIONS {pos}: {p_con}")
+                if not p_con:
+                    #debug(f"NO ROUTE FROM {pos}")
+                    q = _prev_branch(pp, exclusions=excluded)
+                    if not q:
+                        #debug("MNO!")
+                        done = True
+                        break
+                    _pop_and_trim_to(q, pp, excluded)
+                    pos = q
+                    continue
+                for p in p_con:
+                    #TODO: multiple paths
+                    #debug(f"CHECK {pos} -> {p}")
+                    if p in pp:
+                        #debug(f"LOOP: {pos} -> {p}")    
+                        q = _prev_branch(pp, exclusions=excluded)
+                        if not q:
+                            done = True
+                            break
+                        _pop_and_trim_to(q, pp, excluded)
+                        pos = q
+                        continue
+                    pp.append(p)
+                    pos = p
+                    #debug(f"ADDED {p}")
+                    break
+                    #debug(f"GENERATE NEXT")
+                    #to_remove, done = _pp(p)
+                    #if done:
+                    #    debug("DONE?")
+                    #    #return None, True
+                    #if to_remove:
+                    #    #debug(f"WILL REMOVE AFTER {to_remove}")
+                    #    if pos != to_remove:
+                    #        r = pp.pop()
+                    #        #self.display_path(pp)
+                    #        return to_remove, False
+                    #    #self.display_path(pp)
+                    #    #debug(f"NO GOOD {pos} -> {p}")
+                    #    excluded[pos].append(p)
+                #debug(f"CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in excluded.items() if v} } PP {pp}")
+                if all([x in p_con for x in excluded.get(pos, [])]):
+                    #debug(f"NO BRANCHES LEFT FOR {pos}")
+                    q = _prev_branch(pp, exclusions=excluded)
+                    if not q:
+                        done = True
+                        continue
+                    _pop_and_trim_to(q, pp, excluded)
+                    pos = q
+            else:
+                debug(f"DONE! {pos} EX {excluded.get(pos)} CONN {self.connections[pos]}")
+                #if pos != self.end:
+                #    pp = []
+                self.display_path(pp)
+                return pp
+            return pp
+
+        def _prev_branch(path, exclusions={}):
             i = -1
             q = path[i]
-            c = _conn(curr_pos, q, path)
+            c = _conn(q, path, exclusions=exclusions)
+            #debug(f"CURR {curr_pos} LAST POS {q} CONECTIONS {c}")
             while not len(c):
                 if i == -len(path):
                     #debug(f"NO PATH")
                     return None
                 i -= 1
                 q = path[i]
-                c = _conn(curr_pos, q, path)
-            path.pop()
+                c = _conn(q, path, exclusions=exclusions)
             return q
+        
 
-        def _pp(pos, path, depth=0):
-            pp = path
-            empty_choices[pos] = []
-            if pos != self.end:
-                # loop through the connections to this position
-                p_con = [x for x in self.connections[pos] if x != pp[pp.index(pos) - 1]]
-                #debug(f"{depth} CONNECTIONS {pos}: {p_con}")
-                if not p_con:
-                    #debug(f"{depth} NO ROUTE FROM {pos}")
-                    return _prev_branch(pos, pp), False
-                for p in p_con:
-                    #TODO: multiple paths
-                    #debug(f"{depth} CHECK {pos} -> {p}")
-                    if p in pp:
-                        #debug(f"{depth} LOOP: {pos} -> {p}")
-                        q = _prev_branch(p, pp)
-                        #debug(f"{depth} RETURN REMOVAL {q}")
-                        return q, False
-                    pp.append(p)
-                    #debug(f"{depth} ADDED {p}")
-                    #debug(f"{depth} GENERATE NEXT")
-                    to_remove, done = _pp(p, path=pp, depth=depth + 1)
-                    if done:
-                        #debug("DONE?")
-                        return None, True
-                    if to_remove:
-                        #debug(f"{depth} WILL REMOVE AFTER {to_remove}")
-                        if pos != to_remove:
-                            r = pp.pop()
-                            #self.display_path(pp)
-                            return to_remove, False
-                        #self.display_path(pp)
-                        #debug(f"NO GOOD {pos} -> {p}")
-                        empty_choices[pos].append(p)
-                #debug(f"{depth} CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in empty_choices.items() if v} } PP {pp}")
-                if all([x in p_con for x in empty_choices.get(pos, [])]):
-                    #debug(f"NO BRANCHES LEFT FOR {pos}")
-                    q = _prev_branch(pos, pp)
-                    #return q, False
-                #    return _prev_branch(pos, pp)
-            else:
-                debug(f"{depth} DONE! {pos}")
-                self.display_path(pp)
-                return None, True
-            return None, False
+        def _trim(arr, n):
+            for _ in range(n):
+                arr.pop()
 
-        empty_choices = {}
+ 
+        excluded = {}
         paths = [self.start]
-        r, done = _pp(self.start, path=paths)
-        return paths
+        r = _pp(self.start)
+        return r
 
 
     # note these are not necessarily "good" mazes in that they can contain islands,
@@ -270,7 +307,7 @@ class Maze:
             paths = []
             path, choices = _path(initial_path=initial_path, initial_choices=initial_choices, max_score=max_score)
             if not path:
-                debug(f"{depth} DONE EMPTY")
+                debug(f"DONE EMPTY")
                 return paths
             s = self.score(path)
             max_score = min(max_score, s)
@@ -396,7 +433,7 @@ class AdventDay(Day.Base):
         m = Maze(v)
         debug(f"RUN START {m.start} END {m.end}")
         t = m._t()
-        m.display_path(t)
+        #m.display_path(t)
         debug(f"T {t}")
         #t = m.path_tree()
         #min_score = min([m.score(x) for x in t])
