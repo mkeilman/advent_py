@@ -80,75 +80,45 @@ class Maze:
                 exclusions[pos] = []
             exclusions[pos].append(connection)
         
-        def _conn(pos, path, exclusions={}):
+        def _conn(pos, path, exclusions={}, unused={}):
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
-        
-        def _trim_to_pos(pos, path, exlcusions):
-            n = len(path) - path.index(pos) - 1
-            if n:
-                #debug(f"POP {n} TO REACH {pos} LEN {len(path)}")
-                #_exclude(path[-2], path[-1], exlcusions)
-                pass
-            for i in range(n):
-                pass
-                # exclude intervening postions if they have no valid connections
-                #debug(f"NONEX CONN {path[-i - 2]}: {_conn(path[-i - 2], path)} ALL COMM {self.connections[path[-i - 2]]}")
-                _exclude(path[-i - 2], path[-i - 1], exlcusions)
-            _trim(path, n)
 
-        def _pp(pos):
+        def _pp(start_pos, end_pos, unused={}):
             import time
-            pp = [pos]
+
+            pos = start_pos
+            pp = [start_pos]
             done = False
             n_loops = 0
-            while not done and pos != self.end:
+            while not done and pos != end_pos:
                 # loop through the connections to this position, not counting the preivous position and excluded positions
-                added_conn = False
                 p_con = _conn(pos, pp, exclusions=exclusions)
                 #debug(f"CONNECTIONS {pos}: {p_con}")
-                if not p_con:
-                    #debug(f"NO ROUTE FROM {pos}")
-                    q = _prev_branch(pp, exclusions=exclusions)
-                    if not q:
-                        done = True
-                        break
-                    _trim_to_pos(q, pp, exclusions)
-                    pos = q
-                    continue
                 for p in p_con:
                     #TODO: multiple paths
                     #debug(f"CHECK {pos} -> {p}")
-                    if p in pp:
-                        #debug(f"LOOP: {pos} -> {p}")    
-                        q = _prev_branch(pp, exclusions=exclusions)
-                        if not q:
-                            done = True
-                            break
-                        _trim_to_pos(q, pp, exclusions)
-                        pos = q
-                        continue
+                    #if p in pp:
+                    #    debug(f"LOOP: {pos} -> {p}")
+                    #    q = _trim_to_prev_branch(pp, exclusions)
+                    #    done = not q
+                    #    if not q:
+                    #        break
+                    #    pos = q
+                    #    continue
                     pp.append(p)
                     pos = p
-                    added_conn = True
                     #debug(f"ADDED {p}")
                     break
-                #debug(f"CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in exclusions.items() if v} } PP {pp}")
-                #if all([x in p_con for x in exclusions.get(pos, [])]):
-                if added_conn:
-                    continue
-                # added no connections for this position, so we have reached a dead end
-                # find the previous valid branch
-                # debug(f"NO BRANCHES LEFT FOR {pos}")
-                q = _prev_branch(pp)
-                if not q:
-                    done = True
-                    continue
-                _trim_to_pos(q, pp, exclusions)
-                #self.display_path(pp)
-                pos = q
+                else:
+                    #debug(f"NO ROUTE FROM {pos}")
+                    pos = _trim_to_prev_branch(pp, exclusions)
+                    done = not pos
                 n_loops += 1
             #else:
-            debug(f"DONE! IN {n_loops} {pos} EX {exclusions.get(pos)} CONN {self.connections[pos]}")
+            
+            #debug(f"DONE! IN {n_loops} {pos} EX {exclusions.get(pos)} CONN {self.connections[pos]}")
+            debug(f"DONE! IN {n_loops}")
+            #debug(f"LEFTOVER BRANCHES { {k:v for k, v in self.connections.items() if not exclusions.get(k, [])} }")
             #if pos != self.end:
             #    pp = []
             self.display_path(pp)
@@ -159,14 +129,12 @@ class Maze:
             i = -1
             q = path[i]
             c = _conn(q, path, exclusions=exclusions)
-            #debug(f"OUT CONN {q}: {c} P {path}")
             while not len(c):
                 if i == -len(path):
                     return None
                 i -= 1
                 q = path[i]
                 c = _conn(q, path, exclusions=exclusions)
-                #debug(f"IN CONN {q}: {c}")
             return q
         
 
@@ -174,11 +142,37 @@ class Maze:
             for _ in range(n):
                 arr.pop()
 
- 
+        def _trim_to_pos(pos, path, exlcusions):
+            n = len(path) - path.index(pos) - 1
+            for i in range(n):
+                # exclude intervening postions if they have no valid connections
+                _exclude(path[-i - 2], path[-i - 1], exlcusions)
+            _trim(path, n)
+
+
+        def _trim_to_prev_branch(path, exclusions):
+            q = _prev_branch(path, exclusions=exclusions)
+            if q:
+                _trim_to_pos(q, path, exclusions)
+            return q
+
+
         exclusions = {}
-        paths = [self.start]
-        r = _pp(self.start)
+        r = _pp(self.start, self.end)
+        u = self._unused_branches(r, exclusions)
+        #debug(f"UNUSED {u}")
+        #r2 = _pp(self.start, self.end)
         return r
+
+    def _unused_branches(self, path, exclusions):
+        u = {}
+        for p in path:
+            for q in self.connections[p]:
+                if q not in path and not exclusions.get(q):
+                    if not u.get(p):
+                        u[p] = []
+                    u[p].append(q)
+        return u
 
 
     # note these are not necessarily "good" mazes in that they can contain islands,
@@ -370,6 +364,15 @@ class AdventDay(Day.Base):
         "###############",
     ]
 
+    LOOP = [
+        "###############",
+        "#............E#",
+        "###############",
+        "#......#......#",
+        "#S............#",
+        "###############",
+    ]
+
     TEST = [
         "###############",
         "#.......#....E#",
@@ -421,7 +424,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.TWO_PATHS
+            AdventDay.LOOP
         )
         self.args_parser.add_argument(
             "--warehouse-size",
@@ -439,7 +442,7 @@ class AdventDay(Day.Base):
         debug(f"RUN START {m.start} END {m.end}")
         t = m._t()
         #m.display_path(t)
-        debug(f"T {t}")
+        #debug(f"T {t}")
         #t = m.path_tree()
         #min_score = min([m.score(x) for x in t])
         #debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
