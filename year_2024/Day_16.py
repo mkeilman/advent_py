@@ -86,8 +86,9 @@ class Maze:
         def _trim_to_pos(pos, path, exlcusions):
             n = len(path) - path.index(pos) - 1
             if n:
-                debug(f"POP {n} TO REACH {pos} LEN {len(path)}")
+                #debug(f"POP {n} TO REACH {pos} LEN {len(path)}")
                 #_exclude(path[-2], path[-1], exlcusions)
+                pass
             for i in range(n):
                 pass
                 # exclude intervening postions if they have no valid connections
@@ -96,11 +97,13 @@ class Maze:
             _trim(path, n)
 
         def _pp(pos):
+            import time
             pp = [pos]
             done = False
             n_loops = 0
             while not done and pos != self.end:
                 # loop through the connections to this position, not counting the preivous position and excluded positions
+                added_conn = False
                 p_con = _conn(pos, pp, exclusions=exclusions)
                 #debug(f"CONNECTIONS {pos}: {p_con}")
                 if not p_con:
@@ -126,17 +129,23 @@ class Maze:
                         continue
                     pp.append(p)
                     pos = p
+                    added_conn = True
                     #debug(f"ADDED {p}")
                     break
                 #debug(f"CONN CHECK DONE FOR {pos} EMPTY { {k:v for k, v in exclusions.items() if v} } PP {pp}")
-                if all([x in p_con for x in exclusions.get(pos, [])]):
-                    #debug(f"NO BRANCHES LEFT FOR {pos}")
-                    q = _prev_branch(pp)
-                    if not q:
-                        done = True
-                        continue
-                    _trim_to_pos(q, pp, exclusions)
-                    pos = q
+                #if all([x in p_con for x in exclusions.get(pos, [])]):
+                if added_conn:
+                    continue
+                # added no connections for this position, so we have reached a dead end
+                # find the previous valid branch
+                # debug(f"NO BRANCHES LEFT FOR {pos}")
+                q = _prev_branch(pp)
+                if not q:
+                    done = True
+                    continue
+                _trim_to_pos(q, pp, exclusions)
+                #self.display_path(pp)
+                pos = q
                 n_loops += 1
             #else:
             debug(f"DONE! IN {n_loops} {pos} EX {exclusions.get(pos)} CONN {self.connections[pos]}")
@@ -352,6 +361,14 @@ class Reindeer:
 
 class AdventDay(Day.Base):
 
+    TWO_PATHS = [
+        "###############",
+        "#..#...#...#..#",
+        "#....#...#...E#",
+        "#.###########.#",
+        "#S............#",
+        "###############",
+    ]
 
     TEST = [
         "###############",
@@ -404,7 +421,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.TEST_LARGE
+            AdventDay.TWO_PATHS
         )
         self.args_parser.add_argument(
             "--warehouse-size",
