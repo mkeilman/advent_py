@@ -75,37 +75,32 @@ class Maze:
     def _t(self):
 
         def _exclude(pos, connection, exclusions):
-            #debug(f"EXCLUDE {connection} FROM {pos}")
             if not exclusions.get(pos):
                 exclusions[pos] = []
             exclusions[pos].append(connection)
         
         def _conn(pos, path, exclusions={}, unused={}):
+            #debug(f"C {pos} X {exclusions} ALL {self.connections[pos]}")
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
 
-        def _pp(start_pos, end_pos, unused={}):
-            import time
+        def _path(start_pos, end_pos, exclusions={}, unused={}):
 
+            debug(f"X {exclusions}")
             pos = start_pos
             pp = [start_pos]
             done = False
             n_loops = 0
             while not done and pos != end_pos:
-                # loop through the connections to this position, not counting the preivous position and excluded positions
+                # loop through the connections to this position, not counting
+                # the preivous position and excluded positions
                 p_con = _conn(pos, pp, exclusions=exclusions)
                 #debug(f"CONNECTIONS {pos}: {p_con}")
                 for p in p_con:
                     #TODO: multiple paths
-                    #debug(f"CHECK {pos} -> {p}")
-                    #if p in pp:
-                    #    debug(f"LOOP: {pos} -> {p}")
-                    #    q = _trim_to_prev_branch(pp, exclusions)
-                    #    done = not q
-                    #    if not q:
-                    #        break
-                    #    pos = q
-                    #    continue
                     pp.append(p)
+                    u = [x for x in p_con if x != p]
+                    if u:
+                        unused[pos] = u
                     pos = p
                     #debug(f"ADDED {p}")
                     break
@@ -116,14 +111,10 @@ class Maze:
                 n_loops += 1
             #else:
             
-            #debug(f"DONE! IN {n_loops} {pos} EX {exclusions.get(pos)} CONN {self.connections[pos]}")
-            debug(f"DONE! IN {n_loops}")
-            #debug(f"LEFTOVER BRANCHES { {k:v for k, v in self.connections.items() if not exclusions.get(k, [])} }")
-            #if pos != self.end:
-            #    pp = []
-            self.display_path(pp)
+            debug(f"DONE! IN {n_loops} POS {pos} END {end_pos}")
+            if pos != end_pos:
+                return []
             return pp
-            #return pp
 
         def _prev_branch(path, exclusions={}):
             i = -1
@@ -157,22 +148,30 @@ class Maze:
             return q
 
 
+        def _merge_unused()
         exclusions = {}
-        r = _pp(self.start, self.end)
-        u = self._unused_branches(r, exclusions)
-        #debug(f"UNUSED {u}")
-        #r2 = _pp(self.start, self.end)
-        return r
-
-    def _unused_branches(self, path, exclusions):
-        u = {}
-        for p in path:
-            for q in self.connections[p]:
-                if q not in path and not exclusions.get(q):
-                    if not u.get(p):
-                        u[p] = []
-                    u[p].append(q)
-        return u
+        unused = {}
+        paths = []
+        r = _path(self.start, self.end, unused=unused)
+        paths.append(r)
+        #debug(f"SCORE {self.score(r)}")
+        self.display_path(r)
+        n = 0
+        all_unused = {k:v for k, v in unused.items()}
+        for p in [x for x in unused if x in r]:
+            u = {}
+            n += 1
+            i = r.index(p)
+            new_path = _path(p, self.end, unused=u, exclusions={p: [r[i + 1]]})
+            if not new_path:
+                continue
+            path = r[:i] + new_path
+            #debug(f"SCORE {self.score(path)} U {u}")
+            self.display_path(path)
+            paths.append(path)
+            #if n > 1:
+            #    break
+        return paths
 
 
     # note these are not necessarily "good" mazes in that they can contain islands,
@@ -424,7 +423,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.LOOP
+            AdventDay.TEST_LARGE
         )
         self.args_parser.add_argument(
             "--warehouse-size",
@@ -444,8 +443,8 @@ class AdventDay(Day.Base):
         #m.display_path(t)
         #debug(f"T {t}")
         #t = m.path_tree()
-        #min_score = min([m.score(x) for x in t])
-        #debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
+        min_score = min([m.score(x) for x in t])
+        debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
         #p = [x for x in t if m.score(x) == min_score][0]
         #m.display_path(p)
         #debug(f"MIN PATH LEN {len(p)}")
