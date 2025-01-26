@@ -80,14 +80,14 @@ class Maze:
             exclusions[pos].append(connection)
         
         def _conn(pos, path, exclusions={}, unused={}):
-            #debug(f"C {pos} X {exclusions} ALL {self.connections[pos]}")
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
 
-        def _path(start_pos, end_pos, exclusions={}, unused={}):
-
-            debug(f"X {exclusions}")
-            pos = start_pos
-            pp = [start_pos]
+        def _path(initial_path, end_pos, exclusions={}, unused={}):
+            db = list(exclusions.keys())[0] == (3, 7) if exclusions.keys() else None
+            debug(f"{initial_path} X {exclusions}")
+            pos0 = initial_path[-1]
+            pos = pos0
+            pp = initial_path
             done = False
             n_loops = 0
             while not done and pos != end_pos:
@@ -96,7 +96,6 @@ class Maze:
                 p_con = _conn(pos, pp, exclusions=exclusions)
                 #debug(f"CONNECTIONS {pos}: {p_con}")
                 for p in p_con:
-                    #TODO: multiple paths
                     pp.append(p)
                     u = [x for x in p_con if x != p]
                     if u:
@@ -105,8 +104,7 @@ class Maze:
                     #debug(f"ADDED {p}")
                     break
                 else:
-                    #debug(f"NO ROUTE FROM {pos}")
-                    pos = _trim_to_prev_branch(pp, exclusions)
+                    pos = _trim_to_prev_branch(pp, exclusions, limit=pos0)
                     done = not pos
                 n_loops += 1
             #else:
@@ -116,15 +114,20 @@ class Maze:
                 return []
             return pp
 
-        def _prev_branch(path, exclusions={}):
+        def _prev_branch(path, exclusions={}, limit=None):
             i = -1
+            k = limit or path[0]
             q = path[i]
+            if q == k:
+                return None
             c = _conn(q, path, exclusions=exclusions)
             while not len(c):
                 if i == -len(path):
                     return None
                 i -= 1
                 q = path[i]
+                if q == k:
+                    return None
                 c = _conn(q, path, exclusions=exclusions)
             return q
         
@@ -141,36 +144,53 @@ class Maze:
             _trim(path, n)
 
 
-        def _trim_to_prev_branch(path, exclusions):
-            q = _prev_branch(path, exclusions=exclusions)
+        def _trim_to_prev_branch(path, exclusions, limit=None):
+            q = _prev_branch(path, exclusions=exclusions, limit=limit)
             if q:
                 _trim_to_pos(q, path, exclusions)
             return q
 
 
-        def _merge_unused()
-        exclusions = {}
+        def _amended_paths(base_path, unused_connections):
+            a_paths = []
+            for pos in [x for x in unused_connections if x in base_path]:
+                u = {}
+                i = base_path.index(pos)
+                initial_path = base_path[:i + 1]
+                new_path = _path(initial_path, self.end, unused=u, exclusions={pos: [base_path[i + 1]]})
+                if not new_path:
+                    continue
+                path = initial_path + new_path
+                debug(f"{n} SCORE {self.score(path)} U {u}")
+                self.display_path(initial_path)
+                self.display_path(path)
+                a_paths.append(path)
+            return a_paths
+
+    
         unused = {}
         paths = []
-        r = _path(self.start, self.end, unused=unused)
+        r = _path([self.start], self.end, unused=unused)
         paths.append(r)
         #debug(f"SCORE {self.score(r)}")
         self.display_path(r)
         n = 0
         all_unused = {k:v for k, v in unused.items()}
-        for p in [x for x in unused if x in r]:
-            u = {}
-            n += 1
-            i = r.index(p)
-            new_path = _path(p, self.end, unused=u, exclusions={p: [r[i + 1]]})
-            if not new_path:
-                continue
-            path = r[:i] + new_path
-            #debug(f"SCORE {self.score(path)} U {u}")
-            self.display_path(path)
-            paths.append(path)
-            #if n > 1:
-            #    break
+        paths.extend(_amended_paths(r, unused))
+        #for p in [x for x in unused if x in r]:
+        #    u = {}
+        #    n += 1
+        #    i = r.index(p)
+        #    new_path = _path(r[:i], self.end, unused=u, exclusions={p: [r[i + 1]]})
+        #    if not new_path:
+        #        continue
+        #    path = r[:i] + new_path
+        #    debug(f"{n} SCORE {self.score(path)} U {u}")
+        #    self.display_path(r[:i])
+        #    self.display_path(path)
+        #    paths.append(path)
+        #    #if n > 1:
+        #    #    break
         return paths
 
 
