@@ -27,6 +27,8 @@ class Maze:
 
     WALL = "#"
 
+    MAX_SCORE = 1e23
+
     def __init__(self, grid):
         self.grid = grid
         self.coord_grid = Day.Grid.grid_of_size(len(self.grid), len(self.grid[0]))
@@ -37,7 +39,6 @@ class Maze:
         self.connections = {k:[x for x in v if x not in self.walls] for k, v in self.coord_grid.coord_neighborhoods.items()}
     
     def display_path(self, path):
-        #debug(path)
         for r in self.coord_grid.coord_array:
             s = ""
             for c in r:
@@ -53,7 +54,6 @@ class Maze:
                     if c == self.end:
                         s += Maze.END
                         continue
-                    #debug(f"{path[i - 1]} -> {c}")
                     d =  self._dir(path[i - 1], c)
                     if d in Maze.DIR_SYMBOLS:
                         s +=  Maze.DIR_SYMBOLS[d]
@@ -82,13 +82,19 @@ class Maze:
         def _conn(pos, path, exclusions={}, unused={}):
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
 
-        def _path(initial_path, end_pos, exclusions={}, unused={}, max_score=1e23):
+        def _path(initial_path, end_pos, exclusions={}, max_score=Maze.MAX_SCORE):
             pos0 = initial_path[-1]
-            #debug(f"P0 {pos0} X {exclusions}")
+            debug(f"P0 {pos0} X {exclusions}")
+            debug(f"P0 {pos0} SC {self.score(initial_path)} MAX {max_score}")
+            #if self.score(initial_path) > max_score:
+            #    debug(f"INIT PATH SCORE {self.score(initial_path)} TOO BIG {max_score}")
+            #    return [], None, Maze.MAX_SCORE
             pos = pos0
             pp = initial_path
             done = False
             n_loops = 0
+            unused = {}
+            score = max_score
             while not done and pos != end_pos:
                 # loop through the connections to this position, not counting
                 # the preivous position and excluded positions
@@ -96,11 +102,9 @@ class Maze:
                 #debug(f"CONNECTIONS {pos}: {p_con}")
                 for p in p_con:
                     pp.append(p)
-                    if self.score(pp) > max_score:
-                        #debug(f"{self.score(pp)} TOO BIG {max_score}")
-                        continue
-                        #done = True
-                        #break
+                    score = self.score(pp)
+                    #if score > max_score:
+                    #    continue
                     u = [x for x in p_con if x != p]
                     if u:
                         unused[pos] = u
@@ -115,8 +119,9 @@ class Maze:
             
             #debug(f"DONE! IN {n_loops} POS {pos} END {end_pos}")
             if pos != end_pos:
-                return []
-            return pp
+                return [], None, Maze.MAX_SCORE
+            self.display_path(pp)
+            return pp, unused, score
 
         def _prev_branch(path, exclusions={}, limit=None):
             i = -1
@@ -153,41 +158,63 @@ class Maze:
             return q
 
 
-        def _amended_paths(base_path, unused_connections, depth=0, max_score=1e23):
+        def _amended_paths(base_path, unused_connections, depth=0, max_score=Maze.MAX_SCORE):
             a_paths = []
+            s = max_score
+            n = 0
             for pos in [x for x in unused_connections if x in base_path]:
-                u = {}
                 i = base_path.index(pos)
                 initial_path = base_path[:i + 1]
-                #if self.score(initial_path) > max_score:
-                #    debug(f"{depth} INIT PATH SCORE {self.score(initial_path)} TOO BIG {max_score}")
+                #if self.score(initial_path) > s:
+                #    debug(f"{depth} INIT PATH SCORE {self.score(initial_path)} TOO BIG {s}")
                 #    continue
-                #self.display_path(initial_path)
-                new_path = _path(initial_path, self.end, unused=u, exclusions={pos: [base_path[i + 1]]}, max_score=max_score)
-                if not new_path:
+                new_path, u, score = _path(initial_path, self.end, exclusions={pos: [base_path[i + 1]]}, max_score=s)
+                self.display_path(new_path)
+                n += 1
+                debug(f"{depth} {n} NP {len(new_path)} SC {score}")
+                if score == 374216:
+                    if self.bp:
+                        debug(f"{depth} {_diff(self.bp, new_path)}")
+                        #self.display_path(self.bp)
+                        #self.display_path(new_path)
+                    self.bp = new_path
+                    
+                if not new_path or not u:
                     continue
-                #self.display_path(new_path)
-                sc = self.score(new_path)
-                s = min(sc, max_score)
-                #debug(f"{depth} SCORE {self.score(new_path)} MAX {s} CHECK UNUSED {len(u)}")
-                if self.score(new_path) < max_score:
-                    debug(f"{depth} SCORE {sc} PREV MAX {max_score} CHECK UNUSED {len(u)}")
-                a_paths.append(new_path)
-                #self.display_path(new_path)
+                s = min(score, max_score)
+                if score < max_score:
+                    debug(f"{depth} SCORE {score} PREV MAX {max_score} CHECK UNUSED {len(u)}")
+                
+                a_paths.append((new_path, u, score))
                 a_paths.extend(_amended_paths(new_path, u, depth=depth + 1, max_score=s))
+            #ap = []
+            #for p, u in a_paths:
+            #    ap.extend(_amended_paths(p, u, depth=depth + 1, max_score=s))
+            #a_paths += ap
             debug(f"{depth} FOUND {len(a_paths)}")
             return a_paths
 
-    
-        unused = {}
+        def _diff(p1, p2):
+            return [(i, x) for i, x in enumerate(p1) if x != p2[i]]
+
+        self.bp = None
         paths = []
-        path = _path([self.start], self.end, unused=unused)
+        path, unused, score = _path([self.start], self.end)
+        debug(f"FIRST {score}")
         paths.append(path)
-        #debug(f"SCORE {self.score(r)}")
-        #self.display_path(r)
-        n = 0
-        all_unused = {k:v for k, v in unused.items()}
-        paths.extend(_amended_paths(path, unused, max_score=self.score(path)))
+        min_score = score
+        ap = _amended_paths(path, unused, max_score=min_score)
+        paths.extend([x[0] for x in ap])
+
+
+        #done = False
+        #n = 0
+        #while not done:
+        #    n += 1
+        #    for p, u in ap:
+        #        np = _amended_paths(p, u, max_score=self.score(path))
+        #    done = n > 0
+        #paths.extend(_amended_paths(path, unused, max_score=self.score(path)))
         return paths
 
 
@@ -218,7 +245,7 @@ class Maze:
             return Maze.DIRECTIONS[i]
         
 
-        def _path(initial_path=None, initial_choices=None, max_score=1e23):
+        def _path(initial_path=None, initial_choices=None, max_score=Maze.MAX_SCORE):
 
             def _unexplored(path, open_directions):
                 return {k:v for k, v in _multi_dir_positions(open_directions).items() if any([x not in path for x in v])}
@@ -310,7 +337,7 @@ class Maze:
             return path, u
 
 
-        def _paths(initial_path=None, initial_choices=None, depth=0, max_score=1e23):
+        def _paths(initial_path=None, initial_choices=None, depth=0, max_score=Maze.MAX_SCORE):
             paths = []
             path, choices = _path(initial_path=initial_path, initial_choices=initial_choices, max_score=max_score)
             if not path:
@@ -380,6 +407,19 @@ class AdventDay(Day.Base):
         "###############",
     ]
 
+    TWO_EQUAL_PATHS = [
+        "###############",
+        "#######.......E",
+        "#######.#######",
+        "######...######",
+        "#####..#..#####",
+        "#####.###.#####",
+        "#####.....#####",
+        "#######.########",
+        "#S......#######",
+        "###############",
+    ]
+
     LOOP = [
         "###############",
         "#............E#",
@@ -440,7 +480,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.TEST_LARGE
+            AdventDay.TWO_EQUAL_PATHS
         )
         self.args_parser.add_argument(
             "--warehouse-size",
