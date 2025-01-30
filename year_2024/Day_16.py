@@ -37,6 +37,7 @@ class Maze:
         self.start_dir = (0, 1)
         self.end = self._token_pos(Maze.END)
         self.connections = {k:[x for x in v if x not in self.walls] for k, v in self.coord_grid.coord_neighborhoods.items()}
+        self.min_score = Maze.MAX_SCORE
     
     def display_path(self, path):
         for r in self.coord_grid.coord_array:
@@ -82,7 +83,7 @@ class Maze:
         def _conn(pos, path, exclusions={}, unused={}):
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
 
-        def _path(initial_path, end_pos, exclusions={}, max_score=Maze.MAX_SCORE):
+        def _path(initial_path, end_pos, exclusions={}):
             pos0 = initial_path[-1]
             #debug(f"P0 {pos0} X {exclusions}")
             #debug(f"P0 {pos0} SC {self.score(initial_path)} MAX {max_score}")
@@ -94,7 +95,7 @@ class Maze:
             done = False
             n_loops = 0
             unused = {}
-            score = max_score
+            score = self.min_score
             while not done and pos != end_pos:
                 # loop through the connections to this position, not counting
                 # the preivous position and excluded positions
@@ -103,8 +104,8 @@ class Maze:
                 for p in p_con:
                     pp.append(p)
                     score = self.score(pp)
-                    if score > max_score:
-                        continue
+                    #if score > self.min_score:
+                    #    continue
                     u = [x for x in p_con if x != p]
                     if u:
                         unused[pos] = u
@@ -121,7 +122,7 @@ class Maze:
             #debug(f"DONE! IN {n_loops} POS {pos} END {end_pos}")
             if pos != end_pos:
                 return [], None, Maze.MAX_SCORE
-            #self.display_path(pp)
+            self.display_path(pp)
             return pp, unused, score
 
         def _prev_branch(path, exclusions={}, limit=None):
@@ -158,9 +159,9 @@ class Maze:
             return q
 
 
-        def _amend_paths(base_path, unused_connections, depth=0, max_score=Maze.MAX_SCORE, all_paths=[]):
+        def _amend_paths(base_path, unused_connections, depth=0, all_paths=[]):
             #a_paths = []
-            s = min(max_score, min([x[2] for x in all_paths]))
+            self.min_score = min(self.min_score, min([x[2] for x in all_paths]))
             #s = max_score
             n = 0
             for pos in [x for x in unused_connections if x in base_path]:
@@ -169,19 +170,19 @@ class Maze:
                 #if self.score(initial_path) > s:
                 #    debug(f"{depth} INIT PATH SCORE {self.score(initial_path)} TOO BIG {s}")
                 #    continue
-                new_path, u, score = _path(initial_path, self.end, exclusions={pos: [base_path[i + 1]]}, max_score=s)
+                new_path, u, score = _path(initial_path, self.end, exclusions={pos: [base_path[i + 1]]})
                 #self.display_path(new_path)
                 n += 1
                 debug(f"{depth} {n} NP {len(new_path)} SC {score}")
                 if not new_path or not u:
                     continue
-                if score < s:
-                    debug(f"{depth} SCORE {score} PREV MAX {s} CHECK UNUSED {len(u)}")
-                s = min(score, s)
+                if score < self.min_score:
+                    debug(f"{depth} SCORE {score} PREV MAX {self.min_score} CHECK UNUSED {len(u)}")
+                self.min_score = min(score, self.min_score)
                 if new_path not in [x[0] for x in all_paths]:
                     all_paths.append((new_path, u, score))
                     #all_paths.extend(_amended_paths(new_path, u, depth=depth + 1, max_score=s, all_paths=all_paths))
-                    _amend_paths(new_path, u, depth=depth + 1, max_score=s, all_paths=all_paths)
+                    _amend_paths(new_path, u, depth=depth + 1, all_paths=all_paths)
             #ap = []
             #for p, u in a_paths:
             #    ap.extend(_amended_paths(p, u, depth=depth + 1, max_score=s))
@@ -198,8 +199,8 @@ class Maze:
         pus = _path([self.start], self.end)
         debug(f"FIRST {pus[2]}")
         paths.append(pus)
-        min_score = pus[2]
-        _amend_paths(pus[0], pus[1], max_score=min_score, all_paths=paths)
+        self.min_score = pus[2]
+        _amend_paths(pus[0], pus[1], all_paths=paths)
         #paths.extend([x[0] for x in ap])
 
 
@@ -394,38 +395,20 @@ class Reindeer:
 
 
 class AdventDay(Day.Base):
-
-    TWO_PATHS = [
+    IMPOSSIBLE = [
         "###############",
-        "#..#...#...#..#",
-        "#....#...#...E#",
-        "#.###########.#",
-        "#S............#",
+        "#.......#....E#",
+        "#####.#.#.#.###",
+        "#S..#.....#...#",
         "###############",
     ]
 
-    TWO_EQUAL_PATHS = [
-        "####################",
-        "#E......#.#.......##",
-        "#######.#.##########",
-        "#...#...#.......#.##",
-        "#.#.#.#.#.#####.#.##",
-        "#.#.#.#.......#...##",
-        "#.#.#.#.#.#.#####.##",
-        "#.#.#.....#.......##",
-        "#.#.###.#.#.########",
-        "#.#.....#.#.....#.##",
-        "#S#####.#.#.###.#.##",
-        "####################",
-    ]
-
-    LOOP = [
-        "###############",
-        "#............E#",
-        "###############",
-        "#......#......#",
-        "#S............#",
-        "###############",
+    OPEN = [
+        "######",
+        "#...E#",
+        "#....#",
+        "#S...#",
+        "######",
     ]
 
     TEST = [
@@ -466,20 +449,37 @@ class AdventDay(Day.Base):
         "#################",
     ]
 
-    IMPOSSIBLE = [
+    TWO_PATHS = [
         "###############",
-        "#.......#....E#",
-        "#####.#.#.#.###",
-        "#S..#.....#...#",
+        "#..#...#...#..#",
+        "#....#...#...E#",
+        "#.###########.#",
+        "#S............#",
         "###############",
     ]
+
+    TWO_EQUAL_PATHS = [
+        "####################",
+        "#E......#.#.......##",
+        "#######.#.##########",
+        "#...#...#.......#.##",
+        "#.#.#.#.#.#####.#.##",
+        "#.#.#.#.......#...##",
+        "#.#.#.#.#.#.#####.##",
+        "#.#.#.....#.......##",
+        "#.#.###.#.#.########",
+        "#.#.....#.#.....#.##",
+        "#S#####.#.#.###.#.##",
+        "####################",
+    ]
+
 
     def __init__(self, run_args):
         import argparse
         super(AdventDay, self).__init__(
             2024,
             16,
-            AdventDay.LOOP
+            AdventDay.OPEN
         )
         self.args_parser.add_argument(
             "--warehouse-size",
