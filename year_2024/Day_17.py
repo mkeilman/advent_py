@@ -76,7 +76,7 @@ class Computer:
         return 2
     
     def _bxc(self, op):
-        self.registers["B"] = self.registers["B"] ^ self.registers["B"]
+        self.registers["B"] = self.registers["B"] ^ self.registers["C"]
         return 2
     
     def _bxl(self, op):
@@ -107,6 +107,46 @@ class Computer:
 
 class AdventDay(Day.Base):
 
+    BASIC0 = [
+        "Register A: 0",
+        "Register B: 0",
+        "Register C: 9",
+        "",
+        "Program: 2,6",
+    ]
+
+    BASIC1 = [
+        "Register A: 10",
+        "Register B: 0",
+        "Register C: 9",
+        "",
+        "Program: 5,0,5,1,5,4",
+    ]
+    
+    BASIC2 = [
+        "Register A: 2024",
+        "Register B: 0",
+        "Register C: 9",
+        "",
+        "Program: 0,1,5,4,3,0",
+    ]
+    
+    BASIC3 = [
+        "Register A: 2024",
+        "Register B: 29",
+        "Register C: 9",
+        "",
+        "Program: 1,7",
+    ]
+
+    BASIC4 = [
+        "Register A: 2024",
+        "Register B: 2024",
+        "Register C: 43690",
+        "",
+        "Program: 4,0",
+    ]
+
     SIMPLE = [
         "Register A: 16",
         "Register B: 0",
@@ -130,7 +170,7 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             17,
-            AdventDay.TEST
+            AdventDay.BASIC4
         )
         self.args_parser.add_argument(
             "--warehouse-size",
