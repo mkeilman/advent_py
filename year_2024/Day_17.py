@@ -54,21 +54,42 @@ class Computer:
         #self.display_state()
 
     # adaptive step size?
-    def run_reg_a_range(self, v, a_range=range(1)):
+    def run_reg_a_range(self, v, a_start=0, a_end=None, a_step=1):
         last_out_len = 0
-        last_index = a_range[0]
-        d = 0
-        for i in a_range:
+        last_index = a_start
+        d = a_step
+        last_d = d
+        i = a_start
+        done = False
+        while not done:
             self.load(v, init_val_a=i)
             pm = self.run(output_check=self.program)
-            if len(self.output) > last_out_len:
+            dl = len(self.output) - last_out_len
+            if dl > 0:
+                #if dl > 1:
+                #    debug(f"{i} TOO FAR {pm}")
+                #    i = last_index
+                #    d = d // 2 or 1
+                #    continue
                 last_out_len = len(self.output)
-                d = i - last_index
+                if i > last_index:
+                    last_d = d
+                    # double?
+                    d *= 8
+                    #d = i - last_index
                 last_index = i
                 debug(f"MORE MATCHES {i} {pm} D {d}")
                 self.display_state()
-                
+            #if len(pm) < len(self.program) and i + d > a_end:
+            #    debug("NOT DONE YET KEEP D")
+            #    #d = last_d // 2 or 1
 
+            i += d
+            if a_end is not None:
+                done = i > a_end
+            else:
+                done = len(pm) == len(self.program)
+                
 
     def run(self, output_check=None):
         self.pointer = 0
@@ -227,11 +248,11 @@ class AdventDay(Day.Base):
         #debug(f"RUN A {c.registers["A"]} B {c.registers["B"]} C {c.registers["C"]} PROG {c.program} LEN {len(c.program)}")
         #debug(f"RAN {c.loop_cnt + 1} LOOPS")
         #for i in range(pow(8, 15), pow(8, 16), pow(8, 8)): 
-        #c.run_reg_a_range(v, a_range=range(pow(8, 15) + 10000, pow(8, 15) + 20000)) # MAX 35184395692586 [2, 4, 1, 1, 7, 5, 4] d 16777216
+        #c.run_reg_a_range(v, a_range=range(pow(8, 15) + 10000, pow(8, 15) + 20000)) # MAX 61629537462831 [2, 4, 1, 1, 7, 5, 4, 7, 1, 4, 0, 3, 5, 5, 3]
         m = 35184395692586
         d0 = 6000000
         d1 = d0 + 2000000
-        c.run_reg_a_range(v, a_range=range(m + d0, m + d1))
+        c.run_reg_a_range(v, a_start=61629537462831, a_end=pow(8, 16), a_step=33554432)
         
 
 
