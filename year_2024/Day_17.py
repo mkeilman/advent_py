@@ -20,6 +20,7 @@ class Computer:
     ]
 
     def __init__(self):
+        self.loop_cnt = 0
         self.output = []
         self.pointer = 0
         self.program = []
@@ -34,9 +35,11 @@ class Computer:
         debug(",".join([str(x) for x in self.output]))
 
     def display_state(self):
-        debug(f"PTR {self.pointer} REGS {self.registers}")
+        debug(f"PTR {self.pointer} REGS {self.registers} OUT {self.output}")
 
-    def load(self, v):
+    def load(self, v, init_val_a=-1):
+        self.pointer = 0
+        self.output = []
         regs = r"Register\s+([ABC]):\s+(\d+)"
         for txt in v:
             if "Program" in txt:
@@ -45,16 +48,45 @@ class Computer:
             m = re.match(regs, txt)
             if m:
                 self.registers[m.group(1)] = int(m.group(2))
+        if init_val_a >= 0:
+            self.registers["A"] = init_val_a
+        #debug("LOAD")
+        #self.display_state()
 
-    def run(self):
+    # adaptive step size?
+    def run_reg_a_range(self, v, a_range=range(1)):
+        last_out_len = 0
+        last_index = a_range[0]
+        d = 0
+        for i in a_range:
+            self.load(v, init_val_a=i)
+            pm = self.run(output_check=self.program)
+            if len(self.output) > last_out_len:
+                last_out_len = len(self.output)
+                d = i - last_index
+                last_index = i
+                debug(f"MORE MATCHES {i} {pm} D {d}")
+                self.display_state()
+                
+
+
+    def run(self, output_check=None):
         self.pointer = 0
+        self.loop_cnt = 0
+        self.output = []
+        partial_match = []
         while self.pointer < len(self.program):
-            opc = self.program[self.pointer]
-            op = self.program[self.pointer + 1]
-            debug(f"OPCODE {opc} CMD {Computer.INSTRUCTIONS[opc]} OPERAND {op}")
             self.pointer += self._exec(self.program[self.pointer], self.program[self.pointer + 1])
-            self.display_state()
+            if self.pointer == 0:
+                self.loop_cnt += 1
+            #self.display_state()
+            if output_check and self.output:
+                if self.output != output_check[:len(self.output)]:
+                    break
+                #self.display_state()
+                partial_match = self.output[:]
         #self.display_output()
+        return partial_match
 
     def _combo(self, op):
         if op < 4:
@@ -93,13 +125,11 @@ class Computer:
         return op - self.pointer
     
     def _out(self, op):
-        debug(f"OUT OP {op} COMNBO {self._combo(op)}")
         self.output.append(self._combo(op) % 8)
-        self.display_output()
+        #self.display_output()
         return 2
 
     def _exec(self, opcode, operand):
-        debug(f"EXEC {opcode} ON {operand}")
         return getattr(self, Computer.INSTRUCTIONS[opcode])(operand)
     
 
@@ -147,6 +177,14 @@ class AdventDay(Day.Base):
         "Program: 4,0",
     ]
 
+    SELF = [
+        "Register A: 117440",
+        "Register B: 0",
+        "Register C: 0",
+        "",
+        "Program: 0,3,5,4,3,0",
+    ]
+
     SIMPLE = [
         "Register A: 16",
         "Register B: 0",
@@ -170,25 +208,31 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             2024,
             17,
-            AdventDay.BASIC4
+            AdventDay.SELF
         )
         self.args_parser.add_argument(
-            "--warehouse-size",
-            type=str,
-            help="single or double size",
-            choices=["single", "double"],
-            default="single",
-            dest="warehouse_size",
+            "--init-val-a",
+            type=int,
+            help="initial value of register A (-1 to keep value from input)",
+            default=-1,
+            dest="init_val_a",
         )
         self.add_args(run_args)
        
 
     def run(self, v):
         c = Computer()
-        c.load(v)
-        debug(f"RUN A {c.registers["A"]} B {c.registers["B"]} C {c.registers["C"]} PROG {c.program}")
-        c.run()
-
+        #c.load(v, init_val_a=117441)
+        #c.run()
+        #debug(f"RUN A {c.registers["A"]} B {c.registers["B"]} C {c.registers["C"]} PROG {c.program} LEN {len(c.program)}")
+        #debug(f"RAN {c.loop_cnt + 1} LOOPS")
+        #for i in range(pow(8, 15), pow(8, 16), pow(8, 8)): 
+        #c.run_reg_a_range(v, a_range=range(pow(8, 15) + 10000, pow(8, 15) + 20000)) # MAX 35184395692586 [2, 4, 1, 1, 7, 5, 4] d 16777216
+        m = 35184395692586
+        d0 = 6000000
+        d1 = d0 + 2000000
+        c.run_reg_a_range(v, a_range=range(m + d0, m + d1))
+        
 
 
 def main():
