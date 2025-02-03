@@ -37,21 +37,64 @@ class Computer:
     def display_state(self):
         debug(f"PTR {self.pointer} REGS {self.registers} OUT {self.output}")
 
-    def load(self, v, init_val_a=-1):
+
+    def set_register(self, r, val):
+        self.registers[r] = val
+
+    def set_registers(self, registers):
+        for k in self.registers:
+            self.set_register(k, registers[k])
+
+    def generate_self_range(self):
+        ops = self.opcodes()
+        num_ops = len(ops)
+        p_len = len(self.program)
+        num_outs = len([x for x in ops if x == "_out"])
+        if not num_outs:
+            debug(f"CANNOT GENERATE SELF: NO OUTPUT IN {self.program}")
+            return None
+        # the total number of outputs must match the length of the program.
+        # too hard to consider every possible program, so assume at most a
+        # single jump to the start in combination with the appropriate
+        # number of outputs
+        op = self.opcode(self.program[-2])
+        if op != "_jnz":
+            debug(f"CANNOT GENERATE SELF: RESTRICTED TO FINAL JMP: {op}")
+            return None
+        else:
+            if self.program[-1]:
+                debug(f"CANNOT GENERATE SELF: MUST JMP TO 0 {self.program[-1]}")
+                return None
+        #if num_outs > p_len:
+        #    debug(f"CANNOT GENERATE SELF: TOO MANY OUTPUTS: {num_outs}")
+        #    return None
+        if p_len % num_outs:
+            debug(f"CANNOT GENERATE SELF: NUM OUTPUTS MUST DIVIDE INTO LENGTH: {num_outs} VS {p_len}")
+            return None
+        n = p_len // num_outs
+        return pow(8, n - 1), pow(8, n)
+
+
+    def load(self, v, init_registers=None):
         self.pointer = 0
         self.output = []
-        regs = r"Register\s+([ABC]):\s+(\d+)"
+        re_regs = r"Register\s+([ABC]):\s+(\d+)"
         for txt in v:
             if "Program" in txt:
                 self.program = [int(x) for x in re.findall(r"\d", txt)]
                 continue
-            m = re.match(regs, txt)
-            if m:
-                self.registers[m.group(1)] = int(m.group(2))
-        if init_val_a >= 0:
-            self.registers["A"] = init_val_a
-        #debug("LOAD")
-        #self.display_state()
+            m = re.match(re_regs, txt)
+            if not m:
+                continue
+            r = m.group(1)
+            self.set_register(r, init_registers[r] if (init_registers or {}).get(r, None) is not None else int(m.group(2)))
+        debug(f"LOAD {self.opcodes()}")
+
+    def opcode(self, op):
+        return Computer.INSTRUCTIONS[op]
+    
+    def opcodes(self):
+        return [self.opcode(x) for i, x in enumerate(self.program) if not i % 2]
 
     # adaptive step size?
     def run_reg_a_range(self, v, a_start=0, a_end=None, a_step=1):
@@ -61,8 +104,11 @@ class Computer:
         last_d = d
         i = a_start
         done = False
+        self.load(v)
+        init_regs = self.registers.copy()
         while not done:
-            self.load(v, init_val_a=i)
+            self.set_registers(init_regs)
+            self.set_register("A", i)
             pm = self.run(output_check=self.program)
             dl = len(self.output) - last_out_len
             if dl > 0:
@@ -74,12 +120,13 @@ class Computer:
                 last_out_len = len(self.output)
                 if i > last_index:
                     last_d = d
-                    # double?
                     d *= 8
                     #d = i - last_index
                 last_index = i
                 debug(f"MORE MATCHES {i} {pm} D {d}")
                 self.display_state()
+                
+
             #if len(pm) < len(self.program) and i + d > a_end:
             #    debug("NOT DONE YET KEEP D")
             #    #d = last_d // 2 or 1
@@ -252,7 +299,10 @@ class AdventDay(Day.Base):
         m = 35184395692586
         d0 = 6000000
         d1 = d0 + 2000000
-        c.run_reg_a_range(v, a_start=61629537462831, a_end=pow(8, 16), a_step=33554432)
+        #c.run_reg_a_range(v, a_start=61629537462831, a_end=pow(8, 16), a_step=33554432)
+        c.load(v)
+        a_start, a_end = c.generate_self_range()
+        c.run_reg_a_range(v, a_start=a_start, a_end=a_end)
         
 
 
