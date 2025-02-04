@@ -65,9 +65,6 @@ class Computer:
             if self.program[-1]:
                 debug(f"CANNOT GENERATE SELF: MUST JMP TO 0 {self.program[-1]}")
                 return None
-        #if num_outs > p_len:
-        #    debug(f"CANNOT GENERATE SELF: TOO MANY OUTPUTS: {num_outs}")
-        #    return None
         if p_len % num_outs:
             debug(f"CANNOT GENERATE SELF: NUM OUTPUTS MUST DIVIDE INTO LENGTH: {num_outs} VS {p_len}")
             return None
@@ -147,13 +144,10 @@ class Computer:
             self.pointer += self._exec(self.program[self.pointer], self.program[self.pointer + 1])
             if self.pointer == 0:
                 self.loop_cnt += 1
-            #self.display_state()
             if output_check and self.output:
                 if self.output != output_check[:len(self.output)]:
                     break
-                #self.display_state()
                 partial_match = self.output[:]
-        #self.display_output()
         return partial_match
 
     def _combo(self, op):
@@ -194,7 +188,6 @@ class Computer:
     
     def _out(self, op):
         self.output.append(self._combo(op) % 8)
-        #self.display_output()
         return 2
 
     def _exec(self, opcode, operand):
@@ -290,16 +283,6 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         c = Computer()
-        #c.load(v, init_val_a=117441)
-        #c.run()
-        #debug(f"RUN A {c.registers["A"]} B {c.registers["B"]} C {c.registers["C"]} PROG {c.program} LEN {len(c.program)}")
-        #debug(f"RAN {c.loop_cnt + 1} LOOPS")
-        #for i in range(pow(8, 15), pow(8, 16), pow(8, 8)): 
-        #c.run_reg_a_range(v, a_range=range(pow(8, 15) + 10000, pow(8, 15) + 20000)) # MAX 61629537462831 [2, 4, 1, 1, 7, 5, 4, 7, 1, 4, 0, 3, 5, 5, 3]
-        m = 35184395692586
-        d0 = 6000000
-        d1 = d0 + 2000000
-        #c.run_reg_a_range(v, a_start=61629537462831, a_end=pow(8, 16), a_step=33554432)
         c.load(v)
         a_start, a_end = c.generate_self_range()
         c.run_reg_a_range(v, a_start=a_start, a_end=a_end)
