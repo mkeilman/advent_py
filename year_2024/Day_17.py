@@ -98,7 +98,6 @@ class Computer:
         last_out_len = 0
         last_index = a_start
         d = a_step
-        last_d = d
         i = a_start
         done = False
         self.load(v)
@@ -109,24 +108,12 @@ class Computer:
             pm = self.run(output_check=self.program)
             dl = len(self.output) - last_out_len
             if dl > 0:
-                #if dl > 1:
-                #    debug(f"{i} TOO FAR {pm}")
-                #    i = last_index
-                #    d = d // 2 or 1
-                #    continue
                 last_out_len = len(self.output)
                 if i > last_index:
-                    last_d = d
                     d *= 8
-                    #d = i - last_index
                 last_index = i
-                debug(f"MORE MATCHES {i} {pm} D {d}")
+                debug(f"MORE MATCHES {i} {pm} D {d} BM8 {self.registers["B"] % 8}")
                 self.display_state()
-                
-
-            #if len(pm) < len(self.program) and i + d > a_end:
-            #    debug("NOT DONE YET KEEP D")
-            #    #d = last_d // 2 or 1
 
             i += d
             if a_end is not None:
@@ -137,7 +124,6 @@ class Computer:
 
     def run(self, output_check=None):
         self.pointer = 0
-        self.loop_cnt = 0
         self.output = []
         partial_match = []
         while self.pointer < len(self.program):
