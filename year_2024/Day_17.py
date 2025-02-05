@@ -29,6 +29,7 @@ class Computer:
             "B": 0,
             "C": 0,
         }
+        self.loaded = False
 
 
     def display_output(self):
@@ -47,7 +48,6 @@ class Computer:
 
     def generate_self_range(self):
         ops = self.opcodes()
-        num_ops = len(ops)
         p_len = len(self.program)
         num_outs = len([x for x in ops if x == "_out"])
         if not num_outs:
@@ -69,7 +69,29 @@ class Computer:
             debug(f"CANNOT GENERATE SELF: NUM OUTPUTS MUST DIVIDE INTO LENGTH: {num_outs} VS {p_len}")
             return None
         n = p_len // num_outs
-        return pow(8, n - 1), pow(8, n)
+        return pow(8, n - 1), pow(8, n) - 1
+
+
+    def find_outputs_of_prog_length(self, a_start=None, a_end=None):
+        if a_start is None or a_end is None:
+            a_start, a_end = self.generate_self_range()
+        a = a_start
+        b = a_end
+        debug(f"CHECK FROM {a_start} - {a_end}")
+        while a_start < a_end:
+            self.reload()
+            self.set_register("A", a_start)
+            pm = self.run(output_check=self.program)
+            if len(pm) != len(self.program):
+                f = self.find_outputs_of_prog_length(a_start + math.ceil((a_end - a_start) / 2), a_end)
+                if f:
+                    return f
+                return self.find_outputs_of_prog_length(a_start + 1, math.ceil((a_end - a_start) / 2))
+                #a_start = a_start + math.ceil((a_end - a_start) / 2)
+                #continue
+            debug(f"FOUND {a_start} {self.output}")
+            return pm
+        return []
 
 
     def load(self, v, init_registers=None):
@@ -85,13 +107,22 @@ class Computer:
                 continue
             r = m.group(1)
             self.set_register(r, init_registers[r] if (init_registers or {}).get(r, None) is not None else int(m.group(2)))
-        debug(f"LOAD {self.opcodes()}")
+        self.init_registers = self.registers.copy()
+        self.loaded = True
+        debug(f"LOAD {self.op_pairs()}")
+
+    def reload(self):
+        self.set_registers(self.init_registers)
 
     def opcode(self, op):
         return Computer.INSTRUCTIONS[op]
     
     def opcodes(self):
         return [self.opcode(x) for i, x in enumerate(self.program) if not i % 2]
+    
+    def op_pairs(self):
+        return [(self.program[2 * i], self.program[2 * i + 1]) for i in range(len(self.program) // 2)]
+
 
     # adaptive step size?
     def run_reg_a_range(self, v, a_start=0, a_end=None, a_step=1):
@@ -123,6 +154,7 @@ class Computer:
                 
 
     def run(self, output_check=None):
+        assert self.loaded
         self.pointer = 0
         self.output = []
         partial_match = []
@@ -136,6 +168,12 @@ class Computer:
                 partial_match = self.output[:]
         return partial_match
 
+    def reverse(self, registers):
+        self.set_registers(registers)
+        for opcode, operand in reversed(self.op_pairs()):
+            getattr(self, Computer.INSTRUCTIONS[opcode])(operand, reversed=True)
+        self.display_state()
+
     def _combo(self, op):
         if op < 4:
             return op
@@ -143,44 +181,44 @@ class Computer:
             return self.registers[list(self.registers.keys())[op - 4]]
         raise ValueError
     
-    def _adv(self, op):
-        self.registers["A"] = math.floor(self.registers["A"] / pow(2, self._combo(op)))
+    def _adv(self, op, reversed=False):
+        self.registers["A"] = self.registers["A"] * pow(2, self._combo(op)) if reversed else math.floor(self.registers["A"] / pow(2, self._combo(op)))
         return 2
     
-    def _bdv(self, op):
-        self.registers["B"] = math.floor(self.registers["A"] / pow(2, self._combo(op)))
+    def _bdv(self, op, reversed=False):
+        self.registers["B"] = self.registers["A"] * pow(2, self._combo(op)) if reversed else math.floor(self.registers["A"] / pow(2, self._combo(op)))
         return 2
     
-    def _bst(self, op):
-        self.registers["B"] = self._combo(op) % 8
+    def _bst(self, op, reversed=False):
+        self.registers["B"] = self._combo(op) if reversed else self._combo(op) % 8
         return 2
     
-    def _bxc(self, op):
+    def _bxc(self, op, reversed=False):
         self.registers["B"] = self.registers["B"] ^ self.registers["C"]
         return 2
     
-    def _bxl(self, op):
+    def _bxl(self, op, reversed=False):
         self.registers["B"] = self.registers["B"] ^ op
         return 2
 
-    def _cdv(self, op):
-        self.registers["C"] = math.floor(self.registers["A"] / pow(2, self._combo(op)))
+    def _cdv(self, op, reversed=False):
+        self.registers["C"] = self.registers["A"] * pow(2, self._combo(op)) if reversed else math.floor(self.registers["A"] / pow(2, self._combo(op)))
         return 2
     
-    def _jnz(self, op):
-        if not self.registers["A"]:
+    def _jnz(self, op, reversed=False):
+        if reversed or not self.registers["A"]:
             return 2
         return op - self.pointer
     
-    def _out(self, op):
+    def _out(self, op, reversed=False):
+        if reversed:
+            return 2
         self.output.append(self._combo(op) % 8)
         return 2
 
     def _exec(self, opcode, operand):
         return getattr(self, Computer.INSTRUCTIONS[opcode])(operand)
     
-
-        
 
 class AdventDay(Day.Base):
 
@@ -270,8 +308,10 @@ class AdventDay(Day.Base):
     def run(self, v):
         c = Computer()
         c.load(v)
-        a_start, a_end = c.generate_self_range()
-        c.run_reg_a_range(v, a_start=a_start, a_end=a_end)
+        o = c.find_outputs_of_prog_length()
+        debug(f"OUTS {o}")
+        #a_start, a_end = c.generate_self_range()
+        #c.run_reg_a_range(v, a_start=a_start, a_end=a_end)
         
 
 
