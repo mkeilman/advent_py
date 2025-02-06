@@ -36,7 +36,7 @@ class Computer:
         debug(",".join([str(x) for x in self.output]))
 
     def display_state(self):
-        debug(f"PTR {self.pointer} REGS {self.registers} OUT {self.output}")
+        debug(f"PTR {self.pointer} REGS {self.registers} OUT {self.output} OUT IS PROG? {self.output == self.program}")
 
 
     def set_register(self, r, val):
@@ -71,29 +71,6 @@ class Computer:
         n = p_len // num_outs
         return pow(8, n - 1), pow(8, n) - 1
 
-
-    def find_outputs_of_prog_length(self, a_start=None, a_end=None):
-        if a_start is None or a_end is None:
-            a_start, a_end = self.generate_self_range()
-        a = a_start
-        b = a_end
-        debug(f"CHECK FROM {a_start} - {a_end}")
-        while a_start < a_end:
-            self.reload()
-            self.set_register("A", a_start)
-            pm = self.run(output_check=self.program)
-            if len(pm) != len(self.program):
-                f = self.find_outputs_of_prog_length(a_start + math.ceil((a_end - a_start) / 2), a_end)
-                if f:
-                    return f
-                return self.find_outputs_of_prog_length(a_start + 1, math.ceil((a_end - a_start) / 2))
-                #a_start = a_start + math.ceil((a_end - a_start) / 2)
-                #continue
-            debug(f"FOUND {a_start} {self.output}")
-            return pm
-        return []
-
-
     def load(self, v, init_registers=None):
         self.pointer = 0
         self.output = []
@@ -109,7 +86,8 @@ class Computer:
             self.set_register(r, init_registers[r] if (init_registers or {}).get(r, None) is not None else int(m.group(2)))
         self.init_registers = self.registers.copy()
         self.loaded = True
-        debug(f"LOAD {self.op_pairs()}")
+        #self.display_state()
+        #debug(f"LOAD {self.op_pairs()}")
 
     def reload(self):
         self.set_registers(self.init_registers)
@@ -123,34 +101,34 @@ class Computer:
     def op_pairs(self):
         return [(self.program[2 * i], self.program[2 * i + 1]) for i in range(len(self.program) // 2)]
 
-
-    # adaptive step size?
-    def run_reg_a_range(self, v, a_start=0, a_end=None, a_step=1):
+    def run_reg_a_range(self, v, a_start=0, a_end=1, a_step=1):
         last_out_len = 0
         last_index = a_start
         d = a_step
         i = a_start
         done = False
         self.load(v)
-        init_regs = self.registers.copy()
         while not done:
-            self.set_registers(init_regs)
+            self.reload()
             self.set_register("A", i)
-            pm = self.run(output_check=self.program)
-            dl = len(self.output) - last_out_len
+            #pm = self.run(output_check=self.program)
+            pm = self.run()
+            sz = len(pm)
+            dl = sz - last_out_len
             if dl > 0:
-                last_out_len = len(self.output)
-                if i > last_index:
-                    d *= 8
+                last_out_len = sz
+                #if i > last_index:
+                #    d *= 8
                 last_index = i
                 debug(f"MORE MATCHES {i} {pm} D {d} BM8 {self.registers["B"] % 8}")
                 self.display_state()
+                if pm == self.program:
+                    return i
 
+            self.display_state()
             i += d
-            if a_end is not None:
-                done = i > a_end
-            else:
-                done = len(pm) == len(self.program)
+            done = i > a_end
+        return None
                 
 
     def run(self, output_check=None):
@@ -308,10 +286,13 @@ class AdventDay(Day.Base):
     def run(self, v):
         c = Computer()
         c.load(v)
-        o = c.find_outputs_of_prog_length()
-        debug(f"OUTS {o}")
-        #a_start, a_end = c.generate_self_range()
-        #c.run_reg_a_range(v, a_start=a_start, a_end=a_end)
+        #c.set_register("A", pow(8, 15))
+        #c.display_state()
+        #c.run()
+        #c.display_state()
+        a_start, a_end = c.generate_self_range()
+        prog_reg = c.run_reg_a_range(v, a_start=202367025818154, a_end=202367025818154 + 100)
+        debug(f"FOUND? {prog_reg is not None} REG {prog_reg}")
         
 
 
