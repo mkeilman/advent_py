@@ -38,6 +38,19 @@ class MemorySpace:
 
     def paths(self):
 
+        def _amend_paths(base_path, unused_connections, depth=0, all_paths=[]):
+            for pos in [x for x in unused_connections if x in base_path]:
+                i = base_path.index(pos)
+                initial_path = base_path[:i + 1]
+                new_path, u = _path(initial_path, self.end_pos, exclusions={pos: [base_path[i + 1]]}, max_len=_max_path_len(all_paths))
+                if not new_path or not u:
+                    continue
+                if new_path not in all_paths:
+                    all_paths.append(new_path)
+                    debug(f"{depth} ADD NEW {len(new_path)} MAX {_max_path_len(all_paths)}")
+                    _amend_paths(new_path, u, depth=depth + 1, all_paths=all_paths)
+            return
+
         def _exclude(pos, connection, exclusions):
             if not exclusions.get(pos):
                 exclusions[pos] = []
@@ -46,12 +59,14 @@ class MemorySpace:
         def _conn(pos, path, exclusions={}, unused={}):
             return [x for x in self.connections[pos] if x != path[path.index(pos) - 1] and x not in path and x not in exclusions.get(pos, [])]
 
-        def _path(initial_path, end_pos, exclusions={}):
+        def _max_path_len(paths):
+            return min([len(x) for x in paths])
+
+        def _path(initial_path, end_pos, exclusions={}, max_len=1e26):
             pos0 = initial_path[-1]
             pos = pos0
             pp = initial_path
             done = False
-            n_loops = 0
             unused = {}
             while not done and pos != end_pos:
                 # loop through the connections to this position, not counting
@@ -67,7 +82,6 @@ class MemorySpace:
                 else:
                     pos = _trim_to_prev_branch(pp, exclusions, limit=pos0)
                     done = not pos
-                n_loops += 1
 
             if pos != end_pos:
                 return [], None
@@ -107,31 +121,12 @@ class MemorySpace:
             return q
 
 
-        def _amend_paths(base_path, unused_connections, depth=0, all_paths=[]):
-            n = 0
-            for pos in [x for x in unused_connections if x in base_path]:
-                i = base_path.index(pos)
-                initial_path = base_path[:i + 1]
-                new_path, u = _path(initial_path, self.end_pos, exclusions={pos: [base_path[i + 1]]})
-                n += 1
-                if not new_path or not u:
-                    continue
-                #if len(new_path) > min([len(x) for x in all_paths]):
-                #    continue
-                if new_path not in all_paths:
-                    all_paths.append(new_path)
-                    _amend_paths(new_path, u, depth=depth + 1, all_paths=all_paths)
-            return
-
-        def _diff(p1, p2):
-            return [(i, x) for i, x in enumerate(p1) if x != p2[i]]
-
         start = (0, 0)
 
         paths = []
         path, unused = _path([start], self.end_pos)
         debug(f"FIRST {path} L {len(path)}")
-        self.display_path(path)
+        #self.display_path(path)
         paths.append(path)
         _amend_paths(path, unused, all_paths=paths)
         return paths
