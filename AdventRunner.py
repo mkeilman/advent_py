@@ -16,7 +16,7 @@ def main():
     )
     a, u = p.parse_known_args()
     
-    d = importlib.import_module(f"year_{a.year}.Day_{a.day:02d}").AdventDay(u)
+    d = importlib.import_module(f"year_{a.year}.Day_{a.day:02d}").AdventDay(a.year, a.day, u)
     if a.mode in ("test", "all"):
         debug("TEST:")
         d.run_from_test_strings()

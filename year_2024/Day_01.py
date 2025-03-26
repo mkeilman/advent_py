@@ -28,10 +28,10 @@ class AdventDay(Day.Base):
         e = [int(val == x) for x in arr]
         return val * mathutils.sum([int(val == x) for x in arr])
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         super(AdventDay, self).__init__(
-            2024,
-            1,
+            year,
+            day,
             [
                 "3   4",
                 "4   3",
