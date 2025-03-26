@@ -6,7 +6,14 @@ from utils.debug import debug
 
 class AdventDay(Day.Base):
 
+    TEST = [
+        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
+    ]
 
+    TEST_2 = [
+        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
+    ]
+    
     def _get_muls(self, v, respect_enables=True):
 
         def _enabled_ranges(e, d, max_index):
@@ -92,12 +99,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            [
-                "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
-            ]
-            #[
-            #    "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
-            #]
         )
         self.args_parser.add_argument(
             "--respect-enables",

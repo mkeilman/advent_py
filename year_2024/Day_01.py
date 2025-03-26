@@ -5,6 +5,15 @@ from utils.debug import debug
 
 class AdventDay(Day.Base):
 
+    TEST = [
+        "3   4",
+        "4   3",
+        "2   5",
+        "1   3",
+        "3   9",
+        "3   3",
+    ]
+
     def col_diff_sum(self, v):
         d = self._col_diffs(*self._get_cols(v))
         return mathutils.sum(d)
@@ -32,14 +41,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            [
-                "3   4",
-                "4   3",
-                "2   5",
-                "1   3",
-                "3   9",
-                "3   3",
-            ]
         )
         self.args_parser.add_argument(
             "--calc",

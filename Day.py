@@ -2,6 +2,8 @@ from utils.debug import debug
 
 class Base:
 
+    TEST = []
+
     @staticmethod
     def print_strings(v):
         debug(v)
@@ -9,7 +11,7 @@ class Base:
     def __init__(self, year, day, test_strings=None):
         import argparse
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
-        self.test_strings = test_strings or []
+        self.test_strings = test_strings or type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
         self.args = {}
 

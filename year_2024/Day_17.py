@@ -271,7 +271,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            AdventDay.SELF
         )
         self.args_parser.add_argument(
             "--init-val-a",

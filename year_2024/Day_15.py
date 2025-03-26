@@ -317,7 +317,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            AdventDay.RIGHT
         )
         self.args_parser.add_argument(
             "--warehouse-size",

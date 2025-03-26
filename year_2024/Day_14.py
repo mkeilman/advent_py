@@ -136,7 +136,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            AdventDay.SYMMETRIC
         )
         self.args_parser.add_argument(
             "--width",

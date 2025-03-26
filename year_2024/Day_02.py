@@ -6,6 +6,15 @@ from utils.debug import debug
 
 class AdventDay(Day.Base):
 
+    TEST = [
+        "7 6 4 2 1",
+        "1 2 7 8 9",
+        "9 7 6 2 1",
+        "1 3 2 4 5",
+        "8 6 4 4 1",
+        "1 3 6 7 9",
+    ]
+    
     def safe_sum(self, v, dampen=True):
         d = [[int(y) for y in re.findall(r"\d+", x)] for x in v]
         s = [int(self._is_safe(x, dampen=dampen)) for x in d]
@@ -35,14 +44,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            [
-                "7 6 4 2 1",
-                "1 2 7 8 9",
-                "9 7 6 2 1",
-                "1 3 2 4 5",
-                "8 6 4 4 1",
-                "1 3 6 7 9",
-            ]
         )
         self.args_parser.add_argument(
             "--dampen",

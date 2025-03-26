@@ -109,36 +109,38 @@ class WordGrid:
 
 class AdventDay(Day.Base):
 
+    SMALL = [
+        "SSS",
+        "AAA",
+        "MMM",
+    ]
+
+    SNAKE = [
+        "..X...",
+        ".SAMX.",
+        ".A..A.",
+        "XMAS.S",
+        ".X....",
+    ]
+
+    TEST = [
+        "MMMSXXMASM",
+        "MSAMXMSMSA",
+        "AMXSXMAAMM",
+        "MSAMASMSMX",
+        "XMASAMXAMM",
+        "XXAMMXXAMA",
+        "SMSMSASXSS",
+        "SAXAMASAAA",
+        "MAMMMXMMMM",
+        "MXMXAXMASX",
+    ]
 
     def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
             year,
             day,
-            #[    
-            #    "..X...",
-            #    ".SAMX.",
-            #    ".A..A.",
-            #    "XMAS.S",
-            #    ".X....",
-            #]
-            [
-                "MMMSXXMASM",
-                "MSAMXMSMSA",
-                "AMXSXMAAMM",
-                "MSAMASMSMX",
-                "XMASAMXAMM",
-                "XXAMMXXAMA",
-                "SMSMSASXSS",
-                "SAXAMASAAA",
-                "MAMMMXMMMM",
-                "MXMXAXMASX",
-            ]
-            #[
-            #    "SSS",
-            #    "AAA",
-            #    "MMM",
-            #]
         )
 
     def run(self, v):

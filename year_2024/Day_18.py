@@ -223,7 +223,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            AdventDay.TEST
         )
         self.args_parser.add_argument(
             "--num-bytes",

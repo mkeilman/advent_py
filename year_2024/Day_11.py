@@ -7,20 +7,19 @@ from utils.debug import debug
     
 class AdventDay(Day.Base):
 
+    SMALL = [
+        "125 17",
+    ]
+
+    TEST = [
+         "0 1 10 99 999",
+    ]
+
     def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
             year,
             day,
-            #[
-            #    "0 1 10 99 999",
-            #],
-            [
-                "125 17",
-            ]
-            #[
-            #    "0",
-            #]
         )
 
     def run(self, v):

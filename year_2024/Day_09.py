@@ -71,18 +71,19 @@ class Disk:
             
 
 class AdventDay(Day.Base):
-            
+    
+    CONSEC = [
+        "12345",
+    ]
+    TEST = [
+        "2333133121414131402",
+    ]
+    
     def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
             year,
             day,
-            [
-                "2333133121414131402",
-            ]
-            #[
-            #    "12345",
-            #]
         )
         self.args_parser.add_argument(
             "--whole-files",

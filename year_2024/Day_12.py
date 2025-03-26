@@ -224,7 +224,7 @@ class Plot:
 
 class AdventDay(Day.Base):
 
-    ABCDE = [
+    TEST = [
         "AAAA",
         "BBCD",
         "BBCC",
@@ -292,7 +292,6 @@ class AdventDay(Day.Base):
         super(AdventDay, self).__init__(
             year,
             day,
-            AdventDay.RING
         )
         self.args_parser.add_argument(
             "--length-type",
