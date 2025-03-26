@@ -30,11 +30,11 @@ class AdventDay(Day.Base):
             return False
         return s
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
-            2024,
-            2,
+            year,
+            day,
             [
                 "7 6 4 2 1",
                 "1 2 7 8 9",

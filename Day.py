@@ -56,6 +56,30 @@ class Grid:
     def contains(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
     
+    def line(self, start_pos, end_pos, allow_diags=True):
+        import math
+        from utils import mathutils
+        assert start_pos in self.flat_array and end_pos in self.flat_array
+        dr = end_pos[0] - start_pos[0]
+        dc = end_pos[1] - start_pos[1]
+        if dc == 0:
+            return [(start_pos[0] + mathutils.sign(dr) * i, start_pos[1]) for i in range(abs(dr) + 1)]
+        if dr == 0:
+            return [(start_pos[0], start_pos[1] + mathutils.sign(dc) * i) for i in range(abs(dc) + 1)]
+        
+        slope = dr / dc
+        s = mathutils.sign(slope)
+        l = []
+        rr = range(start_pos[1], end_pos[1] + s, s)
+        for c in range(start_pos[1], end_pos[1] + s, s):
+            r = start_pos[0] + math.floor(slope * (c - start_pos[1]))
+            if not allow_diags and (r, c - s) in self.flat_array:
+                l.append((r, c - s))
+            l.append((r, c))
+        return l
+
+
+
     def neighborhood(self, pos, restrict_to=None):
         from utils import mathutils
 

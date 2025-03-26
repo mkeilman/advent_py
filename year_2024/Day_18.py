@@ -13,7 +13,6 @@ class MemorySpace:
         self.grid = Day.Grid.grid_of_size(size, size)
         self.byte_coords = self._byte_coords(v)
         self.bytes = [(x[0], x[1]) for x in self.byte_coords[:num_bytes]]
-        #debug(f"B {self.bytes}")
         self.connections = {k:[x for x in v if x not in self.bytes] for k, v in self.grid.coord_neighborhoods.items()}
         self.end_pos = (self.size - 1, self.size - 1)
 
@@ -36,6 +35,27 @@ class MemorySpace:
             debug(s)
         debug("")
 
+    def line_path(self):
+        p = self.grid.line((0, 0), self.end_pos, allow_diags=False)
+        for b in self.byte_coords:
+            bt = (b[0], b[1])
+            if bt not in p:
+                continue
+            i = p.index(bt)
+            debug(f"BLOCKED AT {bt}")
+            for c in p[i + 1:]:
+                if c not in self.byte_coords:
+                    break
+            else:
+                return None
+            j = p.index(c)
+            p1 = p[:i]
+            p2 = p[j:]
+            debug(f"FIND PATH FROM {p[i - 1]} - {c} {p1} {p2}")
+            break
+            
+        return p
+    
     def paths(self):
 
         def _amend_paths(base_path, unused_connections, depth=0, all_paths=[], rejected_paths=[]):
@@ -198,11 +218,11 @@ class AdventDay(Day.Base):
     ]
 
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
-            2024,
-            18,
+            year,
+            day,
             AdventDay.TEST
         )
         self.args_parser.add_argument(
@@ -224,11 +244,12 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         m = MemorySpace(v, self.args["size"], self.args["num_bytes"])
-        paths = m.paths()
-        pr = sorted(paths, key=lambda x: len(x))
-        debug(f"FOUND {len(paths)} PATHS LENS {[len(x) for x in pr]}")
-        debug(f"SHORTEST NUM STEPS {len(pr[0]) - 1}")
-        m.display_path(pr[0])
+        #paths = m.paths()
+        #pr = sorted(paths, key=lambda x: len(x))
+        #debug(f"FOUND {len(paths)} PATHS LENS {[len(x) for x in pr]}")
+        #debug(f"SHORTEST NUM STEPS {len(pr[0]) - 1}")
+        #m.display_path(pr[0])
+        m.display_path(m.line_path())
         
 
 

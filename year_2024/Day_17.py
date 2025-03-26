@@ -266,11 +266,11 @@ class AdventDay(Day.Base):
 
 
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
-            2024,
-            17,
+            year,
+            day,
             AdventDay.SELF
         )
         self.args_parser.add_argument(

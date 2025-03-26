@@ -84,10 +84,10 @@ class AdventDay(Day.Base):
         "Prize: X=18641, Y=10279",
     ]
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         super(AdventDay, self).__init__(
-            2024,
-            13,
+            year,
+            day,
             AdventDay.TEST
         )
         self.args_parser.add_argument(

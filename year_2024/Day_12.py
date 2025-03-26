@@ -288,10 +288,10 @@ class AdventDay(Day.Base):
         "OOOOO",
     ]
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         super(AdventDay, self).__init__(
-            2024,
-            12,
+            year,
+            day,
             AdventDay.RING
         )
         self.args_parser.add_argument(

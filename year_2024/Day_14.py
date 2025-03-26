@@ -132,10 +132,10 @@ class AdventDay(Day.Base):
         "p=5,5 v=2,-3",
     ]
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         super(AdventDay, self).__init__(
-            2024,
-            14,
+            year,
+            day,
             AdventDay.SYMMETRIC
         )
         self.args_parser.add_argument(

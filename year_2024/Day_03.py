@@ -87,11 +87,11 @@ class AdventDay(Day.Base):
             s += self._do_muls(m)
         return s
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
-            2024,
-            3,
+            year,
+            day,
             [
                 "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
             ]

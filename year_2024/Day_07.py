@@ -52,11 +52,11 @@ class Equation:
 class AdventDay(Day.Base):
             
 
-    def __init__(self, run_args):
+    def __init__(self, year, day, run_args):
         import argparse
         super(AdventDay, self).__init__(
-            2024,
-            7,
+            year,
+            day,
             [
                 "190: 10 19",
                 "3267: 81 40 27",
