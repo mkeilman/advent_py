@@ -21,11 +21,19 @@ class AdventDay(Day.Base):
             year,
             day,
         )
+        self.args_parser.add_argument(
+            "--num-blinks",
+            type=int,
+            help="number of blinks",
+            default=25,
+            dest="num_blinks",
+        )
+        self.add_args(run_args)
 
     def run(self, v):
         # single line
         stones = [int(x) for x in re.findall(r"\d+", v[0])]
-        n = 75
+        n = self.args["num_blinks"]
         s = self.blink(stones, num_blinks=n)
         debug(f"{n} -> {self.num_stones(s)}")
 
