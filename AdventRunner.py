@@ -3,6 +3,9 @@ import importlib
 from utils.debug import debug
 
 def main():
+    import Day
+    from Day import Base
+
     p = argparse.ArgumentParser(description="run AdventOfCode for the given year and day")
     p.add_argument("year", type=int, help="year to run")
     p.add_argument("day", type=int, help="day to run")
@@ -15,8 +18,8 @@ def main():
         dest="mode",
     )
     a, u = p.parse_known_args()
+    d = Day.Base.get_day(a.year, a.day, u)
     
-    d = importlib.import_module(f"year_{a.year}.Day_{a.day:02d}").AdventDay(a.year, a.day, u)
     if a.mode in ("test", "all"):
         debug("TEST:")
         d.run_from_test_strings()

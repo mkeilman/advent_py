@@ -4,6 +4,11 @@ class Base:
 
     TEST = []
 
+    @classmethod
+    def get_day(cls, year, day, run_args):
+        import importlib
+        return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(year, day, run_args)
+
     @staticmethod
     def print_strings(v):
         debug(v)

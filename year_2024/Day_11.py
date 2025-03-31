@@ -35,7 +35,7 @@ class AdventDay(Day.Base):
         stones = [int(x) for x in re.findall(r"\d+", v[0])]
         n = self.args["num_blinks"]
         s = self.blink(stones, num_blinks=n)
-        debug(f"{n} -> {self.num_stones(s)}")
+        debug(f"stones {stones} {n} blinks -> {self.num_stones(s)} total")
 
 
     def blink(self, stones, num_blinks=1):
