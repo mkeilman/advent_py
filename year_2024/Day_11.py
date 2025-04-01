@@ -71,16 +71,19 @@ class AdventDay(Day.Base):
             lookup_table[s] += num_stones
 
     def _next_stones(self, s):
+        def _num_digits(n):
+            return int(math.log10(n)) + 1
+        
         def _split(s):
-            f = math.pow(10,  (int(math.log10(s)) + 1) // 2)
+            f = math.pow(10,  _num_digits(s) // 2)
             return [int(s // f), int(s % f)]
         
         if s == 0:
             return [1]
-        if not (int(math.log10(s)) + 1) % 2:
+        if not _num_digits(s) % 2:
             return _split(s)
         return [s * 2024]
-
+    
 
 def main():
     d = AdventDay()
