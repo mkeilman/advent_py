@@ -28,8 +28,6 @@ class AdventDay(Day.Base):
         """Initialize
 
         Args:
-            year (int): the year
-            day (int): the day
             run_args (dict): command line arguments
 
         Run args:
