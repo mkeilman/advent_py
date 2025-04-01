@@ -1,3 +1,3 @@
-def debug(txt, **kawrgs):
+def debug_print(txt, **kawrgs):
     print(txt, **kawrgs)
 
