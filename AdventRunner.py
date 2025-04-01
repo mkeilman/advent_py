@@ -4,7 +4,6 @@ from utils.debug import debug_print
 
 def main():
     import Day
-    from Day import Base
 
     p = argparse.ArgumentParser(description="run AdventOfCode for the given year and day")
     p.add_argument("year", type=int, help="year to run")
