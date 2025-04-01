@@ -29,40 +29,46 @@ class AdventDay(Day.Base):
             dest="num_blinks",
         )
         self.add_args(run_args)
-
-    def run(self, v):
-        # single line
-        stones = [int(x) for x in re.findall(r"\d+", v[0])]
-        n = self.args["num_blinks"]
-        s = self.blink(stones, num_blinks=n)
-        debug(f"stones {stones} {n} blinks -> {self.num_stones(s)} total")
+        self.set_num_blinks(self.args["num_blinks"])
 
 
-    def blink(self, stones, num_blinks=1):
+    def blink(self, stones):
         
-        p_dict = {}
-        self._fill_p_dict(stones, p_dict)
+        lookup_table = {}
+        self._fill_lookup_table(stones, lookup_table)
 
-        if num_blinks < 1:
-            return p_dict
+        if self.num_blinks < 1:
+            return lookup_table
         
-        for n in range(num_blinks):
+        for n in range(self.num_blinks):
             pd = {}
-            for s in p_dict:
-                self._fill_p_dict(self._next_stones(s), pd, num_stones=p_dict[s])
-            p_dict = pd
-        return p_dict
+            for s in lookup_table:
+                self._fill_lookup_table(self._next_stones(s), pd, num_stones=lookup_table[s])
+            lookup_table = pd
+        return lookup_table
 
 
-    def num_stones(self, p_dict):
-        return mathutils.sum(p_dict.values())
+    def num_stones(self, lookup_table):
+        return mathutils.sum(lookup_table.values())
 
 
-    def _fill_p_dict(self, st, p_dict, num_stones=1):
+    def run(self):
+        # single line
+        stones = [int(x) for x in re.findall(r"\d+", self.input[0])]
+        s = self.blink(stones)
+        debug(f"stones {stones} {self.num_blinks} blinks -> {self.num_stones(s)} total")
+        return self.num_stones(s)
+
+
+    def set_num_blinks(self, num_blinks):
+        self.num_blinks = num_blinks
+
+
+    def _fill_lookup_table(self, st, lookup_table, num_stones=1):
         for s in st:
-            if s not in p_dict:
-                p_dict[s] = 0
-            p_dict[s] += num_stones
+            if s not in lookup_table:
+                lookup_table[s] = 0
+            lookup_table[s] += num_stones
 
     def _next_stones(self, s):
         def _split(s):

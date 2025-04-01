@@ -15,26 +15,37 @@ class Base:
 
     def __init__(self, year, day, test_strings=None):
         import argparse
+        self.set_input([])
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
         self.test_strings = test_strings or type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
         self.args = {}
+
 
     def add_args(self, run_args):
         v = vars(self.args_parser.parse_args(run_args))
         for arg in v:
             self.args[arg] = v[arg]
 
-    def run(self, v):
-        Base.print_strings(v)
+
+    def run(self):
+        Base.print_strings(self.input)
+        return 0
+
 
     def run_from_test_strings(self, substitute_strings=None):
-        self.run(substitute_strings or self.test_strings)
+        self.set_input(substitute_strings or self.test_strings)
+        return self.run()
+
 
     def run_from_file(self):
         with open(self.input_file, "r") as f:
-            v = [x.strip() for x in f.readlines()]
-            self.run(v)
+            self.set_input([x.strip() for x in f.readlines()])
+            return self.run()
+        
+
+    def set_input(self, v):
+        self.input = v
 
 
 class Grid:
