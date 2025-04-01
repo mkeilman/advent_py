@@ -1,6 +1,6 @@
 import argparse
 import importlib
-from utils.debug import debug
+from utils.debug import debug_print
 import unittest
 
 class Base(unittest.TestCase):

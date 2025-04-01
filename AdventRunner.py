@@ -1,6 +1,6 @@
 import argparse
 import importlib
-from utils.debug import debug
+from utils.debug import debug_print
 
 def main():
     import Day
@@ -19,12 +19,12 @@ def main():
     )
     a, u = p.parse_known_args()
     d = Day.Base.get_day(a.year, a.day, u)
-    
+
     if a.mode in ("test", "all"):
-        debug("TEST:")
+        debug_print("TEST:")
         d.run_from_test_strings()
     if a.mode in ("file", "all"):
-        debug("FILE:")
+        debug_print("FILE:")
         d.run_from_file()
 
 

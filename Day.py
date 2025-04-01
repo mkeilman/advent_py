@@ -1,4 +1,4 @@
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Base:
 
@@ -26,7 +26,7 @@ class Base:
 
 
     def run(self):
-        debug(self.input)
+        debug_print(self.input)
         return 0
 
 
