@@ -34,22 +34,22 @@ class AdventDay(Day.Base):
 
     def blink(self, stones):
         
-        lookup_table = {}
-        self._fill_lookup_table(stones, lookup_table)
+        count_map = {}
+        self._fill_count_map(stones, count_map)
 
         if self.num_blinks < 1:
-            return lookup_table
+            return count_map
         
         for n in range(self.num_blinks):
             pd = {}
-            for s in lookup_table:
-                self._fill_lookup_table(self._next_stones(s), pd, num_stones=lookup_table[s])
-            lookup_table = pd
-        return lookup_table
+            for s in count_map:
+                self._fill_count_map(self._next_stones(s), pd, num_stones=count_map[s])
+            count_map = pd
+        return count_map
 
 
-    def num_stones(self, lookup_table):
-        return mathutils.sum(lookup_table.values())
+    def num_stones(self, count_map):
+        return mathutils.sum(count_map.values())
 
 
     def run(self):
@@ -64,11 +64,11 @@ class AdventDay(Day.Base):
         self.num_blinks = num_blinks
 
 
-    def _fill_lookup_table(self, st, lookup_table, num_stones=1):
+    def _fill_count_map(self, st, count_map, num_stones=1):
         for s in st:
-            if s not in lookup_table:
-                lookup_table[s] = 0
-            lookup_table[s] += num_stones
+            if s not in count_map:
+                count_map[s] = 0
+            count_map[s] += num_stones
 
     def _next_stones(self, s):
         def _num_digits(n):
