@@ -7,14 +7,27 @@ class Base:
     @classmethod
     def get_day(cls, year, day, run_args):
         import importlib
-        return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(year, day, run_args)
+        return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(run_args)
 
 
-    def __init__(self, year, day, test_strings=None):
+    @classmethod
+    def year_day_from_name(cls, name):
+        import re
+        return [int(x) for x in re.match(r".*year_(\d+).Day_(\d+).*", name).groups()]
+
+
+    @classmethod
+    def year_day_from_type(cls, obj_type):
+        return Base.year_day_from_name(f"{obj_type}")
+
+
+    def __init__(self):
         import argparse
+
+        year, day = Base.year_day_from_type(type(self))
         self.set_input([])
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
-        self.test_strings = test_strings or type(self).TEST or []
+        self.test_strings = type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
         self.args = {}
 

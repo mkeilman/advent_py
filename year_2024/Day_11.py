@@ -24,20 +24,18 @@ class AdventDay(Day.Base):
          "0 1 10 99 999",
     ]
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         """Initialize
 
         Args:
             year (int): the year
             day (int): the day
+            run_args (dict): command line arguments
 
         Run args:
-            num-blinks (int): the number of blinks to to
+            num_blinks (int): the number of blinks to perform
         """
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__()
         self.args_parser.add_argument(
             "--num-blinks",
             type=int,
