@@ -2,7 +2,6 @@ import math
 import re
 import Day
 from utils import mathutils
-from utils import string
 from utils.debug import debug
     
 class AdventDay(Day.Base):
@@ -33,18 +32,24 @@ class AdventDay(Day.Base):
 
 
     def blink(self, stones):
-        
+        def _update_count_map(st, count_map, num_stones=1):
+            for s in st:
+                if s not in count_map:
+                    count_map[s] = 0
+                count_map[s] += num_stones
+
+
         count_map = {}
-        self._fill_count_map(stones, count_map)
+        _update_count_map(stones, count_map)
 
         if self.num_blinks < 1:
             return count_map
         
-        for n in range(self.num_blinks):
-            pd = {}
+        for _ in range(self.num_blinks):
+            m = {}
             for s in count_map:
-                self._fill_count_map(self._next_stones(s), pd, num_stones=count_map[s])
-            count_map = pd
+                _update_count_map(self._next_stones(s), m, num_stones=count_map[s])
+            count_map = m
         return count_map
 
 
@@ -63,12 +68,6 @@ class AdventDay(Day.Base):
     def set_num_blinks(self, num_blinks):
         self.num_blinks = num_blinks
 
-
-    def _fill_count_map(self, st, count_map, num_stones=1):
-        for s in st:
-            if s not in count_map:
-                count_map[s] = 0
-            count_map[s] += num_stones
 
     def _next_stones(self, s):
         def _num_digits(n):
