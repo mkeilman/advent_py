@@ -1,10 +1,20 @@
+"""Classes and functions for Avent of Code Day 11, 2024
+https://adventofcode.com/2024/day/11
+
+
+"""
+
 import math
 import re
 import Day
 from utils import mathutils
 from utils.debug import debug_print
-    
+
+
 class AdventDay(Day.Base):
+    """AdventDay Day 11, 2024
+
+    """
 
     SMALL = [
         "125 17",
@@ -15,6 +25,15 @@ class AdventDay(Day.Base):
     ]
 
     def __init__(self, year, day, run_args):
+        """Initialize
+
+        Args:
+            year (int): the year
+            day (int): the day
+
+        Run args:
+            num-blinks (int): the number of blinks to to
+        """
         super(AdventDay, self).__init__(
             year,
             day,
@@ -30,7 +49,20 @@ class AdventDay(Day.Base):
         self.set_num_blinks(self.args["num_blinks"])
 
 
-    def blink(self, stones):
+    def run(self):
+        # single line
+        stones = [int(x) for x in re.findall(r"\d+", self.input[0])]
+        s = self._blink(stones)
+        n = self._num_stones(s)
+        debug_print(f"stones {stones} {self.num_blinks} blinks -> {n} total")
+        return n
+
+
+    def set_num_blinks(self, num_blinks):
+        self.num_blinks = num_blinks
+
+
+    def _blink(self, stones):
         def _update_count_map(st, count_map, num_stones=1):
             for s in st:
                 if s not in count_map:
@@ -52,22 +84,6 @@ class AdventDay(Day.Base):
         return count_map
 
 
-    def num_stones(self, count_map):
-        return mathutils.sum(count_map.values())
-
-
-    def run(self):
-        # single line
-        stones = [int(x) for x in re.findall(r"\d+", self.input[0])]
-        s = self.blink(stones)
-        debug_print(f"stones {stones} {self.num_blinks} blinks -> {self.num_stones(s)} total")
-        return self.num_stones(s)
-
-
-    def set_num_blinks(self, num_blinks):
-        self.num_blinks = num_blinks
-
-
     def _next_stones(self, s):
         def _num_digits(n):
             return int(math.log10(n)) + 1
@@ -83,3 +99,5 @@ class AdventDay(Day.Base):
         return [s * 2024]
 
 
+    def _num_stones(self, count_map):
+        return mathutils.sum(count_map.values())
