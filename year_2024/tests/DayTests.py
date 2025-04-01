@@ -9,7 +9,6 @@ def day(request):
     return Day.Base.get_day(*yd, {})
 
 
-
 class Test_Day_2024_11:
     
     SIMPLE = ["0 1 10 99 999"]
@@ -39,6 +38,5 @@ class Test_Day_2024_11:
         day.set_num_blinks(75)
         n = day.run_from_file()
         assert n == 241394363462435
-
 
 
