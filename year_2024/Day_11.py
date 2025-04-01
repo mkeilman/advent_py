@@ -82,15 +82,5 @@ class AdventDay(Day.Base):
         if not _num_digits(s) % 2:
             return _split(s)
         return [s * 2024]
-    
-
-def main():
-    d = AdventDay()
-    debug("TEST:")
-    d.run_from_test_strings()
-    debug("FILE:")
-    d.run_from_file()
 
 
-if __name__ == '__main__':
-    main()
