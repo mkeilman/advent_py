@@ -15,7 +15,6 @@ class AdventDay(Day.Base):
     ]
 
     def __init__(self, year, day, run_args):
-        import argparse
         super(AdventDay, self).__init__(
             year,
             day,

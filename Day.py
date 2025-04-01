@@ -9,9 +9,6 @@ class Base:
         import importlib
         return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(year, day, run_args)
 
-    @staticmethod
-    def print_strings(v):
-        debug(v)
 
     def __init__(self, year, day, test_strings=None):
         import argparse
@@ -29,7 +26,7 @@ class Base:
 
 
     def run(self):
-        Base.print_strings(self.input)
+        debug(self.input)
         return 0
 
 
