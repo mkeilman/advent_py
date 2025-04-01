@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class AdventDay(Day.Base):
@@ -54,14 +54,14 @@ class AdventDay(Day.Base):
         self.dampen = self.args_parser.parse_args(run_args).dampen
 
     def run(self, v):
-        debug(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
+        debug_print(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

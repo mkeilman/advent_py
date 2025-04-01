@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class Universe():
@@ -36,7 +36,7 @@ class Universe():
         
     def print_grid(self):
         for r in self.grid:
-            debug(r)
+            debug_print(r)
 
     def _expand(self, cosmological_const=1):
         g = []
@@ -87,15 +87,15 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         u = Universe(v, cc=self.comso_const)
-        debug(f"DIST SUM {u.dist_sum()}")
+        debug_print(f"DIST SUM {u.dist_sum()}")
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

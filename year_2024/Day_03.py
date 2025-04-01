@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class AdventDay(Day.Base):
 
@@ -52,7 +52,7 @@ class AdventDay(Day.Base):
             if j < len(d):
                 # current enabled index is beyond the previous disabled index
                 if ei > d[j]:
-                    #debug(f"ADD NEXT")
+                    #debug_print(f"ADD NEXT")
                     r.append(range(ei, d[j + 1] if j < len(d) -1 else d[-1]))
                 # current enabled index is below the previous disabled index
                 else:
@@ -71,9 +71,9 @@ class AdventDay(Day.Base):
         n = []
         e = [0] + string.indices("do()", vv)
         d = string.indices("don\'t", vv)
-        #debug(f"E {e} D {d} -> ", end="")
+        #debug_print(f"E {e} D {d} -> ", end="")
         er = _enabled_ranges(e, d, len(vv))
-        #debug(f"{er}")
+        #debug_print(f"{er}")
         for mm in m:
             # could be duplicates
             for pos in [x for x in string.indices(mm, vv) if any([x in y for y in er])]:
@@ -109,14 +109,14 @@ class AdventDay(Day.Base):
         self.respect_enables = self.args_parser.parse_args(run_args).respect_enables
 
     def run(self, v):
-        debug(f"M {self.mul_sum(v, respect_enables=self.respect_enables)}")
+        debug_print(f"M {self.mul_sum(v, respect_enables=self.respect_enables)}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

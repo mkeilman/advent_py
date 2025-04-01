@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class Computer:
@@ -33,10 +33,10 @@ class Computer:
 
 
     def display_output(self):
-        debug(",".join([str(x) for x in self.output]))
+        debug_print(",".join([str(x) for x in self.output]))
 
     def display_state(self):
-        debug(f"PTR {self.pointer} REGS {self.registers} OUT {self.output} OUT IS PROG? {self.output == self.program}")
+        debug_print(f"PTR {self.pointer} REGS {self.registers} OUT {self.output} OUT IS PROG? {self.output == self.program}")
 
 
     def set_register(self, r, val):
@@ -51,7 +51,7 @@ class Computer:
         p_len = len(self.program)
         num_outs = len([x for x in ops if x == "_out"])
         if not num_outs:
-            debug(f"CANNOT GENERATE SELF: NO OUTPUT IN {self.program}")
+            debug_print(f"CANNOT GENERATE SELF: NO OUTPUT IN {self.program}")
             return None
         # the total number of outputs must match the length of the program.
         # too hard to consider every possible program, so assume at most a
@@ -59,14 +59,14 @@ class Computer:
         # number of outputs
         op = self.opcode(self.program[-2])
         if op != "_jnz":
-            debug(f"CANNOT GENERATE SELF: RESTRICTED TO FINAL JMP: {op}")
+            debug_print(f"CANNOT GENERATE SELF: RESTRICTED TO FINAL JMP: {op}")
             return None
         else:
             if self.program[-1]:
-                debug(f"CANNOT GENERATE SELF: MUST JMP TO 0 {self.program[-1]}")
+                debug_print(f"CANNOT GENERATE SELF: MUST JMP TO 0 {self.program[-1]}")
                 return None
         if p_len % num_outs:
-            debug(f"CANNOT GENERATE SELF: NUM OUTPUTS MUST DIVIDE INTO LENGTH: {num_outs} VS {p_len}")
+            debug_print(f"CANNOT GENERATE SELF: NUM OUTPUTS MUST DIVIDE INTO LENGTH: {num_outs} VS {p_len}")
             return None
         n = p_len // num_outs
         return pow(8, n - 1), pow(8, n) - 1
@@ -87,7 +87,7 @@ class Computer:
         self.init_registers = self.registers.copy()
         self.loaded = True
         #self.display_state()
-        #debug(f"LOAD {self.op_pairs()}")
+        #debug_print(f"LOAD {self.op_pairs()}")
 
     def reload(self):
         self.set_registers(self.init_registers)
@@ -120,7 +120,7 @@ class Computer:
                 #if i > last_index:
                 #    d *= 8
                 last_index = i
-                debug(f"MORE MATCHES {i} {pm} D {d} BM8 {self.registers["B"] % 8}")
+                debug_print(f"MORE MATCHES {i} {pm} D {d} BM8 {self.registers["B"] % 8}")
                 self.display_state()
                 if pm == self.program:
                     return i
@@ -291,15 +291,15 @@ class AdventDay(Day.Base):
         #c.display_state()
         a_start, a_end = c.generate_self_range()
         prog_reg = c.run_reg_a_range(v, a_start=202367025818154, a_end=202367025818154 + 100)
-        debug(f"FOUND? {prog_reg is not None} REG {prog_reg}")
+        debug_print(f"FOUND? {prog_reg is not None} REG {prog_reg}")
         
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

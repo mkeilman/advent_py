@@ -2,7 +2,7 @@ import math
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
     
 class AdventDay(Day.Base):
 
@@ -60,7 +60,7 @@ class AdventDay(Day.Base):
         # single line
         stones = [int(x) for x in re.findall(r"\d+", self.input[0])]
         s = self.blink(stones)
-        debug(f"stones {stones} {self.num_blinks} blinks -> {self.num_stones(s)} total")
+        debug_print(f"stones {stones} {self.num_blinks} blinks -> {self.num_stones(s)} total")
         return self.num_stones(s)
 
 

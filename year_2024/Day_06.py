@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Room:
 
@@ -49,7 +49,7 @@ class Room:
         d = list(Guard.DIRECTIONS.values())
 
         while _is_in_room(pos) and not self.is_loop(p):
-            #debug(f"CHECK STR {_sub_string(pos, dir)}")
+            #debug_print(f"CHECK STR {_sub_string(pos, dir)}")
             q = (pos[0] + dir[0], pos[1] + dir[1])
             if _is_in_room(q):
                 if self.grid[q[0]][q[1]] == "#":
@@ -160,12 +160,12 @@ class AdventDay(Day.Base):
             r = Room(g)
             p = r.find_path(prev_space[0], prev_space[1])
             if r.is_loop(p):
-                debug(f"{k} {i} {j}")
+                debug_print(f"{k} {i} {j}")
                 #n += 1
                 o.append((i, j))
                 l = r.get_loop(p)
                 loops = loops.union(set(l))
-                debug(f"L {len(l)} N L {len(loops)}")
+                debug_print(f"L {len(l)} N L {len(loops)}")
                 #pp = pp.union(set(sorted([_multiplex(x[0], x[1]) for x in p])))
                 #m = sorted([_multiplex(x[0], x[1]) for x in p])
                 #if m not in pp:
@@ -173,7 +173,7 @@ class AdventDay(Day.Base):
                 #o = o.union(set(sorted(sorted(p, key=lambda x: x[0][0]), key=lambda x: x[0][1])))
 
 
-        debug(f"LOOPS UNIQUE? {loops}")
+        debug_print(f"LOOPS UNIQUE? {loops}")
         #return n
         return len(o)
             
@@ -181,19 +181,19 @@ class AdventDay(Day.Base):
     def run(self, v):
         g = self._get_guard(v)
         r = Room(v)
-        #debug(f"G POS {g.position} DIR {g.direction}")
+        #debug_print(f"G POS {g.position} DIR {g.direction}")
         p = r.find_path(g.init_pos, g.init_dir)
-        debug(f"UNIQUE PATH LEN {len(set([x[0] for x in p]))} FULL LEN {len(p)}")
+        debug_print(f"UNIQUE PATH LEN {len(set([x[0] for x in p]))} FULL LEN {len(p)}")
         n = self.count_loops(v, p, g.init_pos, g.init_dir)
         #n = self.count_loops(v, p[0][0], p[0][1], g.init_pos, g.init_dir)
-        debug(f"NUM LOOPS {n}")
+        debug_print(f"NUM LOOPS {n}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

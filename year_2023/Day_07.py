@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class CamelCard():
@@ -34,7 +34,7 @@ class CamelHand():
     
     def cmp(self, other_hand):
         def _card_cmp(c1, c2):
-            #debug("CRD CMP", "".join([x.label for x in c1]), "".join([x.label for x in c2]))
+            #debug_print("CRD CMP", "".join([x.label for x in c1]), "".join([x.label for x in c2]))
             res = c1[0].cmp(c2[0])
             if len(c2) == 1 or res != 0:
                 return res
@@ -42,7 +42,7 @@ class CamelHand():
         
         if self.hand_type != other_hand.hand_type:
             return 1 if self.hand_type > other_hand.hand_type else -1
-        #debug("CRD CMP", self.hand_str, other_hand.hand_str)
+        #debug_print("CRD CMP", self.hand_str, other_hand.hand_str)
         return _card_cmp(self.cards, other_hand.cards)
 
     
@@ -163,14 +163,14 @@ class AdventDay(Day.Base):
         import functools
         plays = sorted([Play(x, jokers=self.jokers) for x in v], key=functools.cmp_to_key(Play.cmp))
         amts = [(i + 1) * x for (i, x) in enumerate([y.bet for y in plays])]
-        debug(f"WIN {mathutils.sum(amts)}")
+        debug_print(f"WIN {mathutils.sum(amts)}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

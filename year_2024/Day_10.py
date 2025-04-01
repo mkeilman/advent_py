@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class PathTree:
     def __init__(self, unique_id):
@@ -33,9 +33,9 @@ class PathTree:
         return None
 
         #for c in self.children:
-        #    #debug(f"CHECK {c.unique_id} VS {node_id}")
+        #    #debug_print(f"CHECK {c.unique_id} VS {node_id}")
         #    if c.unique_id == node_id:
-        #        #debug("FOUND")
+        #        #debug_print("FOUND")
         #        return c
         #    return c.find_node(node_id)
         #return None
@@ -46,9 +46,9 @@ class PathTree:
     def leaves(self):
         #l = []
         #for c in self.children:
-        #    #debug(f"{self.unique_id} SO FAR {[x.unique_id for x in l]}")
+        #    #debug_print(f"{self.unique_id} SO FAR {[x.unique_id for x in l]}")
         #    if c.is_leaf() and c.unique_id not in [x.unique_id for x in l]:
-        #        #debug(f"{self.unique_id} LEAF {c.unique_id}")
+        #        #debug_print(f"{self.unique_id} LEAF {c.unique_id}")
         #        l.append(c)
         #        continue
         #    for ll in c.leaves():
@@ -141,13 +141,13 @@ class Terrain:
                     t.add(_path(p))
             return t
 
-        #debug(f"P {trailhead} N {_neighborhood(trailhead)}")
-        #debug(f"{[x for x in _neighborhood(trailhead) if self._val(x) == self._val(trailhead) + 1]}")
+        #debug_print(f"P {trailhead} N {_neighborhood(trailhead)}")
+        #debug_print(f"{[x for x in _neighborhood(trailhead) if self._val(x) == self._val(trailhead) + 1]}")
         
         #paths = []
         #p = _path(pos)
         #for l in p.leaves():
-        #    debug(f"P {p.unique_id} TO {l.unique_id}: {[x.unique_id for x in p.path_to(l)]}")
+        #    debug_print(f"P {p.unique_id} TO {l.unique_id}: {[x.unique_id for x in p.path_to(l)]}")
         #paths.append(p)
         #if p and self._val(p[-1]) == 9:
         #    paths.append(p)
@@ -212,32 +212,32 @@ class AdventDay(Day.Base):
     def run(self, v):
         t = Terrain(v)
         #p = t._paths(t.trailheads[0])
-        #debug(f"TH {t.trailheads}")
+        #debug_print(f"TH {t.trailheads}")
         n = 0
         for th in t.trailheads:
             pt = [x for x in t._paths(th).leaves()]
-            debug(f"TH {th} LEN {[x.unique_id for x in t._paths(th).descendants()]}")
+            debug_print(f"TH {th} LEN {[x.unique_id for x in t._paths(th).descendants()]}")
             n += len(pt)
             for r in pt:
                 pass
-                #debug(f"TH {th} LEN {len(pt)}")
-                #debug(f"TH {th}  {[(x.unique_id, t._val(x.unique_id)) for x in r]}")
+                #debug_print(f"TH {th} LEN {len(pt)}")
+                #debug_print(f"TH {th}  {[(x.unique_id, t._val(x.unique_id)) for x in r]}")
 
-        debug(f"N {n}")
+        debug_print(f"N {n}")
         #thr = t.th_routes()
-        #debug(f"P {p[0]} L {len(p[0])} V {[t._val(x) for x in p[0]]}")
+        #debug_print(f"P {p[0]} L {len(p[0])} V {[t._val(x) for x in p[0]]}")
         #for p in thr:
         #    for pp in p:
         #        for r in pp:
-        #            debug(f"RR {[rr.unique_id for rr in r]}")
+        #            debug_print(f"RR {[rr.unique_id for rr in r]}")
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

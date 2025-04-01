@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class HotSpring():
@@ -40,7 +40,7 @@ class HotSpring():
         n = 0
         i = 0
         s = symbol or HotSpring.BUSTED
-        debug(f"ARR {arr} CMP {cmp_arr}")
+        debug_print(f"ARR {arr} CMP {cmp_arr}")
         for c in arr:
             if c == s:
                 n += 1
@@ -84,12 +84,12 @@ class HotSpring():
             l = list(txt)
             for i in c:
                 l[i] = HotSpring.BUSTED 
-            #debug(f"REPL {l}")
+            #debug_print(f"REPL {l}")
             return l
 
         def _check_groups(arr, groups, start=0):
             j = 0
-            #debug(f"CHECK {arr} VS G {groups} STARTING AT {start}")
+            #debug_print(f"CHECK {arr} VS G {groups} STARTING AT {start}")
             #for i, g in enumerate(groups[start:]):
             for i, g in enumerate(arr[start:]):
                 if i > len(groups) - 1:
@@ -103,21 +103,21 @@ class HotSpring():
         #nn = 1
         #N = num_repl
         #pre_groups = self._sr(list(txt))
-        #debug(f"PRE {pre_groups}")
+        #debug_print(f"PRE {pre_groups}")
         t = txt.replace(HotSpring.UNKNOWN, HotSpring.WORKING)
         #tb = self._collect_symbol(list(t))
         #u = self._collect_symbol(list(txt), symbol=HotSpring.UNKNOWN)
         #ur = self._sr(list(txt), symbol=HotSpring.UNKNOWN)
         tt = [i for i, x in enumerate(txt) if x == HotSpring.UNKNOWN]
-        debug(f"NUM COMBOS {math.comb(len(tt), num_repl)}")
-        #debug(f"UNK {tt} {ur} G {groups} TO REPL {num_repl}")
+        debug_print(f"NUM COMBOS {math.comb(len(tt), num_repl)}")
+        #debug_print(f"UNK {tt} {ur} G {groups} TO REPL {num_repl}")
         t0 = time.time()
         p = 0
         j = 0
         #for r in ur:
         #    n = 0
         #    nr = min(N, len(r))
-            #debug(f"DO {nr} REPL")
+            #debug_print(f"DO {nr} REPL")
             #for i in r:
             #    pass
             # one check with no replacements
@@ -125,16 +125,16 @@ class HotSpring():
             #for j in range(1, nr):
         #    for c in itertools.combinations(r, nr):
         #        b = self._collect_symbol(_replace_with_busted(t, c))
-        #        #debug(f"C {c} B {b}")
+        #        #debug_print(f"C {c} B {b}")
         #        if b is None:
         #            continue
         #        n += _check_groups(b, groups, start=0)
         #    if n:
-        #        #debug(f"FOUND n {n}")
+        #        #debug_print(f"FOUND n {n}")
         #        N -= nr
         #        nn *= n
         #return nn
-        #debug(f"NUM COMBOS {math.comb(len(tt), nr)}")
+        #debug_print(f"NUM COMBOS {math.comb(len(tt), nr)}")
         for c in itertools.combinations(tt, num_repl):
             #b = self._collect_symbol(_replace_with_busted(t, c), cmp_arr=groups)
             b = self._cb("".join(_replace_with_busted(t, c)))
@@ -142,7 +142,7 @@ class HotSpring():
             #    continue
             n += int(b == groups)
         t1 = time.time()
-        debug(f"{n} NV TIME {int(t1 - t0)}")
+        debug_print(f"{n} NV TIME {int(t1 - t0)}")
         return n
         
     def _unfold(self, txt, sep, num_folds=1):
@@ -173,16 +173,16 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         h = HotSpring(v, num_folds=self.num_folds)
-        debug(f"SUM VALID {h.total_valid()}")
+        debug_print(f"SUM VALID {h.total_valid()}")
     
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

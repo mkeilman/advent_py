@@ -1,7 +1,7 @@
 import numpy
 import re
 import Day
-from utils.debug import debug
+from utils.debug import debug_print
 
 class AdventDay(Day.Base):
 
@@ -33,8 +33,8 @@ class AdventDay(Day.Base):
         )
 
     def run(self, v):
-        debug(f"SUM {AdventDay._games_sum(v)}")
-        debug(f"POWER SUM {AdventDay._games_power_sum(v)}")
+        debug_print(f"SUM {AdventDay._games_sum(v)}")
+        debug_print(f"POWER SUM {AdventDay._games_power_sum(v)}")
 
 
 class Game:
@@ -81,9 +81,9 @@ class Game:
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

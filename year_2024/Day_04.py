@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class WordGrid:
 
@@ -92,14 +92,14 @@ class WordGrid:
             for j in set([x for y in p for x in y]):
                 if all([j in x for x in p]):
                     w.append((i, j))
-            #debug(f"{i} SG POS {p}")
+            #debug_print(f"{i} SG POS {p}")
                 
             #for j in range(nc):
             #    m = True
             #    for k, r in enumerate(sub_grid):
             #        M = string.re_indices(r, self)
             #        
-            #        debug(f"MATCH {(i, j)} {r} in {self.rows[i + k][j:]}: {MM}")
+            #        debug_print(f"MATCH {(i, j)} {r} in {self.rows[i + k][j:]}: {MM}")
             #        m = m and re.match(r, self.rows[i + k][j:])
             #    if m:
             #        w.append((i, j))
@@ -145,7 +145,7 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         g = WordGrid(v, valid_words=["XMAS", "SAMX"])
-        debug(f"NUM MATCHES {g.get_num_matches()}")
+        debug_print(f"NUM MATCHES {g.get_num_matches()}")
         a = r".A."
         ms = r"M.S"
         sm = r"S.M"
@@ -160,17 +160,17 @@ class AdventDay(Day.Base):
         s = mathutils.sum(
             [len(x) for x in [g._get_subgrid_indices(y) for y in sg]]
         )
-        debug(f"NUM X-MAS {s}")
-        #debug(f"X-MAS 1 {g._get_subgrid_indices([ms, a, ms])}")
-        #debug(f"X-MAS 2 {g._get_subgrid_indices([sm, a, sm])}")
-        #debug(f"X-MAS 3 {g._get_subgrid_indices([mm, a, ss])}")
-        #debug(f"X-MAS 4 {g._get_subgrid_indices([ss, a, mm])}")
+        debug_print(f"NUM X-MAS {s}")
+        #debug_print(f"X-MAS 1 {g._get_subgrid_indices([ms, a, ms])}")
+        #debug_print(f"X-MAS 2 {g._get_subgrid_indices([sm, a, sm])}")
+        #debug_print(f"X-MAS 3 {g._get_subgrid_indices([mm, a, ss])}")
+        #debug_print(f"X-MAS 4 {g._get_subgrid_indices([ss, a, mm])}")
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

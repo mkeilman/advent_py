@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Disk:
 
@@ -96,15 +96,15 @@ class AdventDay(Day.Base):
     def run(self, v):
         # single line
         d = Disk(v[0], whole_files=self.whole_files)
-        debug(f"C {d.checksum}")
+        debug_print(f"C {d.checksum}")
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

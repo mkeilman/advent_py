@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Warehouse:
 
@@ -60,7 +60,7 @@ class Warehouse:
                 t = self._str_at((i, j))
                 s += t
                 j += len(t)
-            debug(s)
+            debug_print(s)
 
 
     def reset_boxes(self):
@@ -84,7 +84,7 @@ class Warehouse:
     
 
     def _str_at(self, pos):
-        #debug(f"POS {pos} R {self.robot.pos}")
+        #debug_print(f"POS {pos} R {self.robot.pos}")
         t = Warehouse.TOKENS
         # walls only double at initial generation
         if pos in self.walls:
@@ -108,51 +108,51 @@ class Warehouse:
         def _move_box(b0, direction, check_only=False):
             # the "core" of the box is the first position
             q0 = (b0[0][0] + direction[0], b0[0][1] + direction[1])
-            #debug(f"TRY BOX {b0} -> {q0}")
+            #debug_print(f"TRY BOX {b0} -> {q0}")
             if self._hits_wall(b0, direction):
-                #debug(f"BOX HIT WALL")
+                #debug_print(f"BOX HIT WALL")
                 return False
             bb = [y for y in self._get_boxes([(x[0] + direction[0], x[1] + direction[1]) for x in b0]) if y != b0]
-            #debug(f"BB {bb}")
+            #debug_print(f"BB {bb}")
             if not _can_all_move(bb, direction):
                 self.box_hits += 1
                 if self.robot.path_index > 468:
-                    debug(f"{self.robot.path_index} {self.robot.get_move_symbol()} SOME BOXES BLOCKED {bb}")
+                    debug_print(f"{self.robot.path_index} {self.robot.get_move_symbol()} SOME BOXES BLOCKED {bb}")
                     self.display()
                 return False
             for b in bb:
                 _move_box(b, direction)
 
-            #debug(f"PUSH BOX {b0} -> {q0}")
+            #debug_print(f"PUSH BOX {b0} -> {q0}")
             if not check_only:
-                #debug(f"PUSH BOX {b0} -> {q0}")
+                #debug_print(f"PUSH BOX {b0} -> {q0}")
                 #predict = self.gps() + 100 * direction[0] + direction[1]
-                #debug(f"PREDICTED GPS {predict}")
+                #debug_print(f"PREDICTED GPS {predict}")
                 #self.display()
                 self._set_box(b0, q0)
                 #if predict != self.gps():
-                #    debug(f"BAD GPS!")
+                #    debug_print(f"BAD GPS!")
             #self.display()
             return True
 
 
         dir = self.robot.get_move()
         next_p = (self.robot.pos[0] + dir[0], self.robot.pos[1] + dir[1])
-        #debug(f"TRY MOVING {self.robot.pos} -> {next_p}")
+        #debug_print(f"TRY MOVING {self.robot.pos} -> {next_p}")
         if next_p in self.walls:
         #if self._hits_wall([next_p]):
-            #debug(f"ROBOT HIT WALL")
+            #debug_print(f"ROBOT HIT WALL")
             self.robot.move(None)
             return
         hb = self._hits_box([next_p])
         if hb:
             #self.box_hits += 1
-            #debug(f"{self.robot.path_index} {self.robot.get_move_symbol()} HIT BOX AT {next_p} {self.box_hits}")
+            #debug_print(f"{self.robot.path_index} {self.robot.get_move_symbol()} HIT BOX AT {next_p} {self.box_hits}")
             q = _move_box(self._get_box(next_p), dir)
             if not q:
                 self.robot.move(None)
                 return
-        #debug(f"MOVING TO {next_p}")
+        #debug_print(f"MOVING TO {next_p}")
         self.robot.move(next_p)
         #if hb:
         #    self.display()
@@ -164,7 +164,7 @@ class Warehouse:
     def run_robot(self):
         self.reset_boxes()
         self.reset_robot()
-        debug(f"START ROBOT {self.robot.init_pos}")
+        debug_print(f"START ROBOT {self.robot.init_pos}")
         while self.robot.has_moves():
             self.move_robot()
 
@@ -239,7 +239,7 @@ class Robot:
     def set_path(self, txt):
         #self.path = txt
         self.max_moves = self.max_moves or len(txt)
-        debug(f"N {self.max_moves}")
+        debug_print(f"N {self.max_moves}")
         self.path = txt[0:self.max_moves]
         self.reset()
 
@@ -340,7 +340,7 @@ class AdventDay(Day.Base):
         w = self._parse(v)
         #w.display()
         w.run_robot()
-        debug(f"GPS {w.gps()} BOX STUCK {w.box_hits}")
+        debug_print(f"GPS {w.gps()} BOX STUCK {w.box_hits}")
         #w.display()
 
     
@@ -360,9 +360,9 @@ class AdventDay(Day.Base):
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

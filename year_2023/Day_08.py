@@ -1,6 +1,6 @@
 import re
 import Day
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class RouteNode():
@@ -45,8 +45,8 @@ class RouteMap():
 
         start_nodes = [x for x in self.route_nodes if x.name[-1] == "A"]
         end_nodes = [x for x in self.route_nodes if x.name[-1] == "Z"]
-        debug([x.name for x in start_nodes])
-        debug([x.name for x in end_nodes])
+        debug_print([x.name for x in start_nodes])
+        debug_print([x.name for x in end_nodes])
 
         n = 1
         c = []
@@ -111,15 +111,15 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         self.route_map = RouteMap(v[0], [RouteNode(x) for x in v[2:]])
-        debug(f"GHOST STEPS {self.route_map.get_ghost_route()}")
-        #debug(f"STEPS {self.route_map.get_route(self.start_node, self.end_node)}")
+        debug_print(f"GHOST STEPS {self.route_map.get_ghost_route()}")
+        #debug_print(f"STEPS {self.route_map.get_route(self.start_node, self.end_node)}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

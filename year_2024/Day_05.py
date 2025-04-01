@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Rule:
     def __init__(self, txt):
@@ -113,15 +113,15 @@ class AdventDay(Day.Base):
         fbm = [Update.get_middle_page(x) for x in fb]
         fbs = mathutils.sum([int(x) for x in fbm])
         s = mathutils.sum([int(x) for x in m])
-        debug(f"SUM {s}")
-        debug(f"FIXED BAD SUM {fbs}")
+        debug_print(f"SUM {s}")
+        debug_print(f"FIXED BAD SUM {fbs}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

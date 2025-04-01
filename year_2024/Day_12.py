@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Region:
     def __init__(self, grid, plant):
@@ -106,7 +106,7 @@ class Plot:
             for c in range(min(y), max(y) + 1):
                 s += ("+" if (r, c) in region else "-")
             grid.append(s)
-        debug(f"{plant} G {grid}")
+        debug_print(f"{plant} G {grid}")
         if not grid:
             return None
         p = Plot(grid, exclude="+", offset=(min(x), min(y)))
@@ -133,18 +133,18 @@ class Plot:
             for r in cmp.regions.get("-", []):
                 #m = m + cmp._num_sides("-", r)
                 nn = cmp._num_sides(plant, r)
-                debug(f"{plant} ADD {nn}")
+                debug_print(f"{plant} ADD {nn}")
                 n = n + nn
                 if any([self._is_corner(x, r) for x in r]):
                     #m -= 2
                     n -= 2
-                #debug(f"R {r} M NOW {m}")
+                #debug_print(f"R {r} M NOW {m}")
                 #d = -2 if any([self._is_corner(x, r) for x in r]) else 0
-            #debug(f"{plant} M {m}")
-            debug(f"{plant} M {n}")
+            #debug_print(f"{plant} M {m}")
+            debug_print(f"{plant} M {n}")
 
         #cmp = self._complement(plant, region)
-        #debug(f"{plant} CMP PLOT REG {cmp.regions}")
+        #debug_print(f"{plant} CMP PLOT REG {cmp.regions}")
 
         x = [x[0] for x in region]
         y = [x[1] for x in region]
@@ -154,7 +154,7 @@ class Plot:
         #    for f in (min, max):
         #        for p in [p for p in region if p[i] == f(c)]:
         #            if not [q for q in self.grid.neighborhood(p, restrict_to=r) if q in region]:
-        #                debug(f"{plant} NEW SIDES {p}: {_new_sides(p)}")
+        #                debug_print(f"{plant} NEW SIDES {p}: {_new_sides(p)}")
         #                n += _new_sides(p)
 
         return n
@@ -174,7 +174,7 @@ class Plot:
                 if min(x) < min(xr) and max(x) > max(xr) and min(y) < min(yr) and max(y) > max(yr):
                     n += self._num_sides(p, r)
         
-        debug(f"PL {plant} INT {n}")
+        debug_print(f"PL {plant} INT {n}")
         return n
     
 
@@ -188,7 +188,7 @@ class Plot:
     def price(self, length_type="perimeter"):
         s = 0
         for p in self.plants:
-            debug(f"{p} AREA {self.areas[p]} SIDES {self.sides[p]}")
+            debug_print(f"{p} AREA {self.areas[p]} SIDES {self.sides[p]}")
             lengths = self.perimeters[p] if length_type == "perimeter" else self.sides[p]
             s += mathutils.sum([self.areas[p][i] * lengths[i] for i, _ in enumerate(self.areas[p])])
         return s
@@ -305,15 +305,15 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         p = Plot(v)
-        debug(f"PRICE {p.price(length_type=self.length_type)}")
+        debug_print(f"PRICE {p.price(length_type=self.length_type)}")
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

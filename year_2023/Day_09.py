@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class Sequence():
@@ -18,7 +18,7 @@ class Sequence():
             curr = [curr[i + 1] - x for i, x in enumerate(curr[:-1])]
             self.seq.append(curr)
         self._complete_seqs()
-        #debug(self.seq)
+        #debug_print(self.seq)
 
     def _complete_seqs(self):
         d = self.seq[-1][-1]
@@ -48,14 +48,14 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         self.seqs = [Sequence(x) for x in v]
-        debug(f"SUM {Sequence.seq_sums(self.seqs, index=0)}")
+        debug_print(f"SUM {Sequence.seq_sums(self.seqs, index=0)}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

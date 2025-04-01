@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class MemorySpace:
@@ -32,8 +32,8 @@ class MemorySpace:
                     s += "O"
                 else:
                     s += "."
-            debug(s)
-        debug("")
+            debug_print(s)
+        debug_print("")
 
     def line_path(self):
         p = self.grid.line((0, 0), self.end_pos, allow_diags=False)
@@ -42,7 +42,7 @@ class MemorySpace:
             if bt not in p:
                 continue
             i = p.index(bt)
-            debug(f"BLOCKED AT {bt}")
+            debug_print(f"BLOCKED AT {bt}")
             for c in p[i + 1:]:
                 if c not in self.byte_coords:
                     break
@@ -51,7 +51,7 @@ class MemorySpace:
             j = p.index(c)
             p1 = p[:i]
             p2 = p[j:]
-            debug(f"FIND PATH FROM {p[i - 1]} - {c} {p1} {p2}")
+            debug_print(f"FIND PATH FROM {p[i - 1]} - {c} {p1} {p2}")
             break
             
         return p
@@ -59,7 +59,7 @@ class MemorySpace:
     def paths(self):
 
         def _amend_paths(base_path, unused_connections, depth=0, all_paths=[], rejected_paths=[]):
-            debug(f"{depth} ALL {len(all_paths)} REJ {len(rejected_paths)} NUM U {len(unused_connections)}")
+            debug_print(f"{depth} ALL {len(all_paths)} REJ {len(rejected_paths)} NUM U {len(unused_connections)}")
             n = 0
             ux = [x for x in unused_connections if x in base_path]
             nux = len(ux)
@@ -67,34 +67,34 @@ class MemorySpace:
                 n += 1
                 i = base_path.index(pos)
                 #if i + 1 >= _max_path_len(all_paths):
-                #    debug(f"{depth} INIT PATH TOO LONG {i + 1} >= {_max_path_len(all_paths)}")
+                #    debug_print(f"{depth} INIT PATH TOO LONG {i + 1} >= {_max_path_len(all_paths)}")
                 #    break
                 initial_path = base_path[:i + 1]
-                #debug(f"{depth} POS N {n}")
+                #debug_print(f"{depth} POS N {n}")
                 new_path, u = _path(initial_path, self.end_pos, exclusions={pos: [base_path[i + 1]]}, max_len=_max_path_len(all_paths))
                 if not new_path or not u:
                     continue
                 if new_path in rejected_paths:
-                    debug(f"{depth} {n}/{nux} ALREADY REJECTED")
+                    debug_print(f"{depth} {n}/{nux} ALREADY REJECTED")
                     continue
                 if new_path in all_paths:
-                    debug(f"{depth} {n}/{nux} ALREADY ADDED")
+                    debug_print(f"{depth} {n}/{nux} ALREADY ADDED")
                     continue
                 #if new_path not in all_paths:
                 if len(new_path) < _max_path_len(all_paths):
-                    #debug(f"{depth} OK TO ADD NEW {len(new_path)} < {_max_path_len(all_paths)}")
+                    #debug_print(f"{depth} OK TO ADD NEW {len(new_path)} < {_max_path_len(all_paths)}")
                     self.display_path(new_path)
                     all_paths.append(new_path)
-                #debug(f"{depth} ADD NEW {len(new_path)} MAX {_max_path_len(all_paths)}")
+                #debug_print(f"{depth} ADD NEW {len(new_path)} MAX {_max_path_len(all_paths)}")
                 else:
-                    debug(f"{depth} {n}/{nux} TOO LONG {len(new_path)} >= {_max_path_len(all_paths)}")
+                    debug_print(f"{depth} {n}/{nux} TOO LONG {len(new_path)} >= {_max_path_len(all_paths)}")
                     rejected_paths.append(new_path)
                 uu = [x for x in u if x in new_path and new_path.index(x) + 1 < _max_path_len(all_paths)]
                 if not uu:
-                    debug(f"{depth} {n}/{nux} NO UNUSED")
+                    debug_print(f"{depth} {n}/{nux} NO UNUSED")
                     continue
                 _amend_paths(new_path, uu, depth=depth + 1, all_paths=all_paths, rejected_paths=rejected_paths)
-            debug(f"{depth} {n}/{nux} DONE AMEND")
+            debug_print(f"{depth} {n}/{nux} DONE AMEND")
             return
 
         def _exclude(pos, connection, exclusions):
@@ -116,9 +116,9 @@ class MemorySpace:
             unused = {}
             while not done and pos != end_pos:
                 if len(pp) >= max_len:
-                    #debug(f"TOO LONG FROM {pos} - {pp[-1]}: {len(pp)}")
+                    #debug_print(f"TOO LONG FROM {pos} - {pp[-1]}: {len(pp)}")
                     pos = _trim_to_prev_branch(pp, exclusions, limit=pos)
-                    #debug(f"TRIMMED TO {pos} L {len(pp)}")
+                    #debug_print(f"TRIMMED TO {pos} L {len(pp)}")
                     if pos is None:
                         break
                 # loop through the connections to this position, not counting
@@ -132,14 +132,14 @@ class MemorySpace:
                     pos = p
                     break
                 else:
-                    #debug(f"NO BRANCH: {pos}")
+                    #debug_print(f"NO BRANCH: {pos}")
                     pos = _trim_to_prev_branch(pp, exclusions, limit=pos0)
                     done = not pos
 
             if pos != end_pos:
                 return [], None
             if pp == initial_path:
-                debug("SAME??")
+                debug_print("SAME??")
                 #return [], None
             return pp, unused
 
@@ -181,7 +181,7 @@ class MemorySpace:
 
         paths = []
         path, unused = _path([start], self.end_pos)
-        debug(f"FIRST L {len(path)}")
+        debug_print(f"FIRST L {len(path)}")
         #self.display_path(path)
         paths.append(path)
         _amend_paths(path, unused, all_paths=paths)
@@ -245,8 +245,8 @@ class AdventDay(Day.Base):
         m = MemorySpace(v, self.args["size"], self.args["num_bytes"])
         #paths = m.paths()
         #pr = sorted(paths, key=lambda x: len(x))
-        #debug(f"FOUND {len(paths)} PATHS LENS {[len(x) for x in pr]}")
-        #debug(f"SHORTEST NUM STEPS {len(pr[0]) - 1}")
+        #debug_print(f"FOUND {len(paths)} PATHS LENS {[len(x) for x in pr]}")
+        #debug_print(f"SHORTEST NUM STEPS {len(pr[0]) - 1}")
         #m.display_path(pr[0])
         m.display_path(m.line_path())
         
@@ -254,9 +254,9 @@ class AdventDay(Day.Base):
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

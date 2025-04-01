@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Equation:
     import operator
@@ -40,8 +40,8 @@ class Equation:
             for j, n in enumerate(self.nums[1:]):
                 res = op_arr[j](res, n)
             
-            #debug(f"{self.nums} {op_arr} OP IN {i}: {res} CMP {self.result}")
-            #debug(f"OP IN {i}: {res} CMP {self.result}")
+            #debug_print(f"{self.nums} {op_arr} OP IN {i}: {res} CMP {self.result}")
+            #debug_print(f"OP IN {i}: {res} CMP {self.result}")
             if res == self.result:
                 return True
 
@@ -79,15 +79,15 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         s = self.solve_lines(v)
-        debug(f"SOLUTION SUMS {s}")
+        debug_print(f"SOLUTION SUMS {s}")
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

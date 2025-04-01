@@ -1,4 +1,4 @@
-from utils.debug import debug
+from utils.debug import debug_print
 import pytest
 
 @pytest.fixture(scope="class")

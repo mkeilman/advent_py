@@ -1,6 +1,6 @@
 import re
 import Day
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class Grid:
@@ -70,7 +70,7 @@ class Grid:
     def _print_neighborhood(self, txt, pos):
         n = self._neighborhood(txt, pos)
         for r in n[1]:
-            debug(self.schematic[r][n[0][0]:(n[0][-1] + 1)])
+            debug_print(self.schematic[r][n[0][0]:(n[0][-1] + 1)])
 
 
 class AdventDay(Day.Base):
@@ -97,14 +97,14 @@ class AdventDay(Day.Base):
         grid = Grid(v)
         n = grid.gear_sum
         g = grid.ratio_sum
-        debug(f"SUM {n} GEARS {g}")
+        debug_print(f"SUM {n} GEARS {g}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

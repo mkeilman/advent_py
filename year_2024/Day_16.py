@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 
 class Maze:
@@ -60,8 +60,8 @@ class Maze:
                         s +=  Maze.DIR_SYMBOLS[d]
                     else:
                         s += "*"
-            debug(s)
-        debug("")
+            debug_print(s)
+        debug_print("")
 
     def score(self, path):
         s = len(path) - 1
@@ -85,10 +85,10 @@ class Maze:
 
         def _path(initial_path, end_pos, exclusions={}):
             pos0 = initial_path[-1]
-            #debug(f"P0 {pos0} X {exclusions}")
-            #debug(f"P0 {pos0} SC {self.score(initial_path)} MAX {max_score}")
+            #debug_print(f"P0 {pos0} X {exclusions}")
+            #debug_print(f"P0 {pos0} SC {self.score(initial_path)} MAX {max_score}")
             #if self.score(initial_path) > max_score:
-            #    debug(f"INIT PATH SCORE {self.score(initial_path)} TOO BIG {max_score}")
+            #    debug_print(f"INIT PATH SCORE {self.score(initial_path)} TOO BIG {max_score}")
             #    return [], None, Maze.MAX_SCORE
             pos = pos0
             pp = initial_path
@@ -100,7 +100,7 @@ class Maze:
                 # loop through the connections to this position, not counting
                 # the preivous position and excluded positions
                 p_con = _conn(pos, pp, exclusions=exclusions)
-                #debug(f"CONNECTIONS {pos}: {p_con}")
+                #debug_print(f"CONNECTIONS {pos}: {p_con}")
                 for p in p_con:
                     pp.append(p)
                     score = self.score(pp)
@@ -110,16 +110,16 @@ class Maze:
                     if u:
                         unused[pos] = u
                     pos = p
-                    #debug(f"ADDED {p}")
+                    #debug_print(f"ADDED {p}")
                     break
                 else:
-                    #debug(f"NO BRANCH {pos}")
+                    #debug_print(f"NO BRANCH {pos}")
                     pos = _trim_to_prev_branch(pp, exclusions, limit=pos0)
                     done = not pos
                 n_loops += 1
             #else:
             
-            #debug(f"DONE! IN {n_loops} POS {pos} END {end_pos}")
+            #debug_print(f"DONE! IN {n_loops} POS {pos} END {end_pos}")
             if pos != end_pos:
                 return [], None, Maze.MAX_SCORE
             self.display_path(pp)
@@ -168,16 +168,16 @@ class Maze:
                 i = base_path.index(pos)
                 initial_path = base_path[:i + 1]
                 #if self.score(initial_path) > s:
-                #    debug(f"{depth} INIT PATH SCORE {self.score(initial_path)} TOO BIG {s}")
+                #    debug_print(f"{depth} INIT PATH SCORE {self.score(initial_path)} TOO BIG {s}")
                 #    continue
                 new_path, u, score = _path(initial_path, self.end, exclusions={pos: [base_path[i + 1]]})
                 #self.display_path(new_path)
                 n += 1
-                debug(f"{depth} {n} NP {len(new_path)} SC {score}")
+                debug_print(f"{depth} {n} NP {len(new_path)} SC {score}")
                 if not new_path or not u:
                     continue
                 if score < self.min_score:
-                    debug(f"{depth} SCORE {score} PREV MAX {self.min_score} CHECK UNUSED {len(u)}")
+                    debug_print(f"{depth} SCORE {score} PREV MAX {self.min_score} CHECK UNUSED {len(u)}")
                 self.min_score = min(score, self.min_score)
                 if new_path not in [x[0] for x in all_paths]:
                     all_paths.append((new_path, u, score))
@@ -187,7 +187,7 @@ class Maze:
             #for p, u in a_paths:
             #    ap.extend(_amended_paths(p, u, depth=depth + 1, max_score=s))
             #a_paths += ap
-            debug(f"{depth} FOUND {len(all_paths)}")
+            debug_print(f"{depth} FOUND {len(all_paths)}")
             return
             #return all_paths
 
@@ -197,7 +197,7 @@ class Maze:
         self.bp = None
         paths = []
         pus = _path([self.start], self.end)
-        debug(f"FIRST {pus[2]}")
+        debug_print(f"FIRST {pus[2]}")
         paths.append(pus)
         self.min_score = pus[2]
         _amend_paths(pus[0], pus[1], all_paths=paths)
@@ -300,7 +300,7 @@ class Maze:
                     if pos is None:
                         return [], {}
                 next_pos = _get_pos(pos, dir)
-                #debug(f"POS {pos} DIR {dir} NEXT {next_pos}")
+                #debug_print(f"POS {pos} DIR {dir} NEXT {next_pos}")
                 if next_pos in path:
                     # we've done a loop
                     p, next_pos, dir = _prev_branch(path, open_dirs)
@@ -311,7 +311,7 @@ class Maze:
                     pos = next_pos
                     open_dirs[pos] = _open_dirs(pos, path=path)
                     continue
-                #debug(f"HIT WALL {next_pos}")
+                #debug_print(f"HIT WALL {next_pos}")
                 # check +/- 90 degrees
                 found_turn = False
                 while path and not found_turn:
@@ -339,32 +339,32 @@ class Maze:
             paths = []
             path, choices = _path(initial_path=initial_path, initial_choices=initial_choices, max_score=max_score)
             if not path:
-                debug(f"DONE EMPTY")
+                debug_print(f"DONE EMPTY")
                 return paths
             s = self.score(path)
             max_score = min(max_score, s)
-            debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
+            debug_print(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
             paths.append(path)
             for p in choices:
                 q2 = choices[p].pop(0)
                 p2 = path[:path.index(p) + 1] + [q2]
                 if (p, q2) in empty_choices:
-                    debug(f"{depth} THIS START EMPTY {p} -> {q2}")
+                    debug_print(f"{depth} THIS START EMPTY {p} -> {q2}")
                     continue
-                #debug(f"{depth} TRY NEW PATH START {p} -> {q2}")
+                #debug_print(f"{depth} TRY NEW PATH START {p} -> {q2}")
                 keys = list(choices.keys())
                 # omit choices past the given branch point
                 new_choices = {k:v for k, v in choices.items() if v and keys.index(k) <= keys.index(p)}
                 cp = _paths(initial_path=p2, initial_choices=new_choices, depth=depth + 1, max_score=max_score)
                 if not cp:
-                    debug(f"{depth} CHOICE EMPTY")
+                    debug_print(f"{depth} CHOICE EMPTY")
                     empty_choices.append((p, q2))
                 for q in cp:
                     s = self.score(q)
                     max_score = min(max_score, s)
-                    debug(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
+                    debug_print(f"{depth} NEW PATH SCORE {s} MIN {max_score}")
                     paths.append(q)
-            debug(f"{depth} DONE")
+            debug_print(f"{depth} DONE")
             return paths
                 
         empty_choices = []
@@ -493,25 +493,25 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         m = Maze(v)
-        debug(f"RUN START {m.start} END {m.end}")
+        debug_print(f"RUN START {m.start} END {m.end}")
         t = m._t()
         #m.display_path(t)
-        #debug(f"T {t}")
+        #debug_print(f"T {t}")
         #t = m.path_tree()
         min_score = min([m.score(x) for x in t])
-        debug(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
+        debug_print(f"NUM PATHS {len(t)} MIN SCORE {min_score}")
         #p = [x for x in t if m.score(x) == min_score][0]
         #m.display_path(p)
-        #debug(f"MIN PATH LEN {len(p)}")
+        #debug_print(f"MIN PATH LEN {len(p)}")
 
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

@@ -1,6 +1,6 @@
 import re
 import Day
-from utils.debug import debug
+from utils.debug import debug_print
 
 re_part = r"\D*(\d+)\D*"
 re_digit_or_dot = r"[.0-9]"
@@ -60,7 +60,7 @@ class Planting:
             r.add(j)
             r = r | self._map_ranges(start_range[0:n], seed_map=s)
             r = r | self._map_ranges(start_range[n:], seed_map=s)
-        # debug(f"S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
+        # debug_print(f"S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
         s[i] = [start_range[0], start_range[-1]]
         return r
 
@@ -197,7 +197,7 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         p = Planting(v)
-        debug(f"MIN LOC {p.min_loc()}")
+        debug_print(f"MIN LOC {p.min_loc()}")
 
 
 
@@ -325,14 +325,14 @@ def _min_loc(maps):
     seed_ranges = []
     seed_maps = []
     for j, r in enumerate(_seeds_to_ranges(seeds)):
-        #debug(f"r {r} STEPS {len(r)}")
+        #debug_print(f"r {r} STEPS {len(r)}")
         #i, l0 = _map_seed(r[0], ranges)
         #j, l1 = _map_seed(r[-1], ranges)
         sm = {}
         ml = _map_ranges(r, ranges, seed_map=sm)
         seed_ranges.append(ml)
         seed_maps.append(sm)
-        debug(f"SEED R {j} {ml} {sm}")
+        debug_print(f"SEED R {j} {ml} {sm}")
         min_ml = min(list(ml), key=lambda x: _range_dest(_map_to_range(loc_maps[x]))[0])
         #min_map = _map_to_range(loc_maps[min_ml])
         min_dest = loc_dest_ranges[min_ml] #range(min_map[1], min_map[1] + min_map[2])
@@ -340,21 +340,21 @@ def _min_loc(maps):
         if min_map_val < min_loc_range[0]:
             min_loc_range = min_dest
             min_loc_range_index = min_ml
-        #debug(f"{j} MIN SEED LOC {min_loc_range_index} {min_map_val} {min_loc_range}")
+        #debug_print(f"{j} MIN SEED LOC {min_loc_range_index} {min_map_val} {min_loc_range}")
         # far too many iterations...
         #for i, s in enumerate(r):
         #    pass
             #loc = min(loc, _map_seed(s, ranges))
         #    if i % (len(r) // 10) == 0:
-        #        debug(f"LOC {i}: {loc}")
+        #        debug_print(f"LOC {i}: {loc}")
             #if loc == last_loc:
-            #    debug(f"NEW LOC {loc} IN {i + 1} STEPS")
+            #    debug_print(f"NEW LOC {loc} IN {i + 1} STEPS")
             #    break
             #last_loc = loc
-    #debug(f"{min_loc_range_index} {sm[min_loc_range_index]}")
+    #debug_print(f"{min_loc_range_index} {sm[min_loc_range_index]}")
     for j, r in enumerate(_seeds_to_ranges(seeds)):
         if min_loc_range_index in seed_ranges[j]:
-            debug(f"{j} {_min_seed_loc(r, min_loc_range_index, ranges)} {seed_maps[j][min_loc_range_index]}")
+            debug_print(f"{j} {_min_seed_loc(r, min_loc_range_index, ranges)} {seed_maps[j][min_loc_range_index]}")
     return loc
 
 
@@ -379,7 +379,7 @@ def _map_seed(seed, ranges):
         n, o = _in_to_out(m, i)
         src = d
         i = o
-    #debug(f"LOC MAP {n}")
+    #debug_print(f"LOC MAP {n}")
     return n, o
 
 
@@ -391,12 +391,12 @@ def _map_ranges(start_range, ranges, seed_map=None):
     j, _ = _map_seed(start_range[-1], ranges)
     r.add(i)
 
-    #debug(f"{idx} S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
+    #debug_print(f"{idx} S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
     if i != j:
         r.add(j)
         r = r | _map_ranges(start_range[0:n], ranges, seed_map=s)
         r = r | _map_ranges(start_range[n:], ranges, seed_map=s)
-    #debug(f"S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
+    #debug_print(f"S1 {start_range[0]} {i} S2 {start_range[-1]} {j}")
     s[i] = [start_range[0], start_range[-1]]
     return r
 
@@ -413,11 +413,11 @@ def _min_seed_loc(start_range, loc_range_index, ranges):
     last_start = 0
     end = len(start_range) - 1
     i, l0 = _map_seed(start_range[end], ranges)
-    debug(f"MIN SEED LOC FOR {start_range} IN {loc_range_index}")
+    debug_print(f"MIN SEED LOC FOR {start_range} IN {loc_range_index}")
     #while i != loc_range_index and end > 0:
     #    end = end // 2
     #    i, l0 = _map_seed(start_range[end], ranges)
-    #    debug(f"{end} {i} {l0}")
+    #    debug_print(f"{end} {i} {l0}")
     #j, l1 = _map_seed(start_range[0], ranges)
     #while j != loc_range_index and start < end:
     #    start = (end - start) // 2
@@ -438,7 +438,7 @@ def _map_file(filename):
 def main():
     loc = _map_test()
     #loc = _map_file("input_day_05.txt")
-    debug(f"MIN LOC {loc}")
+    debug_print(f"MIN LOC {loc}")
 
 
 if __name__ == "__main__":

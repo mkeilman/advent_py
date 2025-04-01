@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Crane:
     def __init__(self, lines, prize_offset=0):
@@ -101,7 +101,7 @@ class AdventDay(Day.Base):
     def run(self, v):
         self.cranes = self._parse(v)
         min_price = mathutils.sum([x.min_price for x in self.cranes])
-        debug(f"MIN PRICE {min_price}")
+        debug_print(f"MIN PRICE {min_price}")
 
     def _parse(self, grid):
         i = 0
@@ -114,9 +114,9 @@ class AdventDay(Day.Base):
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

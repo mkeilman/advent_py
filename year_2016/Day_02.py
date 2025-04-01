@@ -1,7 +1,7 @@
 import numpy
 import re
 import Day
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Keypad:
 
@@ -31,7 +31,7 @@ class Keypad:
         for txt in grid:
             for d in txt:
                 self.next(d)
-            #debug(f"LANDED ON {self.current_digit}")
+            #debug_print(f"LANDED ON {self.current_digit}")
             s += self.current_digit
         return s
 
@@ -42,7 +42,7 @@ class Keypad:
             max(0, min(self.current_pos[0] + d[0], len(Keypad.layout) - 1)),
             max(0, min(self.current_pos[1] + d[1], len(Keypad.layout[0]) - 1)),
         )
-        #debug(f"D {direction} -> {self.current_pos}")
+        #debug_print(f"D {direction} -> {self.current_pos}")
         self.current_digit = self._pos_digit(self.current_pos)
 
 
@@ -77,14 +77,14 @@ class AdventDay(Day.Base):
     
     def run(self, v):
         k = Keypad("5")
-        debug(f"CODE {k.code(v)}")
+        debug_print(f"CODE {k.code(v)}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

@@ -2,7 +2,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Antenna:
 
@@ -20,11 +20,11 @@ class Antenna:
         self.node_pair_dists = self._node_pair_dists()
         self.antinodes = self._antinodes(t_nodes=t_nodes)
         self.all_antinodes = self._all_antinodes()
-        #debug(f"NODES {self.nodes}")
-        #debug(f"ALL NODES {self.all_nodes}")
-        #debug(f"PAIRS {self.node_pairs}")
-        #debug(f"DISTS {self.node_pair_dists}")
-        #debug(f"ANTINODES {self.all_antinodes}")
+        #debug_print(f"NODES {self.nodes}")
+        #debug_print(f"ALL NODES {self.all_nodes}")
+        #debug_print(f"PAIRS {self.node_pairs}")
+        #debug_print(f"DISTS {self.node_pair_dists}")
+        #debug_print(f"ANTINODES {self.all_antinodes}")
 
 
     def _all_antinodes(self):
@@ -143,15 +143,15 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         a = Antenna(v, t_nodes=self.t_nodes)
-        debug(f"NUM ANTI {len(a.all_antinodes)}")
+        debug_print(f"NUM ANTI {len(a.all_antinodes)}")
 
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

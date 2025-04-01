@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils.debug import debug
+from utils.debug import debug_print
 
 class AdventDay(Day.Base):
 
@@ -54,14 +54,14 @@ class AdventDay(Day.Base):
 
     def run(self, v):
         c = self.col_diff_sum(v) if self.calc == 'col-diffs' else self.similarity_sum(v)
-        debug(f"C {c}")
+        debug_print(f"C {c}")
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 

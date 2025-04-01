@@ -3,7 +3,7 @@ import re
 import Day
 from utils import mathutils
 from utils import string
-from utils.debug import debug
+from utils.debug import debug_print
 
 class Foyer:
     def __init__(self, size, robots):
@@ -22,11 +22,11 @@ class Foyer:
             return start_run
         for i in range(max_runs):
             if i % 100 == 0:
-                debug(i)
+                debug_print(i)
             self.move_robots()
             tt = self.has_tree_top()
             if tt:
-                debug(f"TT AT {tt}")
+                debug_print(f"TT AT {tt}")
                 self.display(start_line=tt[1])
                 return start_run + i
         return -1
@@ -58,7 +58,7 @@ class Foyer:
                 p = [i, j]
                 n = len([x.pos for x in self.robots if x.pos == p])
                 s += (str(n) if n else ".")
-            debug(s)
+            debug_print(s)
         
 
     def reset(self):
@@ -176,17 +176,17 @@ class AdventDay(Day.Base):
         #f.display()
         #f.move_robots(num_steps=7790)
         #f.display()
-        #debug(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
+        #debug_print(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
         n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
-        debug(f"TREE RUNS {n + 1} FOUND? {n >= 0}")
+        debug_print(f"TREE RUNS {n + 1} FOUND? {n >= 0}")
         f.display()
 
 
 def main():
     d = AdventDay()
-    debug("TEST:")
+    debug_print("TEST:")
     d.run_from_test_strings()
-    debug("FILE:")
+    debug_print("FILE:")
     d.run_from_file()
 
 
