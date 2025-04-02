@@ -1,7 +1,12 @@
 """Classes and functions for Avent of Code Day 11, 2024
 https://adventofcode.com/2024/day/11
 
+In brief: given a string of space-delimited non-negative integers ("stones"), process the integers according to these rules:
+    Replace 0 with 1
+    Replace integers with 2N digits with two new integers composed of the left and right N digits, minus leading 0s
+    Otherwise replace the integer N with 2024 * N
 
+Repeat this operation (a "blink") a specified number of times and count the final number of "stones"
 """
 
 import math
