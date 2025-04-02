@@ -9,6 +9,24 @@ def day(request):
     return Day.Base.get_day(*yd, {})
 
 
+class Test_Day_2024_01:
+
+    TEST = [
+        "3   4",
+        "4   3",
+        "2   5",
+        "1   3",
+        "3   9",
+        "3   3",
+    ]
+
+    def test_distance_test(self, day):
+        assert day.run_from_test_input(input=Test_Day_2024_01.TEST) == 11
+
+    def test_distance_file(self, day):
+        assert day.run_from_file() == 2031679
+
+
 class Test_Day_2024_11:
     
     SIMPLE = ["0 1 10 99 999"]
