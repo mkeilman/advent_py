@@ -2,6 +2,7 @@ class Base:
     """Base class for all advent "days"
     """
 
+    #: array of strings to use as test input
     TEST = []
 
     @classmethod
@@ -26,7 +27,7 @@ class Base:
         """
         import argparse
 
-        self.set_input([])
+        self.input = []
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
         self.test_input = type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
@@ -44,10 +45,13 @@ class Base:
             self.args[arg] = v[arg]
 
 
-    def run(self):
+    def run(self, input):
         """Generic run method. Subclasses will override this to perform specific calculations.
-        The input should be set beforehand
+
+        Args:
+            input (str[]): array of strings to use as input
         """
+        self.input = input
         return 0
 
 
@@ -55,20 +59,18 @@ class Base:
         """Run using local test input
 
         Args:
-            run_args (dict): command line arguments
+            input (str[]): array of strings to use as test input
         """
-        self.set_input(input or self.test_input)
+        self.input = input or self.test_input
         return self.run()
 
 
     def run_from_file(self):
+        """Run using input from file
+        """
         with open(self.input_file, "r") as f:
-            self.set_input([x.strip() for x in f.readlines()])
+            self.input = [x.strip() for x in f.readlines()]
             return self.run()
-        
-
-    def set_input(self, v):
-        self.input = v
 
 
 class Grid:
