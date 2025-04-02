@@ -1,5 +1,3 @@
-from utils.debug import debug_print
-
 class Base:
 
     TEST = []
@@ -27,7 +25,6 @@ class Base:
 
 
     def run(self):
-        debug_print(self.input)
         return 0
 
 
