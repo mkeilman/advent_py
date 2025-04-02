@@ -28,7 +28,7 @@ class Base:
 
         self.set_input([])
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
-        self.test_strings = type(self).TEST or []
+        self.test_input = type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
         self.args = {}
 
@@ -51,13 +51,13 @@ class Base:
         return 0
 
 
-    def run_from_test_input(self, substitute_strings=None):
+    def run_from_test_input(self, input=None):
         """Run using local test input
 
         Args:
             run_args (dict): command line arguments
         """
-        self.set_input(substitute_strings or self.test_strings)
+        self.set_input(input or self.test_input)
         return self.run()
 
 

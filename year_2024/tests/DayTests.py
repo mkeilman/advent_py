@@ -16,17 +16,17 @@ class Test_Day_2024_11:
 
     def test_simple(self, day):
         day.set_num_blinks(1)
-        n = day.run_from_test_input(substitute_strings=Test_Day_2024_11.SIMPLE)
+        n = day.run_from_test_input(input=Test_Day_2024_11.SIMPLE)
         assert n == 7
 
     def test_long_06(self, day):
         day.set_num_blinks(6)
-        n = day.run_from_test_input(substitute_strings=Test_Day_2024_11.LONG)
+        n = day.run_from_test_input(input=Test_Day_2024_11.LONG)
         assert n == 22
 
     def test_long_25(self, day):
         day.set_num_blinks(25)
-        n = day.run_from_test_input(substitute_strings=Test_Day_2024_11.LONG)
+        n = day.run_from_test_input(input=Test_Day_2024_11.LONG)
         assert n == 55312
 
     def test_file_25(self, day):
