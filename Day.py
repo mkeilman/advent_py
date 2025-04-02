@@ -10,21 +10,9 @@ class Base:
         return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(run_args)
 
 
-    @classmethod
-    def year_day_from_name(cls, name):
-        import re
-        return [int(x) for x in re.match(r".*year_(\d+).Day_(\d+).*", name).groups()]
-
-
-    @classmethod
-    def year_day_from_type(cls, obj_type):
-        return Base.year_day_from_name(f"{obj_type}")
-
-
-    def __init__(self):
+    def __init__(self, year, day):
         import argparse
 
-        year, day = Base.year_day_from_type(type(self))
         self.set_input([])
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
         self.test_strings = type(self).TEST or []

@@ -33,7 +33,7 @@ class AdventDay(Day.Base):
         Run args:
             num_blinks (int): the number of blinks to perform
         """
-        super(AdventDay, self).__init__()
+        super(AdventDay, self).__init__(2024, 11)
         self.args_parser.add_argument(
             "--num-blinks",
             type=int,
