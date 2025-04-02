@@ -18,7 +18,6 @@ from utils.debug import debug_print
 
 class AdventDay(Day.Base):
     """AdventDay Day 11, 2024
-
     """
 
     SMALL = [
@@ -64,6 +63,16 @@ class AdventDay(Day.Base):
 
 
     def _blink(self, stones):
+        """Generate new stones from the given array. Luckily the goal of this exercise is to *count* the
+        resultant number of stones, *not* to deliver the entire assortment
+
+        Args:
+            stones (int[]): array of stone values
+
+        Returns:
+            (dict) a map of stone values to the number of stones with that value
+        """
+
         def _update_count_map(st, count_map, num_stones=1):
             for s in st:
                 if s not in count_map:
@@ -86,6 +95,15 @@ class AdventDay(Day.Base):
 
 
     def _next_stones(self, s):
+        """Generates new stones accordong to the above rules
+
+        Args:
+            s (int): the value of the current stone
+
+        Returns:
+            (s[]) an array of generated stones
+        """
+
         def _num_digits(n):
             return int(math.log10(n)) + 1
         
