@@ -312,7 +312,7 @@ class AdventDay(Day.Base):
 def main():
     d = AdventDay()
     debug_print("TEST:")
-    d.run_from_test_strings()
+    d.run_from_test_input()
     debug_print("FILE:")
     d.run_from_file()
 
