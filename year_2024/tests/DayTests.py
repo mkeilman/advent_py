@@ -16,27 +16,22 @@ class Test_Day_2024_11:
 
     def test_simple(self, day):
         day.set_num_blinks(1)
-        n = day.run_from_test_input(input=Test_Day_2024_11.SIMPLE)
-        assert n == 7
+        assert day.run_from_test_input(input=Test_Day_2024_11.SIMPLE) == 7
 
     def test_long_06(self, day):
         day.set_num_blinks(6)
-        n = day.run_from_test_input(input=Test_Day_2024_11.LONG)
-        assert n == 22
+        assert day.run_from_test_input(input=Test_Day_2024_11.LONG) == 22
 
     def test_long_25(self, day):
         day.set_num_blinks(25)
-        n = day.run_from_test_input(input=Test_Day_2024_11.LONG)
-        assert n == 55312
+        assert day.run_from_test_input(input=Test_Day_2024_11.LONG) == 55312
 
     def test_file_25(self, day):
         day.set_num_blinks(25)
-        n = day.run_from_file()
-        assert n == 203457
+        assert day.run_from_file() == 203457
 
     def test_file_75(self, day):
         day.set_num_blinks(75)
-        n = day.run_from_file()
-        assert n == 241394363462435
+        assert day.run_from_file() == 241394363462435
 
 
