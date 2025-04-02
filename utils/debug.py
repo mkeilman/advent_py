@@ -1,3 +1,6 @@
+"""Debugging utilities
+"""
+
 def debug_print(txt, **kawrgs):
     """A wrapper to avoid "naked prints"
 
