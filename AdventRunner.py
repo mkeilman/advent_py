@@ -20,7 +20,7 @@ def main():
 
     if a.mode in ("test", "all"):
         debug_print("TEST:")
-        d.run_from_test_strings()
+        d.run_from_test_input()
     if a.mode in ("file", "all"):
         debug_print("FILE:")
         d.run_from_file()

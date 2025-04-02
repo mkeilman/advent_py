@@ -1,14 +1,29 @@
 class Base:
+    """Base class for all advent "days"
+    """
 
     TEST = []
 
     @classmethod
     def get_day(cls, year, day, run_args):
+        """Builds a specific advent day
+
+        Args:
+            year (int): advent year
+            day (int): advent day
+            run_args (dict): command line arguments
+        """
         import importlib
         return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(run_args)
 
 
     def __init__(self, year, day):
+        """Initialize
+
+        Args:
+            year (int): advent year
+            day (int): advent day
+        """
         import argparse
 
         self.set_input([])
@@ -19,16 +34,29 @@ class Base:
 
 
     def add_args(self, run_args):
+        """Adds command-line arguments to the instance
+
+        Args:
+            run_args (dict): command line arguments
+        """
         v = vars(self.args_parser.parse_args(run_args))
         for arg in v:
             self.args[arg] = v[arg]
 
 
     def run(self):
+        """Generic run method. Subclasses will override this to perform specific calculations.
+        The input should be set beforehand
+        """
         return 0
 
 
-    def run_from_test_strings(self, substitute_strings=None):
+    def run_from_test_input(self, substitute_strings=None):
+        """Run using local test input
+
+        Args:
+            run_args (dict): command line arguments
+        """
         self.set_input(substitute_strings or self.test_strings)
         return self.run()
 
