@@ -55,6 +55,30 @@ class Test_Day_2024_02:
         assert day.run_from_file() == 349
 
 
+class Test_Day_2024_03:
+
+    TEST = [
+        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
+    ]
+
+
+    def test_mult_test(self, day):
+        day.respect_enables = False
+        assert day.run_from_test_input(input=Test_Day_2024_03.TEST) == 161
+
+    def test_mult_file(self, day):
+        day.respect_enables = False
+        assert day.run_from_file() == 174561379
+
+    def test_mult_test_enable(self, day):
+        day.respect_enables = True
+        assert day.run_from_test_input(input=Test_Day_2024_03.TEST) == 48
+
+    def test_mult_file_enable(self, day):
+        day.respect_enables = True
+        assert day.run_from_file() == 106921067
+
+
 class Test_Day_2024_11:
     
     SIMPLE = ["0 1 10 99 999"]
