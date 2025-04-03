@@ -15,8 +15,8 @@ class AdventDay(Day.Base):
         "1 3 6 7 9",
     ]
     
-    def safe_sum(self, v, dampen=True):
-        d = [[int(y) for y in re.findall(r"\d+", x)] for x in v]
+    def safe_sum(self, dampen=True):
+        d = [[int(y) for y in re.findall(r"\d+", x)] for x in self.input]
         s = [int(self._is_safe(x, dampen=dampen)) for x in d]
         return mathutils.sum(s)
 
@@ -39,12 +39,9 @@ class AdventDay(Day.Base):
             return False
         return s
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 2)
         self.args_parser.add_argument(
             "--dampen",
             action=argparse.BooleanOptionalAction,
@@ -53,17 +50,8 @@ class AdventDay(Day.Base):
         )
         self.dampen = self.args_parser.parse_args(run_args).dampen
 
-    def run(self, v):
-        debug_print(f"SAFE {self.safe_sum(v, dampen=self.dampen)} D? {self.dampen}")
+    def run(self):
+        n = self.safe_sum(dampen=self.dampen)
+        debug_print(f"SAFE {n} D? {self.dampen}")
+        return n
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()

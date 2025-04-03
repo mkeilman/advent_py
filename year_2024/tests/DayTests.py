@@ -27,6 +27,34 @@ class Test_Day_2024_01:
         assert day.run_from_file() == 2031679
 
 
+class Test_Day_2024_02:
+
+    TEST = [
+        "7 6 4 2 1",
+        "1 2 7 8 9",
+        "9 7 6 2 1",
+        "1 3 2 4 5",
+        "8 6 4 4 1",
+        "1 3 6 7 9",
+    ]
+
+    def test_safety_test(self, day):
+        day.dampen = False
+        assert day.run_from_test_input(input=Test_Day_2024_02.TEST) == 2
+
+    def test_safety_file(self, day):
+        day.dampen = False
+        assert day.run_from_file() == 282
+
+    def test_safety_test_damped(self, day):
+        day.dampen = True
+        assert day.run_from_test_input(input=Test_Day_2024_02.TEST) == 4
+
+    def test_safety_file_damped(self, day):
+        day.dampen = True
+        assert day.run_from_file() == 349
+
+
 class Test_Day_2024_11:
     
     SIMPLE = ["0 1 10 99 999"]
