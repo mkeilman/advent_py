@@ -115,12 +115,9 @@ class AdventDay(Day.Base):
         "......#...",
     ]
     
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 6)
 
     def _get_guard(self, v):
         d = fr"[{'|'.join(Guard.RE_DIRS.values())}]"
@@ -178,24 +175,13 @@ class AdventDay(Day.Base):
         return len(o)
             
 
-    def run(self, v):
-        g = self._get_guard(v)
-        r = Room(v)
+    def run(self):
+        g = self._get_guard(self.input)
+        r = Room(self.input)
         #debug_print(f"G POS {g.position} DIR {g.direction}")
         p = r.find_path(g.init_pos, g.init_dir)
         debug_print(f"UNIQUE PATH LEN {len(set([x[0] for x in p]))} FULL LEN {len(p)}")
-        n = self.count_loops(v, p, g.init_pos, g.init_dir)
+        n = self.count_loops(self.input, p, g.init_pos, g.init_dir)
         #n = self.count_loops(v, p[0][0], p[0][1], g.init_pos, g.init_dir)
         debug_print(f"NUM LOOPS {n}")
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
