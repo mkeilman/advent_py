@@ -21,7 +21,7 @@ class Test_Day_2024_01:
     ]
 
     def test_distance_test(self, day):
-        assert day.run_from_test_input(input=Test_Day_2024_01.TEST) == 11
+        assert day.run_from_test_input(input=self.__class__.TEST) == 11
 
     def test_distance_file(self, day):
         assert day.run_from_file() == 2031679
@@ -40,7 +40,7 @@ class Test_Day_2024_02:
 
     def test_safety_test(self, day):
         day.dampen = False
-        assert day.run_from_test_input(input=Test_Day_2024_02.TEST) == 2
+        assert day.run_from_test_input(input=self.__class__.TEST) == 2
 
     def test_safety_file(self, day):
         day.dampen = False
@@ -48,7 +48,7 @@ class Test_Day_2024_02:
 
     def test_safety_test_damped(self, day):
         day.dampen = True
-        assert day.run_from_test_input(input=Test_Day_2024_02.TEST) == 4
+        assert day.run_from_test_input(input=self.__class__.TEST) == 4
 
     def test_safety_file_damped(self, day):
         day.dampen = True
@@ -64,7 +64,7 @@ class Test_Day_2024_03:
 
     def test_mult_test(self, day):
         day.respect_enables = False
-        assert day.run_from_test_input(input=Test_Day_2024_03.TEST) == 161
+        assert day.run_from_test_input(input=self.__class__.TEST) == 161
 
     def test_mult_file(self, day):
         day.respect_enables = False
@@ -72,11 +72,46 @@ class Test_Day_2024_03:
 
     def test_mult_test_enable(self, day):
         day.respect_enables = True
-        assert day.run_from_test_input(input=Test_Day_2024_03.TEST) == 48
+        assert day.run_from_test_input(input=self.__class__.TEST) == 48
 
     def test_mult_file_enable(self, day):
         day.respect_enables = True
         assert day.run_from_file() == 106921067
+
+
+class Test_Day_2024_04:
+
+    TEST = [
+        "MMMSXXMASM",
+        "MSAMXMSMSA",
+        "AMXSXMAAMM",
+        "MSAMASMSMX",
+        "XMASAMXAMM",
+        "XXAMMXXAMA",
+        "SMSMSASXSS",
+        "SAXAMASAAA",
+        "MAMMMXMMMM",
+        "MXMXAXMASX",
+    ]
+
+
+    def test_xmas_test(self, day):
+        day.x_mas = False
+        assert day.run_from_test_input(input=self.__class__.TEST) == 18
+
+    def test_xmas_file(self, day):
+        day.x_mas = False
+        assert day.run_from_file() == 2434
+
+
+    def test_xmas_test(self, day):
+        day.x_mas = True
+        assert day.run_from_test_input(input=self.__class__.TEST) == 9
+
+    def test_xmas_file(self, day):
+        day.x_mas = True
+        assert day.run_from_file() == 1835
+
 
 
 class Test_Day_2024_11:
@@ -86,15 +121,15 @@ class Test_Day_2024_11:
 
     def test_simple(self, day):
         day.set_num_blinks(1)
-        assert day.run_from_test_input(input=Test_Day_2024_11.SIMPLE) == 7
+        assert day.run_from_test_input(input=self.__class__.SIMPLE) == 7
 
     def test_long_06(self, day):
         day.set_num_blinks(6)
-        assert day.run_from_test_input(input=Test_Day_2024_11.LONG) == 22
+        assert day.run_from_test_input(input=self.__class__.LONG) == 22
 
     def test_long_25(self, day):
         day.set_num_blinks(25)
-        assert day.run_from_test_input(input=Test_Day_2024_11.LONG) == 55312
+        assert day.run_from_test_input(input=self.__class__.LONG) == 55312
 
     def test_file_25(self, day):
         day.set_num_blinks(25)

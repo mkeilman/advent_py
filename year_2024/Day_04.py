@@ -136,16 +136,24 @@ class AdventDay(Day.Base):
         "MXMXAXMASX",
     ]
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
+        super(AdventDay, self).__init__(2024, 4)
+        self.args_parser.add_argument(
+            "--x-mas",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="x_mas",
         )
+        self.add_args(run_args)
+        self.x_mas = self.args["x_mas"]
 
-    def run(self, v):
-        g = WordGrid(v, valid_words=["XMAS", "SAMX"])
-        debug_print(f"NUM MATCHES {g.get_num_matches()}")
+    def run(self):
+        g = WordGrid(self.input, valid_words=["XMAS", "SAMX"])
+        if not self.x_mas:
+            n = g.get_num_matches()
+            debug_print(f"NUM MATCHES {n}")
+            return n
         a = r".A."
         ms = r"M.S"
         sm = r"S.M"
@@ -161,18 +169,6 @@ class AdventDay(Day.Base):
             [len(x) for x in [g._get_subgrid_indices(y) for y in sg]]
         )
         debug_print(f"NUM X-MAS {s}")
-        #debug_print(f"X-MAS 1 {g._get_subgrid_indices([ms, a, ms])}")
-        #debug_print(f"X-MAS 2 {g._get_subgrid_indices([sm, a, sm])}")
-        #debug_print(f"X-MAS 3 {g._get_subgrid_indices([mm, a, ss])}")
-        #debug_print(f"X-MAS 4 {g._get_subgrid_indices([ss, a, mm])}")
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
+        return s
 
 
-if __name__ == '__main__':
-    main()
