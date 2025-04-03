@@ -11,17 +11,8 @@ def day(request):
 
 class Test_Day_2024_01:
 
-    TEST = [
-        "3   4",
-        "4   3",
-        "2   5",
-        "1   3",
-        "3   9",
-        "3   3",
-    ]
-
     def test_distance_test(self, day):
-        assert day.run_from_test_input(input=self.__class__.TEST) == 11
+        assert day.run_from_test_input() == 11
 
     def test_distance_file(self, day):
         assert day.run_from_file() == 2031679
@@ -29,18 +20,9 @@ class Test_Day_2024_01:
 
 class Test_Day_2024_02:
 
-    TEST = [
-        "7 6 4 2 1",
-        "1 2 7 8 9",
-        "9 7 6 2 1",
-        "1 3 2 4 5",
-        "8 6 4 4 1",
-        "1 3 6 7 9",
-    ]
-
     def test_safety_test(self, day):
         day.dampen = False
-        assert day.run_from_test_input(input=self.__class__.TEST) == 2
+        assert day.run_from_test_input() == 2
 
     def test_safety_file(self, day):
         day.dampen = False
@@ -48,7 +30,7 @@ class Test_Day_2024_02:
 
     def test_safety_test_damped(self, day):
         day.dampen = True
-        assert day.run_from_test_input(input=self.__class__.TEST) == 4
+        assert day.run_from_test_input() == 4
 
     def test_safety_file_damped(self, day):
         day.dampen = True
@@ -57,14 +39,9 @@ class Test_Day_2024_02:
 
 class Test_Day_2024_03:
 
-    TEST = [
-        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))",
-    ]
-
-
     def test_mult_test(self, day):
         day.respect_enables = False
-        assert day.run_from_test_input(input=self.__class__.TEST) == 161
+        assert day.run_from_test_input() == 161
 
     def test_mult_file(self, day):
         day.respect_enables = False
@@ -72,7 +49,7 @@ class Test_Day_2024_03:
 
     def test_mult_test_enable(self, day):
         day.respect_enables = True
-        assert day.run_from_test_input(input=self.__class__.TEST) == 48
+        assert day.run_from_test_input() == 48
 
     def test_mult_file_enable(self, day):
         day.respect_enables = True
@@ -81,23 +58,9 @@ class Test_Day_2024_03:
 
 class Test_Day_2024_04:
 
-    TEST = [
-        "MMMSXXMASM",
-        "MSAMXMSMSA",
-        "AMXSXMAAMM",
-        "MSAMASMSMX",
-        "XMASAMXAMM",
-        "XXAMMXXAMA",
-        "SMSMSASXSS",
-        "SAXAMASAAA",
-        "MAMMMXMMMM",
-        "MXMXAXMASX",
-    ]
-
-
     def test_xmas_test(self, day):
         day.x_mas = False
-        assert day.run_from_test_input(input=self.__class__.TEST) == 18
+        assert day.run_from_test_input() == 18
 
     def test_xmas_file(self, day):
         day.x_mas = False
@@ -106,7 +69,7 @@ class Test_Day_2024_04:
 
     def test_xmas_test(self, day):
         day.x_mas = True
-        assert day.run_from_test_input(input=self.__class__.TEST) == 9
+        assert day.run_from_test_input() == 9
 
     def test_xmas_file(self, day):
         day.x_mas = True
@@ -121,15 +84,15 @@ class Test_Day_2024_11:
 
     def test_simple(self, day):
         day.set_num_blinks(1)
-        assert day.run_from_test_input(input=self.__class__.SIMPLE) == 7
+        assert day.run_from_test_input() == 7
 
     def test_long_06(self, day):
         day.set_num_blinks(6)
-        assert day.run_from_test_input(input=self.__class__.LONG) == 22
+        assert day.run_from_test_input(input=day.__class__.SMALL) == 22
 
     def test_long_25(self, day):
         day.set_num_blinks(25)
-        assert day.run_from_test_input(input=self.__class__.LONG) == 55312
+        assert day.run_from_test_input(input=day.__class__.SMALL) == 55312
 
     def test_file_25(self, day):
         day.set_num_blinks(25)
