@@ -99,31 +99,28 @@ class AdventDay(Day.Base):
         return updates
             
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
+        super(AdventDay, self).__init__(2024, 5)
+        self.args_parser.add_argument(
+            "--ordered",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="ordered",
         )
+        self.add_args(run_args)
+        self.ordered = self.args["ordered"]
 
-    def run(self, v):
-        u = self.get_updates(v)
+    def run(self):
+        u = self.get_updates(self.input)
         m = [x._get_middle_page() for x in [y for y in u if y.is_in_order()]]
         fb = [x.reordered() for x in [y for y in u if not y.is_in_order()]]
         fbm = [Update.get_middle_page(x) for x in fb]
         fbs = mathutils.sum([int(x) for x in fbm])
         s = mathutils.sum([int(x) for x in m])
-        debug_print(f"SUM {s}")
+        if self.ordered:
+            debug_print(f"SUM {s}")
+            return s
         debug_print(f"FIXED BAD SUM {fbs}")
+        return fbs
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
