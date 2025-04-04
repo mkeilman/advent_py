@@ -158,9 +158,6 @@ class Test_Day_2024_08:
 
 
 class Test_Day_2024_11:
-    
-    SIMPLE = ["0 1 10 99 999"]
-    LONG = ["125 17"]
 
     def test_part_1_test(self, day):
         day.set_num_blinks(1)
