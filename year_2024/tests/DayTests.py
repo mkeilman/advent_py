@@ -99,9 +99,43 @@ class Test_Day_2024_05:
         day.ordered = False
         assert day.run_from_test_input() == 123
 
-    def test_part_1_file(self, day):
+    def test_part_2_file(self, day):
         day.ordered = False
         assert day.run_from_file() == 6938
+
+
+class Test_Day_2024_06:
+
+    def test_part_1_test(self, day):
+        pass
+
+    def test_part_1_file(self, day):
+        pass
+
+    def test_part_2_test(self, day):
+        pass
+
+    def test_part_2_file(self, day):
+        pass
+
+
+class Test_Day_2024_07:
+
+    def test_part_1_test(self, day):
+        day.use_concat = False
+        assert day.run_from_test_input() == 3749
+
+    def test_part_1_file(self, day):
+        day.use_concat = False
+        assert day.run_from_file() == 4364915411363
+
+    def test_part_2_test(self, day):
+        day.use_concat = True
+        assert day.run_from_test_input() == 11387
+
+    def test_part_2_file(self, day):
+        day.use_concat = True
+        assert day.run_from_file() == 38322057216320
 
 
 class Test_Day_2024_11:

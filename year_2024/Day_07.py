@@ -13,14 +13,13 @@ class Equation:
         lambda x, y: int(str(x) + str(y))
     )
 
-    def __init__(self, txt):
+    def __init__(self, txt, use_concat=False):
         e = [int(x) for x in re.findall(r"\d+", txt)]
         self.result = e[0]
         self.nums = e[1:]
-        self.num_ops = len(Equation.OPS) ** (len(self.nums) - 1)
+        self.valid_ops = Equation.OPS[:(len(Equation.OPS) if use_concat else -1)]
+        self.num_ops = len(self.valid_ops) ** (len(self.nums) - 1)
         self.ops = []
-
-
 
         
     def has_solutions(self):
@@ -30,18 +29,16 @@ class Equation:
             op_arr = []
             ooo = []
             for j in reversed(range(len(self.nums) - 1)):
-                n = len(Equation.OPS)**j
+                n = len(self.valid_ops)**j
                 r = k // n
                 ooo.append(r)
-                op_arr.append(Equation.OPS[r])
+                op_arr.append(self.valid_ops[r])
                 k -= (r * n)
 
             res = self.nums[0]
             for j, n in enumerate(self.nums[1:]):
                 res = op_arr[j](res, n)
             
-            #debug_print(f"{self.nums} {op_arr} OP IN {i}: {res} CMP {self.result}")
-            #debug_print(f"OP IN {i}: {res} CMP {self.result}")
             if res == self.result:
                 return True
 
@@ -63,33 +60,28 @@ class AdventDay(Day.Base):
         "292: 11 6 16 20",
     ]
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
+        super(AdventDay, self).__init__(2024, 7)
+        self.args_parser.add_argument(
+            "--use-concat",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="use_concat",
         )
+        self.add_args(run_args)
+        self.use_concat = self.args["use_concat"]
 
-    def solve_lines(self, v):
+    def solve_lines(self):
         s = 0
-        for txt in v:
-            e = Equation(txt)
+        for txt in self.input:
+            e = Equation(txt, use_concat=self.use_concat)
             s += e.result * int(e.has_solutions())
         return s
 
-    def run(self, v):
-        s = self.solve_lines(v)
+    def run(self):
+        s = self.solve_lines()
         debug_print(f"SOLUTION SUMS {s}")
+        return s
 
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
