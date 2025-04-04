@@ -138,6 +138,25 @@ class Test_Day_2024_07:
         assert day.run_from_file() == 38322057216320
 
 
+class Test_Day_2024_08:
+
+    def test_part_1_test(self, day):
+        day.t_nodes = False
+        assert day.run_from_test_input() == 14
+
+    def test_part_1_file(self, day):
+        day.t_nodes = False
+        assert day.run_from_file() == 423
+
+    def test_part_2_test(self, day):
+        day.t_nodes = True
+        assert day.run_from_test_input() == 34
+
+    def test_part_2_file(self, day):
+        day.t_nodes = True
+        assert day.run_from_file() == 1287
+
+
 class Test_Day_2024_11:
     
     SIMPLE = ["0 1 10 99 999"]

@@ -20,11 +20,6 @@ class Antenna:
         self.node_pair_dists = self._node_pair_dists()
         self.antinodes = self._antinodes(t_nodes=t_nodes)
         self.all_antinodes = self._all_antinodes()
-        #debug_print(f"NODES {self.nodes}")
-        #debug_print(f"ALL NODES {self.all_nodes}")
-        #debug_print(f"PAIRS {self.node_pairs}")
-        #debug_print(f"DISTS {self.node_pair_dists}")
-        #debug_print(f"ANTINODES {self.all_antinodes}")
 
 
     def _all_antinodes(self):
@@ -127,33 +122,21 @@ class AdventDay(Day.Base):
             "...........",
     ]
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 8)
         self.args_parser.add_argument(
             "--t-nodes",
             action=argparse.BooleanOptionalAction,
             default=True,
             dest="t_nodes",
         )
-        self.t_nodes = self.args_parser.parse_args(run_args).t_nodes
-
-    def run(self, v):
-        a = Antenna(v, t_nodes=self.t_nodes)
-        debug_print(f"NUM ANTI {len(a.all_antinodes)}")
+        self.add_args(run_args)
+        self.t_nodes = self.args["t_nodes"]
 
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
+    def run(self):
+        a = Antenna(self.input, t_nodes=self.t_nodes)
+        n = len(a.all_antinodes)
+        debug_print(f"NUM ANTI {n}")
+        return n
