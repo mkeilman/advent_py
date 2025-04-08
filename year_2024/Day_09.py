@@ -79,24 +79,23 @@ class AdventDay(Day.Base):
         "2333133121414131402",
     ]
     
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 9)
         self.args_parser.add_argument(
             "--whole-files",
             action=argparse.BooleanOptionalAction,
             default=True,
             dest="whole_files",
         )
-        self.whole_files = self.args_parser.parse_args(run_args).whole_files
+        self.add_args(run_args)
 
-    def run(self, v):
+    def run(self):
         # single line
-        d = Disk(v[0], whole_files=self.whole_files)
-        debug_print(f"C {d.checksum}")
+        d = Disk(self.input[0], whole_files=self.whole_files)
+        n = d.checksum
+        debug_print(f"C {n}")
+        return n
 
 
 

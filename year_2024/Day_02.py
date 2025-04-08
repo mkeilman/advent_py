@@ -49,7 +49,6 @@ class AdventDay(Day.Base):
             dest="dampen",
         )
         self.add_args(run_args)
-        self.dampen = self.args["dampen"]
 
     def run(self):
         n = self.safe_sum(dampen=self.dampen)

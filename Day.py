@@ -31,7 +31,6 @@ class Base:
         self.input_file = f"year_{year}/input_day_{day:02d}.txt"
         self.test_input = type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
-        self.args = {}
 
 
     def add_args(self, run_args):
@@ -42,7 +41,7 @@ class Base:
         """
         v = vars(self.args_parser.parse_args(run_args))
         for arg in v:
-            self.args[arg] = v[arg]
+            setattr(self, arg, v[arg])
 
 
     def run(self, input):

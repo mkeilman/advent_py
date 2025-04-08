@@ -146,7 +146,6 @@ class AdventDay(Day.Base):
             dest="x_mas",
         )
         self.add_args(run_args)
-        self.x_mas = self.args["x_mas"]
 
     def run(self):
         g = WordGrid(self.input, valid_words=["XMAS", "SAMX"])

@@ -101,7 +101,6 @@ class AdventDay(Day.Base):
             dest="respect_enables",
         )
         self.add_args(run_args)
-        self.respect_enables = self.args["respect_enables"]
 
 
     def run(self):

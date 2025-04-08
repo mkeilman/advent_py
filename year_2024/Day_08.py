@@ -132,7 +132,6 @@ class AdventDay(Day.Base):
             dest="t_nodes",
         )
         self.add_args(run_args)
-        self.t_nodes = self.args["t_nodes"]
 
 
     def run(self):

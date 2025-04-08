@@ -109,7 +109,6 @@ class AdventDay(Day.Base):
             dest="ordered",
         )
         self.add_args(run_args)
-        self.ordered = self.args["ordered"]
 
     def run(self):
         u = self.get_updates(self.input)

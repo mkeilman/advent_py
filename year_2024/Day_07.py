@@ -70,7 +70,6 @@ class AdventDay(Day.Base):
             dest="use_concat",
         )
         self.add_args(run_args)
-        self.use_concat = self.args["use_concat"]
 
     def solve_lines(self):
         s = 0

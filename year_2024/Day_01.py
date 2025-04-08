@@ -48,7 +48,6 @@ class AdventDay(Day.Base):
             dest="calc",
         )
         self.add_args(run_args)
-        self.calc = self.args["calc"]
 
     def run(self):
         c = self.col_diff_sum() if self.calc == 'col-diffs' else self.similarity_sum()
