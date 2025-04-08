@@ -46,7 +46,6 @@ class AdventDay(Day.Base):
             dest="num_blinks",
         )
         self.add_args(run_args)
-        self.set_num_blinks(self.args["num_blinks"])
 
 
     def run(self):
