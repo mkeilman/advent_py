@@ -157,6 +157,25 @@ class Test_Day_2024_08:
         assert day.run_from_file() == 1287
 
 
+class Test_Day_2024_09:
+
+    def test_part_1_test(self, day):
+        day.whole_files = False
+        assert day.run_from_test_input() == 1928
+
+    def test_part_1_file(self, day):
+        day.whole_files = False
+        assert day.run_from_file() == 6399153661894
+
+    def test_part_2_test(self, day):
+        day.whole_files = True
+        assert day.run_from_test_input() == 2858
+
+    def test_part_2_file(self, day):
+        day.whole_files = True
+        assert day.run_from_file() == 6421724645083
+
+
 class Test_Day_2024_11:
 
     def test_part_1_test(self, day):
