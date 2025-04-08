@@ -179,23 +179,34 @@ class Test_Day_2024_09:
 class Test_Day_2024_11:
 
     def test_part_1_test(self, day):
-        day.set_num_blinks(1)
+        day.num_blinks = 1
         assert day.run_from_test_input() == 7
 
     def test_part_1_test_1(self, day):
-        day.set_num_blinks(6)
+        day.num_blinks = 6
         assert day.run_from_test_input(input=day.__class__.SMALL) == 22
 
     def test_part_1_test_2(self, day):
-        day.set_num_blinks(25)
+        day.num_blinks = 25
         assert day.run_from_test_input(input=day.__class__.SMALL) == 55312
 
     def test_part_1_file(self, day):
-        day.set_num_blinks(25)
+        day.num_blinks = 25
         assert day.run_from_file() == 203457
 
     def test_part_2_file(self, day):
-        day.set_num_blinks(75)
+        day.num_blinks = 75
         assert day.run_from_file() == 241394363462435
 
 
+class Test_Day_2024_13:
+
+    def test_part_1_test(self, day):
+        assert day.run_from_test_input() == 480
+
+    def test_part_1_file(self, day):
+        assert day.run_from_file() == 31589
+
+    def test_part_2_file(self, day):
+        day.prize_offset = 10000000000000
+        assert day.run_from_file() == 98080815200063

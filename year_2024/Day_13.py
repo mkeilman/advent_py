@@ -84,11 +84,8 @@ class AdventDay(Day.Base):
         "Prize: X=18641, Y=10279",
     ]
 
-    def __init__(self, year, day, run_args):
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+    def __init__(self, run_args):
+        super(AdventDay, self).__init__(2024, 13)
         self.args_parser.add_argument(
             "--prize-offset",
             type=int,
@@ -96,12 +93,13 @@ class AdventDay(Day.Base):
             default=0,
             dest="prize_offset",
         )
-        self.prize_offset = self.args_parser.parse_args(run_args).prize_offset
+        self.add_args(run_args)
 
-    def run(self, v):
-        self.cranes = self._parse(v)
+    def run(self):
+        self.cranes = self._parse(self.input)
         min_price = mathutils.sum([x.min_price for x in self.cranes])
         debug_print(f"MIN PRICE {min_price}")
+        return min_price
 
     def _parse(self, grid):
         i = 0
@@ -111,14 +109,3 @@ class AdventDay(Day.Base):
             i += 4
         return cranes
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
