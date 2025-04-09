@@ -21,13 +21,13 @@ class Foyer:
         if self.has_tree_top():
             return start_run
         for i in range(max_runs):
-            if i % 100 == 0:
-                debug_print(i)
+            #if i % 100 == 0:
+            #    debug_print(i)
             self.move_robots()
             tt = self.has_tree_top()
             if tt:
-                debug_print(f"TT AT {tt}")
-                self.display(start_line=tt[1])
+                #debug_print(f"TT AT {tt}")
+                #self.display(start_line=tt[1])
                 return start_run + i
         return -1
     
@@ -132,11 +132,8 @@ class AdventDay(Day.Base):
         "p=5,5 v=2,-3",
     ]
 
-    def __init__(self, year, day, run_args):
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+    def __init__(self, run_args):
+        super(AdventDay, self).__init__(2024, 14)
         self.args_parser.add_argument(
             "--width",
             type=int,
@@ -165,30 +162,19 @@ class AdventDay(Day.Base):
             default=0,
             dest="tree_start",
         )
-        self.width = self.args_parser.parse_args(run_args).width
-        self.height = self.args_parser.parse_args(run_args).height
-        self.tree_tries = self.args_parser.parse_args(run_args).tree_tries
-        self.tree_start = self.args_parser.parse_args(run_args).tree_start
+        self.add_args(run_args)
 
-    def run(self, v):
-        r = [Robot(x) for x in v]
+    def run(self):
+        r = [Robot(x) for x in self.input]
         f = Foyer((self.width, self.height), r)
+        if self.tree_tries <= 0:
+            f.move_robots(num_steps=100)
+            n = f.safety_factor()
+            debug_print(f"Q C {f.robot_counts()} SAFETY {n}")
+            return n
+            #f.display()
+        n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries) + 1
+        debug_print(f"TREE RUNS {n} FOUND? {n >= 1}")
         #f.display()
-        #f.move_robots(num_steps=7790)
-        #f.display()
-        #debug_print(f"Q C {f.robot_counts()} SAFETY {f.safety_factor()}")
-        n = f.find_tree(start_run=self.tree_start, max_runs=self.tree_tries)
-        debug_print(f"TREE RUNS {n + 1} FOUND? {n >= 0}")
-        f.display()
+        return n
 
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()

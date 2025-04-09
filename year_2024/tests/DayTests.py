@@ -210,3 +210,23 @@ class Test_Day_2024_13:
     def test_part_2_file(self, day):
         day.prize_offset = 10000000000000
         assert day.run_from_file() == 98080815200063
+
+
+class Test_Day_2024_14:
+
+    def test_part_1_test(self, day):
+        day.tree_tries = 0
+        assert day.run_from_test_input() == 12
+
+    def test_part_1_file(self, day):
+        day.tree_tries = 0
+        day.width = 101
+        day.height = 103
+        assert day.run_from_file() == 228421332
+
+    def test_part_2_file(self, day):
+        day.tree_tries = 10000
+        day.tree_start = 7500
+        day.width = 101
+        day.height = 103
+        assert day.run_from_file() == 7790
