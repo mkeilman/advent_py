@@ -12,7 +12,8 @@ class MemorySpace:
         self.size = size
         self.grid = Day.Grid.grid_of_size(size, size)
         self.byte_coords = self._byte_coords(v)
-        self.bytes = [(x[0], x[1]) for x in self.byte_coords[:num_bytes]]
+        n = num_bytes if num_bytes >= 0 else len(self.byte_coords)
+        self.bytes = [(x[0], x[1]) for x in self.byte_coords[:n]]
         self.connections = {k:[x for x in v if x not in self.bytes] for k, v in self.grid.coord_neighborhoods.items()}
         self.end_pos = (self.size - 1, self.size - 1)
 
@@ -23,6 +24,7 @@ class MemorySpace:
         return c
     
     def display_path(self, path):
+        debug_print(self.bytes)
         for r in self.grid.coord_array:
             s = ""
             for c in r:
@@ -35,23 +37,26 @@ class MemorySpace:
             debug_print(s)
         debug_print("")
 
-    def line_path(self):
-        p = self.grid.line((0, 0), self.end_pos, allow_diags=False)
+    def line_path(self, start=(0,0), end=None):
+        p = self.grid.line(start, end or self.end_pos, allow_diags=False)
         for b in self.byte_coords:
             bt = (b[0], b[1])
             if bt not in p:
                 continue
             i = p.index(bt)
-            debug_print(f"BLOCKED AT {bt}")
-            for c in p[i + 1:]:
-                if c not in self.byte_coords:
-                    break
-            else:
-                return None
-            j = p.index(c)
+            n = [x for x in self.grid.neighborhood(p[i - 1]) if x not in p]
+            debug_print(f"BLOCKED AT {i} {bt} N {n}")
+            #for c in p[i + 1:]:
+            #    if c not in self.byte_coords:
+            #        break
+            #else:
+            #    return None
+            #j = p.index(c)
             p1 = p[:i]
-            p2 = p[j:]
-            debug_print(f"FIND PATH FROM {p[i - 1]} - {c} {p1} {p2}")
+            p2 = p[i + 1:]
+            debug_print(f"1 {p1} 2 {p2}")
+
+            #debug_print(f"FIND PATH FROM {p[i - 1]} - {c} {p1} {p2}")
             break
             
         return p
@@ -218,12 +223,9 @@ class AdventDay(Day.Base):
     ]
 
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 18)
         self.args_parser.add_argument(
             "--num-bytes",
             type=int,
@@ -241,24 +243,11 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
        
 
-    def run(self, v):
-        m = MemorySpace(v, self.args["size"], self.args["num_bytes"])
+    def run(self):
+        m = MemorySpace(self.input, self.size, self.num_bytes)
         #paths = m.paths()
         #pr = sorted(paths, key=lambda x: len(x))
         #debug_print(f"FOUND {len(paths)} PATHS LENS {[len(x) for x in pr]}")
         #debug_print(f"SHORTEST NUM STEPS {len(pr[0]) - 1}")
         #m.display_path(pr[0])
         m.display_path(m.line_path())
-        
-
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
