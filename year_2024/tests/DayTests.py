@@ -230,3 +230,25 @@ class Test_Day_2024_14:
         day.width = 101
         day.height = 103
         assert day.run_from_file() == 7790
+
+
+class Test_Day_2024_17:
+
+    def test_part_1_test(self, day):
+        assert day.run_from_test_input() == "4,6,3,5,6,3,5,2,1,0"
+
+    def test_part_1_file(self, day):
+        assert day.run_from_file() == "1,3,7,4,6,4,2,3,5"
+
+    def test_part_2_test(self, day):
+        day.find_self = True
+        day.a_start = 0
+        day.a_end = 1e6
+        assert day.run_from_test_input(input=day.__class__.SELF) == 117440
+
+    def test_part_2_file(self, day):
+        day.find_self = True
+        day.a_start = 202367025818150
+        day.a_end = day.a_start + 100
+        assert day.run_from_file() == 202367025818154
+

@@ -33,12 +33,14 @@ class Computer:
 
 
     def display_output(self):
-        debug_print(",".join([str(x) for x in self.output]))
+        debug_print(self.output_str)
 
     def display_state(self):
         debug_print(f"PTR {self.pointer} REGS {self.registers} OUT {self.output} OUT IS PROG? {self.output == self.program}")
 
-
+    def output_str(self):
+        return ",".join([str(x) for x in self.output])
+    
     def set_register(self, r, val):
         self.registers[r] = val
 
@@ -111,8 +113,8 @@ class Computer:
         while not done:
             self.reload()
             self.set_register("A", i)
-            #pm = self.run(output_check=self.program)
-            pm = self.run()
+            pm = self.run(output_check=self.program)
+            #pm = self.run()
             sz = len(pm)
             dl = sz - last_out_len
             if dl > 0:
@@ -120,12 +122,12 @@ class Computer:
                 #if i > last_index:
                 #    d *= 8
                 last_index = i
-                debug_print(f"MORE MATCHES {i} {pm} D {d} BM8 {self.registers["B"] % 8}")
+                #debug_print(f"MORE MATCHES {i} {pm} D {d} BM8 {self.registers["B"] % 8}")
                 self.display_state()
                 if pm == self.program:
                     return i
 
-            self.display_state()
+            #self.display_state()
             i += d
             done = i > a_end
         return None
@@ -241,7 +243,7 @@ class AdventDay(Day.Base):
     ]
 
     SELF = [
-        "Register A: 117440",
+        "Register A: 2024",
         "Register B: 0",
         "Register C: 0",
         "",
@@ -266,42 +268,45 @@ class AdventDay(Day.Base):
 
 
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
+        super(AdventDay, self).__init__(2024, 17)
+        self.args_parser.add_argument(
+            "--find-self",
+            action=argparse.BooleanOptionalAction,
+            default=False,
+            dest="find_self",
         )
         self.args_parser.add_argument(
-            "--init-val-a",
+            "--a-start",
             type=int,
-            help="initial value of register A (-1 to keep value from input)",
-            default=-1,
-            dest="init_val_a",
+            default=0,
+            dest="a_start",
+        )
+        self.args_parser.add_argument(
+            "--a-end",
+            type=int,
+            default=100,
+            dest="a_end",
         )
         self.add_args(run_args)
        
 
-    def run(self, v):
+    def run(self):
         c = Computer()
-        c.load(v)
+        c.load(self.input)
         #c.set_register("A", pow(8, 15))
         #c.display_state()
-        #c.run()
-        #c.display_state()
-        a_start, a_end = c.generate_self_range()
-        prog_reg = c.run_reg_a_range(v, a_start=202367025818154, a_end=202367025818154 + 100)
-        debug_print(f"FOUND? {prog_reg is not None} REG {prog_reg}")
+        if self.find_self:
+            #self.a_start, self.a_end = c.generate_self_range()
+            #a_start = 202367025818150
+            #a_end = a_start + 100
+            #debug_print(f"START {a_start} END {a_end}")
+            #prog_reg = c.run_reg_a_range(self.input, a_start=202367025818154, a_end=202367025818154 + 100)
+            prog_reg = c.run_reg_a_range(self.input, a_start=self.a_start, a_end=self.a_end)
+            debug_print(f"FOUND? {prog_reg is not None} REG {prog_reg}")
+            return prog_reg
+        c.run()
+        c.display_state()
+        return c.output_str()
         
-
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
