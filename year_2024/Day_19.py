@@ -44,26 +44,21 @@ class AdventDay(Day.Base):
         return n
     
     def _check_towel(self, towel):
-        #i = 0
         i = len(towel) - 1
         ta = []
         found = False
         k = 0
-        tries = 0
-        #while i < len(towel):
+
+        # do comparisons from the end
         while i >= 0:
             found = False
             while k < len(self.patterns):
                 p = self.patterns[k]
-                #j = i + len(p)
                 j = i - len(p) + 1
-                #tt = towel[i:j]
                 tt = towel[j:i + 1]
                 #debug_print(f"CHECK {tt} VS {p}")
                 k += 1
                 if tt == p:
-                    #debug_print(f"FOUND {p} IN {towel}")
-                    #ta.append(p)
                     ta.insert(0, p)
                     i = j - 1
                     found = True
@@ -71,11 +66,6 @@ class AdventDay(Day.Base):
                     break
             else:
                 # try next pattern
-                tries += 1
-                #if not tries % 100:
-                #    break
-                #    #debug_print(f"{tries} BAD {towel} {ta} I {i}/{len(towel)} J {j}")
-                #tries += 1
                 #debug_print(f"{tries} BAD {towel} {ta} I {i}/{len(towel)} J {j}")
                 if not len(ta):
                     break
@@ -83,19 +73,16 @@ class AdventDay(Day.Base):
                 # single character we know we cannot replace it with another
                 while ta and len(p) <= 1:
                     p = ta.pop(0)
-                    #i -= len(p)
                     i += len(p)
-                    debug_print(f"{towel} TRY SHORTER THAN {p} {ta} I {i}")
+                    #debug_print(f"{towel} TRY SHORTER THAN {p} {ta} I {i}")
                 kp = [x for x in self.patterns if len(x) < len(p)]
                 if not kp:
-                    #debug_print(f"ALL SINGLES {towel}")
                     break
                 k = self.patterns.index(kp[0])
-        if found:
-            debug_print(f"GOOD {towel}")
-        else:
-            debug_print(f"BAD {towel}")
-        #    debug_print(f"IN {towel} OUT {''.join(t)} EQ? {towel == t}")
+        #if found:
+        #    debug_print(f"GOOD {towel}")
+        #else:
+        #    debug_print(f"BAD {towel}")
         return found
     
     
@@ -104,12 +91,10 @@ class AdventDay(Day.Base):
 
 
     def _parse(self):
-        #self.patterns = sorted(re.split(r",\s*", self.input[0]), key=lambda x: (len(x), x), reverse=True)
         self.patterns = sorted(re.split(r",\s*", self.input[0]), key=len, reverse=True)
         self.pattern_lens = set([len(x) for x in self.patterns])
         self.max_pattern_len = max(self.pattern_lens)
         self.patterns_by_len = self._patterns_by_len()
-        #debug_print(self.patterns_by_len)
         self.towels = self.input[2:]
         #debug_print(f"P {self.patterns} MAX {self.max_pattern_len}")
     
