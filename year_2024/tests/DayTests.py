@@ -252,3 +252,12 @@ class Test_Day_2024_17:
         day.a_end = day.a_start + 100
         assert day.run_from_file() == 202367025818154
 
+
+class Test_Day_2024_19:
+
+    def test_part_1_test(self, day):
+        assert day.run_from_test_input() == 6
+
+    def test_part_1_file(self, day):
+        assert day.run_from_file() == 324
+
