@@ -8,10 +8,10 @@ class AdventDay(Day.Base):
     TEST = [
         "r, wr, b, g, bwu, rb, gb, br",
         "",
+        "rrbgbr",
         "brwrr",
         "bggr",
         "gbbr",
-        "rrbgbr",
         "ubwu",
         "bwurrg",
         "brgr",
@@ -25,14 +25,13 @@ class AdventDay(Day.Base):
     ]
 
     def __init__(self, run_args):
+        import argparse
         super(AdventDay, self).__init__(2024, 19)
         self.args_parser.add_argument(
-            "--calc",
-            type=str,
-            help="calculation",
-            choices=["col-diffs", "similarity"],
-            default="col-diffs",
-            dest="calc",
+            "--ignore-permutations",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="ignore_permutations",
         )
         self.add_args(run_args)
 
@@ -43,61 +42,137 @@ class AdventDay(Day.Base):
         debug_print(f"GOOD TOWELS {n} / {len(self.towels)}")
         return n
     
-    def _check_towel(self, towel):
+    def _check_towel(self, towel, max_length=None):
         i = len(towel) - 1
         ta = []
-        found = False
         k = 0
+
+        m = max_length or self.max_pattern_len + 1
+        patterns = [x for x in self.patterns if len(x) < m]
 
         # do comparisons from the end
         while i >= 0:
-            found = False
-            while k < len(self.patterns):
-                p = self.patterns[k]
+            while k < len(patterns):
+                p = patterns[k]
                 j = i - len(p) + 1
-                tt = towel[j:i + 1]
-                #debug_print(f"CHECK {tt} VS {p}")
                 k += 1
-                if tt == p:
+                if towel[j:i + 1] == p:
                     ta.insert(0, p)
                     i = j - 1
-                    found = True
                     k = 0
                     break
             else:
-                # try next pattern
-                #debug_print(f"{tries} BAD {towel} {ta} I {i}/{len(towel)} J {j}")
                 if not len(ta):
-                    break
+                    return []
                 # find last pattern with at least 2 characters - if we found a match on a
                 # single character we know we cannot replace it with another
                 while ta and len(p) <= 1:
                     p = ta.pop(0)
                     i += len(p)
-                    #debug_print(f"{towel} TRY SHORTER THAN {p} {ta} I {i}")
-                kp = [x for x in self.patterns if len(x) < len(p)]
+                kp = [x for x in patterns if len(x) < len(p)]
                 if not kp:
-                    break
-                k = self.patterns.index(kp[0])
-        #if found:
-        #    debug_print(f"GOOD {towel}")
-        #else:
-        #    debug_print(f"BAD {towel}")
-        return found
+                    return []
+                k = patterns.index(kp[0])
+
+        return ta
     
     
     def _num_good_towels(self):
-        return len([y for y in [self._check_towel(x) for x in self.towels] if y])
+
+        def _combinations(arr, ref_arr, depth=0):
+            n = 0
+            i = 0
+            arrs = []
+            #debug_print(f"{depth} DECOMP {arr}")
+            #if len(arr) <= 1:
+            #    return 1
+            while i < len(arr):
+                x = arr[i]
+                if len(x) == self.max_pattern_len:
+                    #debug_print(f"{x} MAX LEN")
+                    i += 1
+                    continue
+                y = x
+                j = 1
+                while i + j < len(arr):
+                    k = i + j
+                    y += arr[k]
+                    if len(y) > self.max_pattern_len:
+                        break
+                    debug_print(f"{depth} CHECK {y} AT {i}")
+                    j += 1
+                    if y not in self.patterns:
+                        continue
+                    new_arr = arr[:i] + [y] + arr[k + 1:]
+                    debug_print(f"{depth} POSSIBLE NEW {new_arr}")
+                    #if new_arr == ref_arr:
+                        #debug_print(f"{depth} NEW IS REF {new_arr}")
+                    #    continue
+                    next_arr = new_arr[k:]
+                    debug_print(f"{depth} LOOK AFTER {new_arr[:k]} {next_arr}")
+                    #if len(next_arr) > 1:
+                    n += _combinations(next_arr, ref_arr[k:], depth=depth + 1)
+                    #j += 1
+                    debug_print(f"{depth} FOUND NEW {arr} -> {new_arr}")
+                    #if not depth:
+                    arrs.append(new_arr)
+                i += 1
+            if not depth:
+                debug_print(f"{depth} {arr} -> {arrs} {len(arrs)}")
+            return len(arrs)
+
+
+        def _reduce(arr):
+            s = []
+            nn = [self.pattern_decomp[x] for x in arr]
+            if all([not x for x in nn]):
+                return arr
+            for i, x in enumerate(arr):
+                if not nn[i]:
+                    s.append(x)
+                    continue
+                s.extend(_reduce(nn[i]))
+            return s
+
+
+        t = [y for y in [self._check_towel(x) for x in self.towels] if y]
+        n = 0 #len(t)
+        if self.ignore_permutations:
+            return len(t)
+        
+        
+        for a in t:
+            m = 1
+            #n += 1
+            b = _reduce(a)
+            #debug_print(f"T {"".join(a)} REDUCED {b}")
+            debug_print(f"FIND COMB FOR {a}")
+            # increment count if the reduced array differs from the original
+            m += int(b != a)
+            m += _combinations(b, a)
+            n += m
+            debug_print(f"{a} COMB {m} RUNNING TOTAL {n}")
+            break
+        return n
 
 
     def _parse(self):
+        # do pattern comparisons from largest to smallest
         self.patterns = sorted(re.split(r",\s*", self.input[0]), key=len, reverse=True)
         self.pattern_lens = set([len(x) for x in self.patterns])
         self.max_pattern_len = max(self.pattern_lens)
         self.patterns_by_len = self._patterns_by_len()
+        self.pattern_decomp = self._pattern_decomp()
+        #debug_print(f"P {self.patterns} DECOMP {self.pattern_decomp}")
         self.towels = self.input[2:]
-        #debug_print(f"P {self.patterns} MAX {self.max_pattern_len}")
     
+
+    def _pattern_decomp(self):
+        d = {}
+        for p in self.patterns:
+            d[p] = self._check_towel(p, max_length=len(p))
+        return d
+
 
     def _patterns_by_len(self):
         p = []
