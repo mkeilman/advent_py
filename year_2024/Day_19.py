@@ -79,10 +79,11 @@ class AdventDay(Day.Base):
     
     def _num_good_towels(self):
 
-        def _combinations(arr, ref_arr, depth=0):
+        #def _combinations(arr, ref_arr, depth=0):
+        def _combinations(arr, depth=0):
             n = 0
             i = 0
-            arrs = []
+            arrs = [arr]
             #debug_print(f"{depth} DECOMP {arr}")
             #if len(arr) <= 1:
             #    return 1
@@ -99,27 +100,38 @@ class AdventDay(Day.Base):
                     y += arr[k]
                     if len(y) > self.max_pattern_len:
                         break
-                    debug_print(f"{depth} CHECK {y} AT {i}")
+                    #debug_print(f"{depth} CHECK {y} AT {i}")
                     j += 1
                     if y not in self.patterns:
                         continue
                     new_arr = arr[:i] + [y] + arr[k + 1:]
-                    debug_print(f"{depth} POSSIBLE NEW {new_arr}")
+                    #debug_print(f"{depth} POSSIBLE NEW {new_arr}")
                     #if new_arr == ref_arr:
                         #debug_print(f"{depth} NEW IS REF {new_arr}")
                     #    continue
                     next_arr = new_arr[k:]
-                    debug_print(f"{depth} LOOK AFTER {new_arr[:k]} {next_arr}")
+                    # no more elements
+                    if not next_arr:
+                        #debug_print(f"{depth} NO NEXT IN {new_arr}")
+                        arrs.append(new_arr)
+                        break
+                    #debug_print(f"{depth} LOOK AFTER {new_arr[:k]} {next_arr}")
                     #if len(next_arr) > 1:
-                    n += _combinations(next_arr, ref_arr[k:], depth=depth + 1)
-                    #j += 1
-                    debug_print(f"{depth} FOUND NEW {arr} -> {new_arr}")
-                    #if not depth:
-                    arrs.append(new_arr)
+                    #n += _combinations(next_arr, ref_arr[k:], depth=depth + 1)
+                    aa = _combinations(next_arr, depth=depth + 1)
+                    if not aa:
+                        #debug_print(f"{depth} NO COMBS USE {new_arr}")
+                        arrs.append(new_arr)
+                        continue
+                    #debug_print(f"{depth} COMBS {aa}")
+                    for a in aa:
+                        #debug_print(f"{depth} FOUND NEW {new_arr[:k] + a}")
+                        arrs.append(new_arr[:k] + a)
                 i += 1
-            if not depth:
-                debug_print(f"{depth} {arr} -> {arrs} {len(arrs)}")
-            return len(arrs)
+            #if not depth:
+            #debug_print(f"{depth} ALL {arr} -> {arrs} LEN {len(arrs)}")
+            return arrs
+            #return len(arrs)
 
 
         def _reduce(arr):
@@ -140,20 +152,29 @@ class AdventDay(Day.Base):
         if self.ignore_permutations:
             return len(t)
         
-        
+        c = []
         for a in t:
+            cb = []
+            #c.append(a)
             m = 1
             #n += 1
             b = _reduce(a)
             #debug_print(f"T {"".join(a)} REDUCED {b}")
-            debug_print(f"FIND COMB FOR {a}")
+            #debug_print(f"FIND COMB FOR {a}")
             # increment count if the reduced array differs from the original
-            m += int(b != a)
-            m += _combinations(b, a)
-            n += m
-            debug_print(f"{a} COMB {m} RUNNING TOTAL {n}")
+            #m += int(b != a)
+            #m += _combinations(b, a)
+            #if b != a:
+            #    cb.append(b)
+            cbb = _combinations(b)
+            cb.extend(cbb)
+            #debug_print(f"{a} COMB {cb} {len(cb)}")
+            c.extend(cb)
+            #n += m
+            #debug_print(f"{a} COMB {m} RUNNING TOTAL {n}")
             break
-        return n
+        return len(c)
+        #return n
 
 
     def _parse(self):
