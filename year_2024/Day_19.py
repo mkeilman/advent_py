@@ -79,18 +79,24 @@ class AdventDay(Day.Base):
     
     def _num_good_towels(self):
 
-        #def _combinations(arr, ref_arr, depth=0):
+        _comb_map = {}
+
         def _combinations(arr, depth=0):
-            n = 0
+            arr_str = "".join(arr)
+            debug_print(f"{depth} START {arr_str}")
+            if arr_str in _comb_map:
+                #debug_print(f"{depth} FOUND {arr_str} -> {len(_comb_map[arr_str])}")
+                return _comb_map[arr_str]
+            n = 1
             i = 0
             arrs = [arr]
+            #debug_print(f"{depth} DECOMP {len(arr)}")
             #debug_print(f"{depth} DECOMP {arr}")
-            #if len(arr) <= 1:
-            #    return 1
             while i < len(arr):
                 x = arr[i]
+                #debug_print(f"{depth} START {x} AT {i}")
                 if len(x) == self.max_pattern_len:
-                    #debug_print(f"{x} MAX LEN")
+                    #debug_print(f"{depth} {x} MAX LEN")
                     i += 1
                     continue
                 y = x
@@ -106,30 +112,40 @@ class AdventDay(Day.Base):
                         continue
                     new_arr = arr[:i] + [y] + arr[k + 1:]
                     #debug_print(f"{depth} POSSIBLE NEW {new_arr}")
-                    #if new_arr == ref_arr:
-                        #debug_print(f"{depth} NEW IS REF {new_arr}")
-                    #    continue
                     next_arr = new_arr[k:]
                     # no more elements
                     if not next_arr:
                         #debug_print(f"{depth} NO NEXT IN {new_arr}")
                         arrs.append(new_arr)
+                        n += 1
                         break
                     #debug_print(f"{depth} LOOK AFTER {new_arr[:k]} {next_arr}")
-                    #if len(next_arr) > 1:
                     #n += _combinations(next_arr, ref_arr[k:], depth=depth + 1)
-                    aa = _combinations(next_arr, depth=depth + 1)
+                    nk = "".join(next_arr)
+                    if nk in _comb_map:
+                        #debug_print(f"{depth} NEXT ARR IN MAP {nk}")
+                        aa = _comb_map[nk]
+                    else:
+                        aa = _combinations(next_arr, depth=depth + 1)
                     if not aa:
                         #debug_print(f"{depth} NO COMBS USE {new_arr}")
                         arrs.append(new_arr)
+                        n += 1
                         continue
-                    #debug_print(f"{depth} COMBS {aa}")
-                    for a in aa:
-                        #debug_print(f"{depth} FOUND NEW {new_arr[:k] + a}")
-                        arrs.append(new_arr[:k] + a)
+                    n += len(aa)
+                    debug_print(f"{depth} ADD {len(aa)}")
+                    # much too slow for large numbers
+                    arrs.extend([new_arr[:k] + a for a in aa])
+                    #nnn = 0
+                    #for a in aa:
+                    #    #n += 1
+                    #    arrs.append(new_arr[:k] + a)
+                    #    nnn += 1
+                    debug_print(f"{depth} DONE ADDING {len(aa)}")
                 i += 1
-            #if not depth:
-            #debug_print(f"{depth} ALL {arr} -> {arrs} LEN {len(arrs)}")
+            #debug_print(f"{depth} ALL {arr} -> LEN {len(arrs)} N {n}")
+            _comb_map[arr_str] = arrs
+            debug_print(f"{depth} DONE {arr_str}")
             return arrs
             #return len(arrs)
 
@@ -166,15 +182,16 @@ class AdventDay(Day.Base):
             #m += _combinations(b, a)
             #if b != a:
             #    cb.append(b)
-            cbb = _combinations(b)
-            cb.extend(cbb)
+            #cbb = _combinations(b)
+            #cb.extend(cbb)
             #debug_print(f"{a} COMB {cb} {len(cb)}")
-            c.extend(cb)
+            #c.extend(cb)
+            n += len(_combinations(b))
             #n += m
-            #debug_print(f"{a} COMB {m} RUNNING TOTAL {n}")
-            break
-        return len(c)
-        #return n
+            debug_print(f"{a} COMB {m} RUNNING TOTAL {n}")
+            #break
+        #return len(c)
+        return n
 
 
     def _parse(self):
