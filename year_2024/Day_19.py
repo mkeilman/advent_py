@@ -6,6 +6,12 @@ from utils.debug import debug_print
 
 class AdventDay(Day.Base):
 
+    A = [
+        "a, aa, aaa, aaa",
+        "",
+        "aaaa"
+    ]
+
     TEST = [
         "r, wr, b, g, bwu, rb, gb, br",
         "",
@@ -37,7 +43,7 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
 
     def run(self):
-        #self.input = AdventDay.OVERLAP
+        self.input = AdventDay.A
         self._parse()
         n = self._num_good_towels()
         debug_print(f"GOOD TOWELS {n} / {len(self.towels)}")
@@ -94,25 +100,20 @@ class AdventDay(Day.Base):
                 #debug_print(f"{depth} FOUND {arr_str} -> {_comb_map[arr_str]}")
                 return _comb_map[arr_str]
             
-            i = 0 #len(arr) - 1
+            i = 0
             #debug_if(f"{depth} ADD {arr}", condition=0)
             n = 1
             while i < len(arr):
-            #while i >= 0:
                 #debug_if(f"{depth} {self.nc} CHECK AT I {i}", not self.nc % 1e6)
                 y = arr[i]
                 # this pattern is already max size - further concatenation is invalid
                 if len(y) == self.max_pattern_len:
                     i += 1
-                    #i -= 1
                     continue
                 j = 1
                 #debug_if(f"{depth} CHECK {y} AT {i}/{len(arr)}", condition=1)
                 while i + j < len(arr) and len(y) <= self.max_pattern_len:
-                #while i - j >= 0 and len(y) <= self.max_pattern_len:
-                    #k = i - j
                     k = i + j
-                    #y = arr[k] + y
                     y += arr[k]
                     #debug_if(f"{depth} CHECK {y} AT {i}/{len(arr)}", condition=1)
                     j += 1
@@ -122,17 +123,15 @@ class AdventDay(Day.Base):
                     # then the new pattern, then the rest of the old array
                     new_arr = arr[:i] + [y] + arr[k + 1:]
                     #new_arr =  arr[:k + 1] + [y] + arr[i:]
-                    next_arr = new_arr[:k]
+                    next_arr = new_arr[k:]
                     # no more elements
                     if not next_arr:
                         #debug_if(f"{depth} ADD {new_arr}", condition=0)
                         n += 1
-                        break
+                        #break
                     n += _combos(next_arr, depth=depth + 1)
                 i += 1
-                #i -= 1
             #debug_if(f"{depth} {self.nc} DONE {n}", condition=depth == self.max_depth)
-            #self.max_depth -= 1
             _comb_map[arr_str] = n
             return n
 
