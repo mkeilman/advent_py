@@ -93,19 +93,20 @@ class AdventDay(Day.Base):
         self.nc = 0
         self.max_depth = 0
 
-        def _combos(arr, depth=0):
+        def _combos(a, depth=0):
+            arr = _reduce(a)
             self.nc += 1
             self.max_depth = max(self.max_depth, depth)
-            if not arr:
-                return 0
-            arr_str = "".join(arr)
-            #debug_print(f"{depth} START {arr_str}")
+            #if not arr:
+            #    return 0
+            arr_str = "".join(a)
+            #debug_print(f"{depth} START {arr}")
             if arr_str in _comb_map:
                 #debug_print(f"{depth} FOUND {arr_str} -> {_comb_map[arr_str]}")
                 return _comb_map[arr_str]
             
             i = 0
-            debug_if(f"{depth} ADD {arr}", condition=not depth)
+            #debug_if(f"{depth} ADD {arr}", condition=not depth)
             n = 1
             while i < len(arr):
                 y = arr[i]
@@ -120,23 +121,23 @@ class AdventDay(Day.Base):
                 while i + j < len(arr) and len(y) <= self.max_pattern_len:
                     k = i + j
                     y += arr[k]
-                    #debug_if(f"{depth} CHECK {y} AT {i}/{len(arr)}", condition=1)
+                    #debug_if(f"{depth} I {i} J {j} K {k}", condition=1)
                     j += 1
                     if y not in self.patterns:
                         continue
                     # new array is the old array up to the current index,
                     # then the new pattern, then the rest of the old array
                     new_arr = arr[:i] + [y] + arr[k + 1:]
-                    next_arr = new_arr[k:]
+                    #debug_print(f"{depth} POSSIBLE NEW {arr[:i]}+{[y]}+{arr[k + 1:]} = {new_arr}")
+                    next_arr = arr[k + 1:]
+                    #debug_if(f"{depth} ADD {new_arr} NEXT? {arr[k + 1:]}", condition=not depth)
                     
                     # no more elements
                     if not next_arr:
-                        debug_if(f"{depth} ADD {new_arr}", condition=not depth)
                         n += 1
                         #break
-                    else:
-                        debug_if(f"{depth} ADD {new_arr}", condition=not depth)
-                    n += _combos(next_arr, depth=depth + 1)
+                    if next_arr:
+                        n += _combos(next_arr, depth=depth + 1)
                 i += 1
             #debug_if(f"{depth} {self.nc} DONE {n}", condition=depth == self.max_depth)
             _comb_map[arr_str] = n
@@ -166,19 +167,22 @@ class AdventDay(Day.Base):
                     y += arr[k]
                     #if len(y) > self.max_pattern_len:
                     #    break
-                    #debug_print(f"{depth} CHECK {y} AT {i}")
+                    debug_print(f"{depth} CONCATED {arr[k]} CHECK {y} AT {i}-{i + j}")
                     j += 1
                     if y not in self.patterns:
+                        debug_print(f"{depth} NON PATTERN {y}")
                         continue
                     new_arr = arr[:i] + [y] + arr[k + 1:]
-                    #debug_print(f"{depth} POSSIBLE NEW {new_arr}")
+                    debug_print(f"{depth} POSSIBLE NEW {arr[:i]}+{[y]}+{arr[k + 1:]} = {new_arr}")
                     next_arr = new_arr[k:]
+                    #next_arr = arr[k + 1:]
+                    debug_print(f"{depth} NEXT {next_arr}")
                     # no more elements
                     if not next_arr:
                         #debug_print(f"{depth} NO NEXT IN {new_arr}")
                         arrs.append(new_arr)
                         n += 1
-                        break
+                        #break
                     #debug_print(f"{depth} LOOK AFTER {new_arr[:k]} {next_arr}")
                     #n += _combinations(next_arr, ref_arr[k:], depth=depth + 1)
                     #nk = "".join(next_arr)
@@ -186,17 +190,18 @@ class AdventDay(Day.Base):
                     #    #debug_print(f"{depth} NEXT ARR IN MAP {nk}")
                     #    aa = _comb_map[nk]
                     #else:
-                    aa = _combinations(next_arr, depth=depth + 1)
-                    if not aa:
-                        #debug_print(f"{depth} NO COMBS USE {new_arr}")
-                        arrs.append(new_arr)
-                        n += 1
-                        continue
-                    n += len(aa)
-                    debug_print(f"{depth} ADD {len(aa)}")
-                    # much too slow for large numbers
-                    arrs.extend([new_arr[:k] + a for a in aa])
-                    debug_print(f"{depth} DONE ADDING {len(aa)}")
+                    if next_arr:
+                        aa = _combinations(next_arr, depth=depth + 1)
+                        if not aa:
+                            #debug_print(f"{depth} NO COMBS USE {new_arr}")
+                            arrs.append(new_arr)
+                            n += 1
+                            continue    
+                        n += len(aa)
+                        debug_print(f"{depth} ADD {len(aa)}")
+                        # much too slow for large numbers
+                        arrs.extend([new_arr[:k] + a for a in aa])
+                        debug_print(f"{depth} DONE ADDING {len(aa)}")
                 i += 1
             #debug_print(f"{depth} ALL {arr} -> LEN {len(arrs)} N {n}")
             _comb_map[arr_str] = arrs
@@ -226,7 +231,8 @@ class AdventDay(Day.Base):
             #c = _combinations(_reduce(a))
             #n += len(c)
             c = []
-            n += _combos(_reduce(a))
+            #n += _combos(_reduce(a))
+            n += _combos(a)
             debug_print(f"{''.join(a)} COMB {c} RUNNING TOTAL {n}")
             #break
         return n
