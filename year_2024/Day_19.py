@@ -7,7 +7,7 @@ from utils.debug import debug_print
 class AdventDay(Day.Base):
 
     A = [
-        "a, aa, aaa, aaa",
+        "a, aa, aaa, aaaa",
         "",
         "aaaa"
     ]
@@ -43,7 +43,9 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
 
     def run(self):
-        self.input = AdventDay.A
+        if self.mode == "test":
+            pass
+            self.input = AdventDay.A
         self._parse()
         n = self._num_good_towels()
         debug_print(f"GOOD TOWELS {n} / {len(self.towels)}")
@@ -94,6 +96,8 @@ class AdventDay(Day.Base):
         def _combos(arr, depth=0):
             self.nc += 1
             self.max_depth = max(self.max_depth, depth)
+            if not arr:
+                return 0
             arr_str = "".join(arr)
             #debug_print(f"{depth} START {arr_str}")
             if arr_str in _comb_map:
@@ -101,13 +105,14 @@ class AdventDay(Day.Base):
                 return _comb_map[arr_str]
             
             i = 0
-            #debug_if(f"{depth} ADD {arr}", condition=0)
+            debug_if(f"{depth} ADD {arr}", condition=not depth)
             n = 1
             while i < len(arr):
-                #debug_if(f"{depth} {self.nc} CHECK AT I {i}", not self.nc % 1e6)
                 y = arr[i]
+                #debug_if(f"{depth} COUNTER {self.nc} CHECK {y} LEN {len(y)} AT I {i}", condition=1)
                 # this pattern is already max size - further concatenation is invalid
                 if len(y) == self.max_pattern_len:
+                    #debug_if(f"{depth} MAX {y}", condition=1)
                     i += 1
                     continue
                 j = 1
@@ -122,23 +127,23 @@ class AdventDay(Day.Base):
                     # new array is the old array up to the current index,
                     # then the new pattern, then the rest of the old array
                     new_arr = arr[:i] + [y] + arr[k + 1:]
-                    #new_arr =  arr[:k + 1] + [y] + arr[i:]
                     next_arr = new_arr[k:]
+                    
                     # no more elements
                     if not next_arr:
-                        #debug_if(f"{depth} ADD {new_arr}", condition=0)
+                        debug_if(f"{depth} ADD {new_arr}", condition=not depth)
                         n += 1
                         #break
+                    else:
+                        debug_if(f"{depth} ADD {new_arr}", condition=not depth)
                     n += _combos(next_arr, depth=depth + 1)
                 i += 1
             #debug_if(f"{depth} {self.nc} DONE {n}", condition=depth == self.max_depth)
             _comb_map[arr_str] = n
+            #debug_print(f"COMB MAP {_comb_map}")
             return n
 
         def _combinations(arr, depth=0):
-            m = _combos(arr)
-            #debug_print(f"COMBOS? {m}")
-            return m
             arr_str = "".join(arr)
             debug_print(f"{depth} START {arr_str}")
             if arr_str in _comb_map:
@@ -147,8 +152,6 @@ class AdventDay(Day.Base):
             n = 1
             i = 0
             arrs = [arr]
-            #debug_print(f"{depth} DECOMP {len(arr)}")
-            #debug_print(f"{depth} DECOMP {arr}")
             while i < len(arr):
                 x = arr[i]
                 #debug_print(f"{depth} START {x} AT {i}")
@@ -193,18 +196,12 @@ class AdventDay(Day.Base):
                     debug_print(f"{depth} ADD {len(aa)}")
                     # much too slow for large numbers
                     arrs.extend([new_arr[:k] + a for a in aa])
-                    #nnn = 0
-                    #for a in aa:
-                    #    #n += 1
-                    #    arrs.append(new_arr[:k] + a)
-                    #    nnn += 1
                     debug_print(f"{depth} DONE ADDING {len(aa)}")
                 i += 1
             #debug_print(f"{depth} ALL {arr} -> LEN {len(arrs)} N {n}")
             _comb_map[arr_str] = arrs
             debug_print(f"{depth} DONE {arr_str}")
             return arrs
-            #return len(arrs)
 
 
         def _reduce(arr):
@@ -225,30 +222,13 @@ class AdventDay(Day.Base):
         if self.ignore_permutations:
             return len(t)
         
-        c = []
         for a in t:
-            cb = []
-            #c.append(a)
-            m = 1
-            #n += 1
-            b = _reduce(a)
-            #debug_print(f"FULL {a} T {"".join(a)} REDUCED {b}")
-            #debug_print(f"FIND COMB FOR {a}")
-            # increment count if the reduced array differs from the original
-            #m += int(b != a)
-            #m += _combinations(b, a)
-            #if b != a:
-            #    cb.append(b)
-            #cbb = _combinations(b)
-            #cb.extend(cbb)
-            #debug_print(f"{a} COMB {cb} {len(cb)}")
-            #c.extend(cb)
-            #n += len(_combinations(b))
-            n += _combos(b)
-            #n += m
-            #debug_print(f"{''.join(a)} COMB RUNNING TOTAL {n}")
+            #c = _combinations(_reduce(a))
+            #n += len(c)
+            c = []
+            n += _combos(_reduce(a))
+            debug_print(f"{''.join(a)} COMB {c} RUNNING TOTAL {n}")
             #break
-        #return len(c)
         return n
 
 
