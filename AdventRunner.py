@@ -17,6 +17,7 @@ def main():
     )
     a, u = p.parse_known_args()
     d = Day.Base.get_day(a.year, a.day, u)
+    d.mode = a.mode
 
     if a.mode in ("test", "all"):
         debug_print("TEST:")
