@@ -35,6 +35,7 @@ class AdventDay(Day.Base):
     FILE_TEST = [
         "X, wugw, wrrbgr, rbgr, bgbrb, wuwb, bug, wubur, uwbuwbug, wruu, rbbr, wbgrrg, uuwr, bub, brbggggr, brgguw, gwwuu, uwrbggw, wuwrrr, wbuurww, wwwuwru, gubgr, gubu, ug, ubu, gggrgr, wg, wrgbggu, uwgwubw, bgrgb, uu, gbug, gwuwgr, bgwg, rurgb, rr, ubw, wrr, rggw, ubuu, ubr, ugrr, wrbwrruw, uw, ruggrb, urwwurg, gwr, rurwb, bu, uuu, bbuwb, urbu, ugb, uruub, gwgrrw, wbbw, rwgr, wur, bwbu, bbg, wrbugw, brgr, uurrwg, guruu, uurrrbw, bwwbrguw, gbbgu, bgg, bbwwgbw, rww, uurrr, bgubwb, wwgr, gw, wrgub, wgrg, rugwbb, bgwbuguw, brg, ggbw, bgbubb, wwgu, gwgb, grur, gubw, wbruug, rg, brubbgw, uuugr, rru, brbr, rwbuuu, ubuw, rgru, rwrwgb, wub, rwbu, bwwrr, bwrg, uggbur, gwb, gbugwb, br, rbwu, urubg, uuw, rbb, rgrwu, bguuw, w, www, wurgb, rwwu, rwg, uww, gbwurubb, uuugb, rbrurw, gggbwu, rbrwrgwr, bw, uwrw, bugw, brgguugb, brubw, bbrb, bru, urgr, urwu, bwbb, bur, rwrr, wrrbu, guu, ggugwuw, rwrurb, wbur, gbu, bbb, ur, brw, wrwbb, ugbuwgug, rrugbbru, wwggbw, gwgwgur, rgw, rwwr, wrg, wugrwru, ggwr, ggr, wug, ugu, gbbw, wgww, gwwwuw, gbr, rbwwru, bbru, ruw, gbrgw, gug, bwbuwrb, uwg, rbww, bbbrb, ub, rgrbr, ubg, wugwub, bgr, ru, bwr, bwbug, rgr, wwugr, grg, rwu, wbgg, rgwu, ubugubr, buggur, wwb, rub, wugbb, uubb, uwb, wbb, uwgbw, rubrg, rwubgu, wgwbb, bubrbrww, bg, wwrggu, gr, gggr, ggb, wuuuu, bggwb, ubgrwbr, rgubwu, rwr, gbww, wgbub, ubrb, ruu, rgg, wgrwurrw, ubwggr, uubr, wrwrbrr, ruguw, bwu, guwrug, bgggw, urubr, rruruuw, gur, wrgru, wb, rgwwg, rrguu, wwwugg, rgbg, uwwgg, urr, gwu, ruwb, buwbgur, bbwugb, bubu, rwurwg, wgrb, rrw, uwgwr, ugwu, rgrurg, ww, uwgrrrgb, wrub, bgb, grr, bgwbru, wr, brrbg, rurur, wgbbbur, brwgg, bwgwbw, uuurg, rw, uuwguu, guw, bwg, bwrrwrr, ugr, rbwrg, rwb, urw, uubg, bbwrugr, bgw, brb, rb, rbr, ubbwurb, gbw, buu, wgg, wbw, ugguubw, rurbr, rrwbuur, ubwuwr, urg, wwu, wrguwb, bbgbur, grb, gww, gb, buw, bwbg, grgb, bbu, rbw, rrbu, gruwbw, uur, wwbgr, bwbwu, bgug, uwu, wubbw, rgwr, rrgrr, gwg, bbbubu, wwgrbrw, wuuubb, gbg, uwbwbg, wgwbr, ububb, ubbb, rug, gwbbrb, ubrub, urb, ggrwrgg, rrg, wbr, uub, wbrwbb, ugg, wrgb, bbwu, grurwb, uwbr, ugug, grw, gru, rwgu, wrru, rwgggu, rrr, ugwb, rrrw, brr, buwb, rbwbrg, ugw, rwuuguw, bwgggwb, bugr, wggbrr, uwgrrbub, bgbuuwug, burrrbu, wubwuu, ubwur, ubgwb, uru, brrb, wgb, bwuwgbu, wwuwwbu, bgbbg, wwru, wgr, ggg, guwuu, brbg, gbrb, ugrg, wwgur, wbbu, rwug, gbb, wugr, wuur, ubwurrwg, gwruubgu, wrrw, wubwwg, gugur, urgwu, wrbu, wbg, grwb, ugrrrrb, grbg, ggbbu, gbru, wgw, ggug, ubuub, ggu, wuwrbugb, ugrrrr, gbbubrr, rbgbb, bwwbu, uwwu, wwgbbb, gbbu, b, brwgr, wrb, rwrrw, rubwugg, bbr, wwr, wu, bbgwgbb, rbg, rwwgbbu, bgu, wubuug, ubwww, uggr, rbbbw, rbwgwrbw, bbw, bbgr, rur, ubb, uurbg, wguwb, ubbrgug, wrwr, rwwugb, uwrubb, rrgbbru, bwb, gub, ggbu, wwg, bww, ruwrwg, gbwu, wuu, gbbur, wrubru, rgb, grugwbbw, r, rwww, rbbru, wbrrb, rwgub, ubbrr, wuw, uug, rgu, rggg, bb, g, wru, urgw, ggw, ugwwbrg, grrbw, rbu, bbgugrw, grguw",
         "",
+        "ubub",
         "bubXbubXbub",
     ]
 
@@ -55,7 +56,7 @@ class AdventDay(Day.Base):
         #return 0
         if self.mode == "test":
             pass
-            self.input = AdventDay.A
+            self.input = AdventDay.FILE_TEST
         self._parse()
         #for t in self.towels:
         #    debug_print(f"T {t} NP {self._ng(t)}")
@@ -163,6 +164,7 @@ class AdventDay(Day.Base):
     def _num_good_towels(self):
 
         _comb_map = {}
+        _bad_str = []
 
         self.nc = 0
         self.max_depth = 0
@@ -174,55 +176,45 @@ class AdventDay(Day.Base):
             #if not arr:
             #    return 0
             arr_str = "".join(arr)
-            debug_print(f"{depth} START {arr}")
-            #if arr_str in _comb_map:
-            #    debug_print(f"{depth} FOUND {arr_str} -> {_comb_map[arr_str]}")
-            #    return _comb_map[arr_str]
+            #debug_print(f"{depth} START {arr}")
+            if arr_str in _comb_map:
+                debug_print(f"{depth} FOUND {arr_str} -> {_comb_map[arr_str]}")
+                return _comb_map[arr_str]
             
             i = 0
             #debug_if(f"{depth} ADD {arr}", condition=not depth)
-            n = 1
+            n = 0
             while i < len(arr):
                 y = arr[i]
                 r = "".join(arr[i + 1:])
                 # this pattern is already max size - further concatenation is invalid
                 if len(y) == self.max_pattern_len:
-                    debug_if(f"{depth} MAX {y}", condition=1)
+                    #debug_if(f"{depth} MAX {y}", condition=1)
                     i += 1
                     continue
-                #j = 1
-                j = i
-                o = 1
-                # GET CHARS INDEX SEPERATE FROM I
-                debug_if(f"{depth} CHECK '{y}' AT INDEX {i}/{len(arr)} REMAINDER {r}", condition=1)
-                #while i + j < len(arr) and len(y) <= self.max_pattern_len:
-                #while j < len(r) and len(y) <= self.max_pattern_len:
+                j = i + 1
+                o = 0
+                #debug_if(f"{depth} CHECK '{y}' MAX LEN {self.max_pattern_len} AT INDEX {i}/{len(arr)} REMAINDER '{r}'", condition=1)
                 while len(y) <= self.max_pattern_len and o is not None and j is not None:
-                    #k = i + j
-                    #y += arr[k]
-                    #rr = r[j + 1:].split()
-                    #rrc = self._check_towel(r[j + 1:])
                     s, j, o = get_chars(arr, index=j, offset=o)
-                    debug_if(f"{depth} S {s} INDEX {j} OFFSET {o}", condition=1)
-                    rrc = [arr[j][o:]] + arr[j + 1:] if j is not None and o is not None else []
-                    #v_rrc = self._check_towel("".join(rrc))
-                    #y += r[j]
+                    #debug_if(f"{depth} S {s} NEXT INDEX {j} NEXT OFFSET {o}", condition=1)
+                    next_arr = [arr[j][o:]] + arr[j + 1:] if j is not None and o is not None else []
                     if s is not None:
                         y += s
-                    debug_if(f"{depth} INDEX {j} Y {y} RRC {rrc}", condition=1)
-                    #j += 1
+                    #debug_if(f"{depth} INDEX {j} Y {y} NEXT ARR {next_arr}", condition=1)
+                    if y in _bad_str:
+                        #debug_if(f"{depth} ALREADY BAD {y}", condition=1)
+                        continue
                     if y not in self.patterns: # or not rrc:
-                        #debug_if(f"{depth} BAD {y} RRC {rrc} V {v_rrc}", condition=1)
+                        #debug_if(f"{depth} BAD {y}", condition=1)
+                        _bad_str.append(y)
                         continue
                     # new array is the old array up to the current index,
                     # then the new pattern, then the rest of the old array
-                    #new_arr = arr[:i] + [y] + arr[k + 1:]
-                    new_arr = prev_arr + [y] + rrc
-                    #debug_print(f"{depth} POSSIBLE NEW {arr[:i]}+{[y]}+{arr[k + 1:]} = {new_arr}")
-                    debug_print(f"{depth} POSSIBLE NEW {prev_arr}+{[y]}+{rrc} = {new_arr}")
-                    #next_arr = arr[k + 1:]
-                    next_arr = rrc
-                    debug_if(f"{depth} ADD {new_arr} NEXT? {next_arr}", condition=1)
+                    #new_arr = prev_arr + [y] + next_arr
+                    new_arr = arr[:i] + [y] + next_arr
+                    #debug_print(f"{depth} POSSIBLE NEW {arr[:i]}+{[y]}+{next_arr} = {new_arr}")
+                    #debug_if(f"{depth} ADD {new_arr} NEXT? {next_arr}", condition=1)
                     
                     # no more elements
                     if not next_arr:
@@ -232,7 +224,7 @@ class AdventDay(Day.Base):
                     if next_arr:
                         n += _combos(next_arr, prev_arr=prev_arr + [y], depth=depth + 1)
                 i += 1
-            #debug_if(f"{depth} {self.nc} DONE {n}", condition=depth == self.max_depth)
+            #debug_if(f"{depth} DONE {arr} -> {n}", condition=1)
             _comb_map[arr_str] = n
             #debug_print(f"COMB MAP {_comb_map}")
             return n
