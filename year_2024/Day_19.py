@@ -35,7 +35,7 @@ class AdventDay(Day.Base):
     FILE_TEST = [
         "X, wugw, wrrbgr, rbgr, bgbrb, wuwb, bug, wubur, uwbuwbug, wruu, rbbr, wbgrrg, uuwr, bub, brbggggr, brgguw, gwwuu, uwrbggw, wuwrrr, wbuurww, wwwuwru, gubgr, gubu, ug, ubu, gggrgr, wg, wrgbggu, uwgwubw, bgrgb, uu, gbug, gwuwgr, bgwg, rurgb, rr, ubw, wrr, rggw, ubuu, ubr, ugrr, wrbwrruw, uw, ruggrb, urwwurg, gwr, rurwb, bu, uuu, bbuwb, urbu, ugb, uruub, gwgrrw, wbbw, rwgr, wur, bwbu, bbg, wrbugw, brgr, uurrwg, guruu, uurrrbw, bwwbrguw, gbbgu, bgg, bbwwgbw, rww, uurrr, bgubwb, wwgr, gw, wrgub, wgrg, rugwbb, bgwbuguw, brg, ggbw, bgbubb, wwgu, gwgb, grur, gubw, wbruug, rg, brubbgw, uuugr, rru, brbr, rwbuuu, ubuw, rgru, rwrwgb, wub, rwbu, bwwrr, bwrg, uggbur, gwb, gbugwb, br, rbwu, urubg, uuw, rbb, rgrwu, bguuw, w, www, wurgb, rwwu, rwg, uww, gbwurubb, uuugb, rbrurw, gggbwu, rbrwrgwr, bw, uwrw, bugw, brgguugb, brubw, bbrb, bru, urgr, urwu, bwbb, bur, rwrr, wrrbu, guu, ggugwuw, rwrurb, wbur, gbu, bbb, ur, brw, wrwbb, ugbuwgug, rrugbbru, wwggbw, gwgwgur, rgw, rwwr, wrg, wugrwru, ggwr, ggr, wug, ugu, gbbw, wgww, gwwwuw, gbr, rbwwru, bbru, ruw, gbrgw, gug, bwbuwrb, uwg, rbww, bbbrb, ub, rgrbr, ubg, wugwub, bgr, ru, bwr, bwbug, rgr, wwugr, grg, rwu, wbgg, rgwu, ubugubr, buggur, wwb, rub, wugbb, uubb, uwb, wbb, uwgbw, rubrg, rwubgu, wgwbb, bubrbrww, bg, wwrggu, gr, gggr, ggb, wuuuu, bggwb, ubgrwbr, rgubwu, rwr, gbww, wgbub, ubrb, ruu, rgg, wgrwurrw, ubwggr, uubr, wrwrbrr, ruguw, bwu, guwrug, bgggw, urubr, rruruuw, gur, wrgru, wb, rgwwg, rrguu, wwwugg, rgbg, uwwgg, urr, gwu, ruwb, buwbgur, bbwugb, bubu, rwurwg, wgrb, rrw, uwgwr, ugwu, rgrurg, ww, uwgrrrgb, wrub, bgb, grr, bgwbru, wr, brrbg, rurur, wgbbbur, brwgg, bwgwbw, uuurg, rw, uuwguu, guw, bwg, bwrrwrr, ugr, rbwrg, rwb, urw, uubg, bbwrugr, bgw, brb, rb, rbr, ubbwurb, gbw, buu, wgg, wbw, ugguubw, rurbr, rrwbuur, ubwuwr, urg, wwu, wrguwb, bbgbur, grb, gww, gb, buw, bwbg, grgb, bbu, rbw, rrbu, gruwbw, uur, wwbgr, bwbwu, bgug, uwu, wubbw, rgwr, rrgrr, gwg, bbbubu, wwgrbrw, wuuubb, gbg, uwbwbg, wgwbr, ububb, ubbb, rug, gwbbrb, ubrub, urb, ggrwrgg, rrg, wbr, uub, wbrwbb, ugg, wrgb, bbwu, grurwb, uwbr, ugug, grw, gru, rwgu, wrru, rwgggu, rrr, ugwb, rrrw, brr, buwb, rbwbrg, ugw, rwuuguw, bwgggwb, bugr, wggbrr, uwgrrbub, bgbuuwug, burrrbu, wubwuu, ubwur, ubgwb, uru, brrb, wgb, bwuwgbu, wwuwwbu, bgbbg, wwru, wgr, ggg, guwuu, brbg, gbrb, ugrg, wwgur, wbbu, rwug, gbb, wugr, wuur, ubwurrwg, gwruubgu, wrrw, wubwwg, gugur, urgwu, wrbu, wbg, grwb, ugrrrrb, grbg, ggbbu, gbru, wgw, ggug, ubuub, ggu, wuwrbugb, ugrrrr, gbbubrr, rbgbb, bwwbu, uwwu, wwgbbb, gbbu, b, brwgr, wrb, rwrrw, rubwugg, bbr, wwr, wu, bbgwgbb, rbg, rwwgbbu, bgu, wubuug, ubwww, uggr, rbbbw, rbwgwrbw, bbw, bbgr, rur, ubb, uurbg, wguwb, ubbrgug, wrwr, rwwugb, uwrubb, rrgbbru, bwb, gub, ggbu, wwg, bww, ruwrwg, gbwu, wuu, gbbur, wrubru, rgb, grugwbbw, r, rwww, rbbru, wbrrb, rwgub, ubbrr, wuw, uug, rgu, rggg, bb, g, wru, urgw, ggw, ugwwbrg, grrbw, rbu, bbgugrw, grguw",
         "",
-        "bubXbubXbub",
+        "bubXbub",
         "ubub",
     ]
 
@@ -51,12 +51,9 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
 
     def run(self):
-        #s, i, o = get_chars(["abc", "def", "gh"], offset=1, num_chars=6)
-        #debug_print(f"S {s} I {i} O {o}")
-        #return 0
         if self.mode == "test":
             pass
-            self.input = AdventDay.TEST
+            self.input = AdventDay.A
         self._parse()
         #for t in self.towels:
         #    debug_print(f"T {t} NP {self._ng(t)}")
@@ -164,14 +161,13 @@ class AdventDay(Day.Base):
     def _num_good_towels(self):
 
         _comb_map = {}
-        _bad_str = []
 
         def _combos(arr, prev_arr=[], depth=0):
             #arr = _reduce(a)
             #if not arr:
             #    return 0
             arr_str = "".join(arr)
-            #debug_print(f"{depth} START {arr}")
+            debug_print(f"{depth} START {arr_str}")
             if arr_str in _comb_map:
                 debug_print(f"{depth} FOUND {arr_str} -> {_comb_map[arr_str]}")
                 return _comb_map[arr_str]
@@ -196,13 +192,9 @@ class AdventDay(Day.Base):
                     next_arr = [arr[j][o:]] + arr[j + 1:] if j is not None and o is not None else []
                     if s is not None:
                         y += s
-                    #debug_if(f"{depth} INDEX {j} Y {y} NEXT ARR {next_arr}", condition=1)
-                    if y in _bad_str:
-                        #debug_if(f"{depth} ALREADY BAD {y}", condition=1)
-                        continue
+                    debug_if(f"{depth} INDEX {j} Y {y} NEXT ARR {next_arr}", condition=1)
                     if y not in self.patterns: # or not rrc:
                         #debug_if(f"{depth} BAD {y}", condition=1)
-                        _bad_str.append(y)
                         continue
                     # new array is the old array up to the current index,
                     # then the new pattern, then the rest of the old array
@@ -219,55 +211,61 @@ class AdventDay(Day.Base):
                     if next_arr:
                         n += _combos(next_arr, prev_arr=prev_arr + [y], depth=depth + 1)
                 i += 1
-            #debug_if(f"{depth} DONE {arr} -> {n}", condition=1)
+            debug_if(f"{depth} DONE {arr} -> {n}", condition=1)
             _comb_map[arr_str] = n
             #debug_print(f"COMB MAP {_comb_map}")
             return n
 
         def _combinations(arr, depth=0):
+            #arr = _reduce(a)
             arr_str = "".join(arr)
             #debug_print(f"{depth} START {arr_str}")
             if arr_str in _comb_map:
                 #debug_print(f"{depth} FOUND {arr_str} -> {_comb_map[arr_str]}")
                 return _comb_map[arr_str]
-            n = 1
             i = 0
-            #arrs = [arr]
             arrs = []
             while i < len(arr):
-                y = arr[i]
-                #debug_print(f"{depth} START {x} AT {i}")
+                #y = arr[i]
+                if len(arr[i]) > 1:
+                    y, j, o = get_chars(arr, index=i, offset=0)
+                    #debug_if(f"{depth} INIT y {y} NEXT INDEX {j} NEXT OFFSET {o}", condition=1)
+                else:
+                    y = arr[i]
+                    j = i + 1
+                    o = 0
+                #debug_print(f"{depth} START {y} AT {i}")
                 if len(y) == self.max_pattern_len:
-                    #debug_print(f"{depth} {x} MAX LEN")
+                    #debug_print(f"{depth} {y} MAX LEN")
                     i += 1
                     continue
-                j = i + 1
-                o = 0
-                #while i + j < len(arr) and len(y) <= self.max_pattern_len:
+                #j = i + 1
+                #o = 0
                 while len(y) <= self.max_pattern_len and o is not None and j is not None:
-                    #k = i + j
-                    #y += arr[k]
                     s, j, o = get_chars(arr, index=j, offset=o)
                     #debug_if(f"{depth} S {s} NEXT INDEX {j} NEXT OFFSET {o}", condition=1)
                     next_arr = [arr[j][o:]] + arr[j + 1:] if j is not None and o is not None else []
                     if s is not None:
                         y += s
-                    #if len(y) > self.max_pattern_len:
-                    #    break
-                    #debug_print(f"{depth} CONCATED {arr[k]} CHECK {y} AT {i}-{i + j}")
-                    #j += 1
                     if y not in self.patterns:
                         #debug_print(f"{depth} NON PATTERN {y}")
                         continue
                     new_arr = arr[:i] + [y] + next_arr
-                    #new_arr = arr[:i] + [y] + arr[k + 1:]
-                    #debug_print(f"{depth} POSSIBLE NEW {arr[:i]}+{[y]}+{next_arr} = {new_arr}")
-                    #next_arr = new_arr[k:]
-                    #next_arr = arr[k + 1:]
                     #debug_print(f"{depth} NEXT {next_arr}")
                     # no more elements
                     if not next_arr:
                         #debug_print(f"{depth} NO NEXT IN {new_arr}")
+                        #if new_arr not in arrs:
+                        #    arrs.append(new_arr)
+                        #n += 1
+                        #break
+                    #debug_print(f"{depth} LOOK AFTER {new_arr[:k]} {next_arr}")
+                    #n += _combinations(next_arr, ref_arr[k:], depth=depth + 1)
+                    #nk = "".join(next_arr)
+                    #if nk in _comb_map:
+                    #    #debug_print(f"{depth} NEXT ARR IN MAP {nk}")
+                    #    aa = _comb_map[nk]
+                    #else:
                         arrs.append(new_arr)
                         #n += 1
                         #break
@@ -282,15 +280,11 @@ class AdventDay(Day.Base):
                         aa = _combinations(next_arr, depth=depth + 1)
                         if not aa:
                             debug_print(f"{depth} NO COMBS USE {new_arr}")
-                        #    arrs.append(new_arr)
-                        #    n += 1
+                            arrs.append(new_arr)
                         #    continue
-                        #n += len(aa)
                         #debug_print(f"{depth} ADD {aa}")
                         # much too slow for large numbers
-                        arrs.extend([arr[:i] + [y] + a for a in aa])
-                        #arrs.extend([new_arr[:k] + a for a in aa])
-                        #arrs.extend(aa)
+                        arrs.extend([x for x in [arr[:i] + [y] + a for a in aa] if x not in arrs])
                         #debug_print(f"{depth} DONE ADDING {len(aa)}")
                 i += 1
             #debug_print(f"{depth} ALL {arr} -> LEN {len(arrs)} N {n}")
@@ -318,10 +312,10 @@ class AdventDay(Day.Base):
             return len(t)
         
         for a in t:
-            c = _combinations(_reduce(a))
-            n += len(c)
-            #c = []
-            #n += _combos(_reduce(a))
+            #c = _combinations(_reduce(a))
+            #n += len(c)
+            c = []
+            n += _combos(_reduce(a))
             #n += _combos(a)
             debug_print(f"{''.join(a)} COMB {c} RUNNING TOTAL {n}")
             break
