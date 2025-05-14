@@ -256,8 +256,24 @@ class Test_Day_2024_17:
 class Test_Day_2024_19:
 
     def test_part_1_test(self, day):
+        day.ignore_permutations = True
         assert day.run_from_test_input() == 6
 
     def test_part_1_file(self, day):
+        day.ignore_permutations = True
         assert day.run_from_file() == 324
+
+    def test_part_2_test(self, day):
+        assert day.run_from_test_input() == 16
+
+
+class Test_Day_2024_20:
+
+    def test_part_1_test(self, day):
+        day.min_path_length = 0
+        assert day.run_from_test_input() == 77
+
+    def test_part_1_file(self, day):
+        day.min_path_length = 100
+        assert day.run_from_file() == 1367
 
