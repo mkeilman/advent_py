@@ -97,6 +97,7 @@ class Grid:
 
 
     def circle(self, center, radius):
+        from utils.debug import debug_print
         assert center in self.flat_array and radius >= 0
         if radius == 0:
             return [center]
@@ -104,7 +105,7 @@ class Grid:
         c = []
         for i in [x for x in range(-radius, radius + 1) if center[0] + x >= 0 and center[0] + x < self.size[0]]:
             for j in [x for x in range(-radius, radius + 1) if center[1] + x >= 0 and center[1] + x < self.size[1]]:
-                if abs(i + j) == radius:
+                if abs(i) + abs(j) == radius:
                     c.append((center[0] + i, center[1] + j))
         return c
 
