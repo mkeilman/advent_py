@@ -95,31 +95,50 @@ class Grid:
         self.size = (len(self.coord_array), len(self.coord_array[0]))
         self.coord_neighborhoods = {x:self.neighborhood(x) for x in self.flat_array}
 
+
+    def circle(self, center, radius):
+        assert center in self.flat_array and radius >= 0
+        if radius == 0:
+            return [center]
+
+        c = []
+        for i in [x for x in range(-radius, radius + 1) if center[0] + x >= 0 and center[0] + x < self.size[0]]:
+            for j in [x for x in range(-radius, radius + 1) if center[1] + x >= 0 and center[1] + x < self.size[1]]:
+                if abs(i + j) == radius:
+                    c.append((center[0] + i, center[1] + j))
+        return c
+
+
     def contains(self, pos):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
     
+
     def line(self, start_pos, end_pos, allow_diags=True):
         import math
         from utils import mathutils
-        assert start_pos in self.flat_array and end_pos in self.flat_array
-        dr = end_pos[0] - start_pos[0]
-        dc = end_pos[1] - start_pos[1]
-        if dc == 0:
-            return [(start_pos[0] + mathutils.sign(dr) * i, start_pos[1]) for i in range(abs(dr) + 1)]
-        if dr == 0:
-            return [(start_pos[0], start_pos[1] + mathutils.sign(dc) * i) for i in range(abs(dc) + 1)]
-        
-        slope = dr / dc
-        s = mathutils.sign(slope)
-        l = []
-        rr = range(start_pos[1], end_pos[1] + s, s)
-        for c in range(start_pos[1], end_pos[1] + s, s):
-            r = start_pos[0] + math.floor(slope * (c - start_pos[1]))
-            if not allow_diags and (r, c - s) in self.flat_array:
-                l.append((r, c - s))
-            l.append((r, c))
-        return l
 
+        def _add(coord, arr):
+            if coord not in arr:
+                arr.append(coord)
+
+        assert start_pos in self.flat_array and end_pos in self.flat_array
+        delta_row = end_pos[0] - start_pos[0]
+        delta_col = end_pos[1] - start_pos[1]
+        if delta_col == 0:
+            return [(start_pos[0] + mathutils.sign(delta_row) * i, start_pos[1]) for i in range(abs(delta_row) + 1)]
+        if delta_row == 0:
+            return [(start_pos[0], start_pos[1] + mathutils.sign(delta_col) * i) for i in range(abs(delta_col) + 1)]
+        
+        col_delta_dir = mathutils.sign(delta_col)
+        l = []
+        rr = range(start_pos[1], end_pos[1] + col_delta_dir, col_delta_dir)
+        for c in rr:
+            r = start_pos[0] + math.floor((delta_row / delta_col) * (c - start_pos[1]))
+            cc = c - col_delta_dir
+            if not allow_diags and cc in rr and (r, cc) in self.flat_array:
+                _add((r, cc), l)
+            _add((r, c), l)
+        return l
 
 
     def neighborhood(self, pos, restrict_to=None):
