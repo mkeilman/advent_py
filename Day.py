@@ -114,6 +114,37 @@ class Grid:
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
     
 
+    def ell(self, start_pos, end_pos, direction=1):
+        from utils import mathutils
+        from utils.debug import debug_print
+        assert direction
+
+        ell = []
+        if start_pos == end_pos:
+            return [start_pos]
+        corners = (
+            (min(start_pos[0], end_pos[0]), min(start_pos[1], end_pos[1])),
+            (min(start_pos[0], end_pos[0]), max(start_pos[1], end_pos[1])),
+            (max(start_pos[0], end_pos[0]), max(start_pos[1], end_pos[1])),
+            (max(start_pos[0], end_pos[0]), min(start_pos[1], end_pos[1])),
+        )
+        d = mathutils.sign(direction)
+        c = (
+            start_pos,
+            corners[(corners.index(start_pos) + d + len(corners)) % len(corners)],
+            end_pos,
+        )
+        for i in range(len(c) - 1):
+            p1 = c[i]
+            p2 = c[i + 1]
+            for j in range(p1[1], p2[1], mathutils.sign(p2[1] - p1[1]) or 1):
+                ell.append((p1[0] , j))
+            for j in range(p1[0], p2[0], mathutils.sign(p2[0] - p1[0]) or 1):
+                ell.append((j, p1[1]))
+        ell.append(end_pos)
+        return ell
+
+
     def line(self, start_pos, end_pos, allow_diags=True):
         import math
         from utils import mathutils
