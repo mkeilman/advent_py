@@ -26,18 +26,15 @@ def get_chars(arr, index=0, offset=0, num_chars=1):
     return arr_str[start:end], index, offset
 
 
-def indices(sub_txt, txt):
-    done = False
-    s = []
-    p = 0
-    while not done:
-        try:
-            p = txt.index(sub_txt, p)
-            s.append(p)
-            p += 1
-        except ValueError:
-            done = True
-    return s
+def indices(element, collection):
+    if element not in collection:
+        return []
+    
+    if isinstance(collection, str):
+        return re_indices(element, collection)
+    
+    return [i for i, x in enumerate(collection) if x == element]
+
 
 def re_indices(r, txt):
     import re
