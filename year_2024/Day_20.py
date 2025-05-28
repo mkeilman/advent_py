@@ -31,7 +31,6 @@ class Maze:
         self.coord_grid = Day.Grid.grid_of_size(len(self.grid), len(self.grid[0]))
         self.walls = self._walls()
         self.interior_walls = self._interior_walls()
-        #debug_print(f"IW {self.interior_walls}")
         self.start = self._token_pos(Maze.START)
         self.end = self._token_pos(Maze.END)
         self.connections = {k:[x for x in v if x not in self.walls] for k, v in self.coord_grid.coord_neighborhoods.items()}
@@ -62,6 +61,7 @@ class Maze:
             s = ""
             for c in r:
                 if decorations and c in decorations:
+                    s += decorations.get(c, "-")
                     continue
                 if c in path:
                     s += _path_char(c)
@@ -89,6 +89,7 @@ class Maze:
         while pos != self.end:
             pos = _conn(pos, path)[0]
             path.append(pos)
+        debug_print(f"FOUND BASE PATH LEN {len(path)}")
         return path
 
 
@@ -167,7 +168,7 @@ class AdventDay(Day.Base):
         n = 0
         op = operator.eq if self.use_exact_difference else operator.ge
         for i in range(2, self.cheat_duration + 1):
-            debug_print(f"CHEAT DUR {i}")
+            #debug_print(f"CHEAT DUR {i}")
             d = self._path_diffs(i)
             n += mathutils.sum([v for k, v in d.items() if op(k, self.min_difference)])
         return n
@@ -177,7 +178,7 @@ class AdventDay(Day.Base):
         self.maze = Maze(self.input)
         #self.maze.display_path(self.maze.base_path)
         n = self.num_min_diffs()
-        debug_print(f"N : {n}")
+        debug_print(f"CHEAT DUR {self.cheat_duration} MIN DIFF {self.min_difference} N : {n}")
         return n
 
 
@@ -196,12 +197,18 @@ class AdventDay(Day.Base):
             # start "cheat" in an adjacent wall
             for c in [x for x in m.coord_grid.neighborhood(coord) if x in m.interior_walls]:
                 cc = [x for x in m.coord_grid.circle(c, duration - 1) if x in m.base_path and m.base_path.index(x) > m.base_path.index(coord)]
-                n = [m.coord_grid.ell(c, x) for x in cc] + [m.coord_grid.ell(c, x, direction=-1) for x in cc]
+                #m.display_path(cc, decorations={c: "+"})
+                n = [m.coord_grid.ell(c, x, direction=1) for x in cc] + [m.coord_grid.ell(c, x, direction=-1) for x in cc]
                 if n:
                     alts[coord][c] = n
+        debug_print(f"GOT ALT PATHS FOR DUR {duration}")
         return alts
 
+
+    def _path_diff(self, path):
+        return self.maze.base_length - (len(path) - 1)
     
+
     def _path_diffs(self, duration):
         def _alt_paths_at_coord(coord, alt_paths):
             if coord not in alt_paths:
@@ -221,13 +228,16 @@ class AdventDay(Day.Base):
                         continue
                     alt = p + pp + m.base_path[m.base_path.index(end) + 1:]
                     # prevent backtracking
-                    if not all([len(string.indices(x, alt)) == 1 for x in alt]):
+                    if len(alt) != len(set(alt)):
+                        continue
+                    # ignore paths that are too long
+                    if self._path_diff(alt) < self.min_difference:
                         continue
                     ends.append(end)
-                    disp = self.maze.base_length - (len(alt) - 1) == self.min_difference
-                    #debug_if(f"COORD {coord} WALL {start} NEXT PATH {end} P {p} PP {pp} LAST {m.base_path[m.base_path.index(end):]} FULL LEN {alt}", condition=disp)
+                    disp = False #self.maze.base_length - (len(alt) - 1) == self.min_difference
+                    #debug_if(f"COORD {coord} WALL {start} NEXT PATH {end} IND {m.base_path.index(end)} P {p} PP {pp} LAST {m.base_path[m.base_path.index(end):]} FULL LEN {alt}", condition=disp)
                     if disp:
-                        m.display_path(alt)
+                        m.display_path(alt, show_walls=True, decorations={start: "@", end: "%"})
                     #m.display_path(p + [start] + [end])
                     #paths.append(p + [start] + pp + m.base_path[m.base_path.index(pp[-1]):])
                     #debug_print(f"START {start} END {end} LINE {m.coord_grid.line(start, end, allow_diags=False)}")
@@ -237,12 +247,11 @@ class AdventDay(Day.Base):
     
         d = {}
         a = self._alt_paths(duration)
-        #debug_print(f"ALTS {[x for x in a.items() if x[1]]}")
         for c in a:
             for p in _alt_paths_at_coord(c, a):
                 #debug_print(f"C {c}")
                 #self.maze.display_path(p)
-                l = self.maze.base_length - (len(p) - 1)
+                l = self._path_diff(p)
                 if l not in d:
                     d[l] = 0
                 d[l] += 1
