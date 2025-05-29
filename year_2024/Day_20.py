@@ -223,7 +223,7 @@ class AdventDay(Day.Base):
                 #debug_print(f"COORD {coord} WALL {start}")
                 for pp in alt_paths[coord][start]:
                     end = pp[-1]
-                    # cheats with the same start and  end coords are considered identical
+                    # cheats with the same start and end coords are considered identical
                     if end in ends:
                         continue
                     alt = p + pp + m.base_path[m.base_path.index(end) + 1:]
@@ -234,8 +234,8 @@ class AdventDay(Day.Base):
                     if self._path_diff(alt) < self.min_difference:
                         continue
                     ends.append(end)
-                    disp = False #self.maze.base_length - (len(alt) - 1) == self.min_difference
-                    #debug_if(f"COORD {coord} WALL {start} NEXT PATH {end} IND {m.base_path.index(end)} P {p} PP {pp} LAST {m.base_path[m.base_path.index(end):]} FULL LEN {alt}", condition=disp)
+                    disp = self._path_diff(alt) == self.min_difference
+                    debug_if(f"COORD {coord} WALL {start} NEXT PATH {end} IND {m.base_path.index(end)} P {p} PP {pp} LAST {m.base_path[m.base_path.index(end):]} FULL LEN {alt}", condition=disp)
                     if disp:
                         m.display_path(alt, show_walls=True, decorations={start: "@", end: "%"})
                     #m.display_path(p + [start] + [end])
