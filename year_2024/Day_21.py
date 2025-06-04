@@ -43,6 +43,27 @@ class Keypad:
         return s
 
 
+    def to_input(self, txt, other_keypad=None):
+        k = other_keypad or self
+        r = re.sub(k.activation_digit, "", txt)[::-1]
+        rr = "".join([self._reverse_key(x) for x in r])
+        i = ""
+        e = []
+        v = r[0]
+        for c in r[1:]:
+            #if c != k.activation_digit:
+            #pp = k._key_path(c, v)
+            e.extend(k._key_path(c, v))
+            #debug_print(f"V {v} C {c} P {pp}")
+            #i += "".join([k._pos_digit(x) for x in pp])
+            v = c
+        debug_print(f"REV TXT {r} FLIPPED {rr} E {e}")
+        ee = [k._pos_digit(x if x != (0, 0) else e[i + 1]) for i, x in enumerate(e)]
+        debug_print(f"EE {ee}")
+        i = "".join([])
+        return i[::-1]
+    
+
     def next(self, direction):
         d = Keypad.move_map[direction]
         self.current_pos = (
@@ -66,7 +87,7 @@ class Keypad:
         v = self.init_digit
         for c in code:
             for i, d in enumerate(self._key_path(v, c)):
-                p += Keypad.dir_map.get(d) or p[-1] #self.init_digit
+                p += Keypad.dir_map.get(d) or p[-1]
             if p[-1] != self.init_digit:
                 p += self.init_digit
             v = c
@@ -78,6 +99,10 @@ class Keypad:
             if digit in self.layout[i]:
                 return (i, self.layout[i].index(digit))
         return None
+
+
+    def _is_valid_pos(self, pos):
+        return pos and pos != self.invalid_pos and 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
 
 
     # really need the path or just the number of steps?
@@ -128,11 +153,17 @@ class Keypad:
 
 
     def _pos_digit(self, pos):
-        return Keypad.layout[pos[0]][pos[1]]
+        return self.layout[pos[0]][pos[1]]
 
 
-    def _is_valid_pos(self, pos):
-        return pos and pos != self.invalid_pos and 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
+    def _reverse_direction(self, dir):
+        return (-1 * dir[0], -1 * dir[1])
+
+
+    def _reverse_key(self, key):
+        return Keypad.dir_map[self._reverse_direction(Keypad.move_map[key])]
+
+    
 
 
 class AdventDay(Day.Base):
@@ -142,7 +173,7 @@ class AdventDay(Day.Base):
     ]
 
     SINGLE = [
-        "2A"
+        "0A"
     ]
 
     TEST = [
@@ -167,17 +198,19 @@ class AdventDay(Day.Base):
     def run(self):
         from utils import string
 
-        self.input = AdventDay.REPEATS
+        self.input = AdventDay.SINGLE
         for c in self.input:
             p = self.numeric_keypad._code_path(c)
             k = self.numeric_keypad._code_actions(c)
             debug_print(f"CODE {c} PATH {p} KEYS {k}")
+            p2 = self.directional_keypad._code_path(k)
             k2 = self.directional_keypad._code_actions(k)
-            debug_print(f"CODE {c} DIR KEYS 1 {k2}")
+            debug_print(f"CODE {c} PATH {p2} DIR KEYS 1 {k2}")
             k3 = self.directional_keypad._code_actions(k2)
             debug_print(f"CODE {c} DIR KEYS 2 {k3} LEN {len(k3)} NUM A {len(string.re_indices("A", k3))}")
             t = "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"
-            debug_print(f"CODE {c} REAL KEYS 2 {t} LEN {len(t)} NUM A {len(string.re_indices("A", t))}")
+            #debug_print(f"CODE {c} REAL KEYS 2 {t} LEN {len(t)} NUM A {len(string.re_indices("A", t))}")
+            debug_print(f"REAL KEYS 2 INPUT {self.directional_keypad.to_input(k2)}")
         return self._code_complexity("")
 
 
