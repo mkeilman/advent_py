@@ -27,9 +27,9 @@ class Keypad:
         self.size = (len(self.layout), len(self.layout[0]))
         self.init_digit = init_digit
         self.activation_digit = activation_digit
-        self.init_pos = self._digit_pos(self.init_digit)
-        self.activation_pos = self._digit_pos(self.activation_digit)
-        self.invalid_pos = self._digit_pos(" ")
+        self.init_pos = self._position_of(self.init_digit)
+        self.activation_pos = self._position_of(self.activation_digit)
+        self.invalid_pos = self._position_of(" ")
         self.current_digit = self.init_digit
         self.current_pos = self.init_pos
         
@@ -45,22 +45,41 @@ class Keypad:
 
     def to_input(self, txt, other_keypad=None):
         k = other_keypad or self
-        r = re.sub(k.activation_digit, "", txt)[::-1]
-        rr = "".join([self._reverse_key(x) for x in r])
-        i = ""
-        e = []
-        v = r[0]
+        #v = k.init_digit
+        #r = re.sub(k.activation_digit, "", txt)[::-1]
+        r = txt[::-1]
+        #rr = "".join([self._reverse_key(x) for x in r])
+        i = k.activation_digit
+        #e = []
+        #v = r[0]
+        p = k.init_pos
+        did_poke = False
         for c in r[1:]:
+            if c == k.activation_digit:
+                if not did_poke:
+                    i += k._digit_at(p)
+                else:
+                    did_poke = True
+                continue
+            if did_poke:
+                #debug_print(f"ADD {k._digit_at(p)}")
+                i += k._digit_at(p)
+                did_poke = False
+            #debug_print(f"I NOW {i}")
+            d = Keypad.move_map[c]
+            #debug_print(f"MOVED {d}")
+            p = (p[0] - d[0], p[1] - d[1])
+            #debug_print(f"POS NOW {pp} -> {p}")
             #if c != k.activation_digit:
             #pp = k._key_path(c, v)
-            e.extend(k._key_path(c, v))
+            #e.extend(k._key_path(c, v))
             #debug_print(f"V {v} C {c} P {pp}")
-            #i += "".join([k._pos_digit(x) for x in pp])
-            v = c
-        debug_print(f"REV TXT {r} FLIPPED {rr} E {e}")
-        ee = [k._pos_digit(x if x != (0, 0) else e[i + 1]) for i, x in enumerate(e)]
-        debug_print(f"EE {ee}")
-        i = "".join([])
+            #i += "".join([k._digit_at(x) for x in pp])
+            #v = c
+        #debug_print(f"REV TXT {r} FLIPPED {rr} E {e}")
+        #ee = [k._digit_at(x if x != (0, 0) else e[i + 1]) for i, x in enumerate(e)]
+        #debug_print(f"EE {ee}")
+        #i = "".join([])
         return i[::-1]
     
 
@@ -70,7 +89,7 @@ class Keypad:
             max(0, min(self.current_pos[0] + d[0], len(self.layout) - 1)),
             max(0, min(self.current_pos[1] + d[1], len(self.layout[0]) - 1)),
         )
-        self.current_digit = self._pos_digit(self.current_pos)
+        self.current_digit = self._digit_at(self.current_pos)
 
 
     def _code_path(self, code):
@@ -94,7 +113,7 @@ class Keypad:
         return p
     
 
-    def _digit_pos(self, digit):
+    def _position_of(self, digit):
         for i in range(self.size[0]):
             if digit in self.layout[i]:
                 return (i, self.layout[i].index(digit))
@@ -113,8 +132,8 @@ class Keypad:
             n = (curr[0] + dir[0], curr[1] + dir[1])
             return n if self._is_valid_pos(n) else None
 
-        p1 = self._digit_pos(val1)
-        p2 = self._digit_pos(val2)
+        p1 = self._position_of(val1)
+        p2 = self._position_of(val2)
         #debug_print(f"V1 {val1} P1 {p1} V2 {val2} P1 {p2}")
         assert self._is_valid_pos(p1) and self._is_valid_pos(p2)
         d = (p2[0] - p1[0], p2[1] - p1[1])
@@ -152,7 +171,7 @@ class Keypad:
         return s
 
 
-    def _pos_digit(self, pos):
+    def _digit_at(self, pos):
         return self.layout[pos[0]][pos[1]]
 
 
@@ -169,11 +188,11 @@ class Keypad:
 class AdventDay(Day.Base):
 
     REPEATS = [
-        "379A",
+        "222A",
     ]
 
     SINGLE = [
-        "0A"
+        "9A"
     ]
 
     TEST = [
@@ -198,19 +217,22 @@ class AdventDay(Day.Base):
     def run(self):
         from utils import string
 
-        self.input = AdventDay.SINGLE
+        #self.input = AdventDay.REPEATS
         for c in self.input:
             p = self.numeric_keypad._code_path(c)
             k = self.numeric_keypad._code_actions(c)
-            debug_print(f"CODE {c} PATH {p} KEYS {k}")
+            cc = self.numeric_keypad.to_input(k)
+            #debug_print(f"CODE {c} PATH {p} KEYS {k} INV {cc}")
             p2 = self.directional_keypad._code_path(k)
             k2 = self.directional_keypad._code_actions(k)
-            debug_print(f"CODE {c} PATH {p2} DIR KEYS 1 {k2}")
+            #debug_print(f"CODE {c} PATH {p2} DIR KEYS 1 {k2}")
             k3 = self.directional_keypad._code_actions(k2)
-            debug_print(f"CODE {c} DIR KEYS 2 {k3} LEN {len(k3)} NUM A {len(string.re_indices("A", k3))}")
+            #debug_print(f"CODE {c} DIR KEYS 2 {k3} LEN {len(k3)} NUM A {len(string.re_indices("A", k3))}")
             t = "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"
             #debug_print(f"CODE {c} REAL KEYS 2 {t} LEN {len(t)} NUM A {len(string.re_indices("A", t))}")
-            debug_print(f"REAL KEYS 2 INPUT {self.directional_keypad.to_input(k2)}")
+            i2 = self.directional_keypad.to_input(k3)
+            i1 = self.directional_keypad.to_input(i2)
+            debug_print(f"INPUTS {k3} -> {i2} -> {i1} -> {cc}")
         return self._code_complexity("")
 
 
