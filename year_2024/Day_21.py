@@ -43,43 +43,23 @@ class Keypad:
         return s
 
 
-    def to_input(self, txt, other_keypad=None):
-        k = other_keypad or self
-        #v = k.init_digit
-        #r = re.sub(k.activation_digit, "", txt)[::-1]
+    def to_input(self, txt):
         r = txt[::-1]
-        #rr = "".join([self._reverse_key(x) for x in r])
-        i = k.activation_digit
-        #e = []
-        #v = r[0]
-        p = k.init_pos
+        i = self.activation_digit
+        p = self.init_pos
         did_poke = False
         for c in r[1:]:
-            if c == k.activation_digit:
+            if c == self.activation_digit:
                 if not did_poke:
-                    i += k._digit_at(p)
+                    i += self._digit_at(p)
                 else:
                     did_poke = True
                 continue
             if did_poke:
-                #debug_print(f"ADD {k._digit_at(p)}")
-                i += k._digit_at(p)
+                i += self._digit_at(p)
                 did_poke = False
-            #debug_print(f"I NOW {i}")
             d = Keypad.move_map[c]
-            #debug_print(f"MOVED {d}")
             p = (p[0] - d[0], p[1] - d[1])
-            #debug_print(f"POS NOW {pp} -> {p}")
-            #if c != k.activation_digit:
-            #pp = k._key_path(c, v)
-            #e.extend(k._key_path(c, v))
-            #debug_print(f"V {v} C {c} P {pp}")
-            #i += "".join([k._digit_at(x) for x in pp])
-            #v = c
-        #debug_print(f"REV TXT {r} FLIPPED {rr} E {e}")
-        #ee = [k._digit_at(x if x != (0, 0) else e[i + 1]) for i, x in enumerate(e)]
-        #debug_print(f"EE {ee}")
-        #i = "".join([])
         return i[::-1]
     
 
@@ -101,7 +81,8 @@ class Keypad:
         return p
     
 
-    def _code_actions(self, code):
+    def _code_actions(self, code, depth=0):
+        assert depth >= 0
         p = ""
         v = self.init_digit
         for c in code:
@@ -110,7 +91,8 @@ class Keypad:
             if p[-1] != self.init_digit:
                 p += self.init_digit
             v = c
-        return p
+        debug_print(f"P {p}")
+        return self._code_actions(p, depth=depth-1) if depth else p
     
 
     def _position_of(self, digit):
@@ -134,12 +116,11 @@ class Keypad:
 
         p1 = self._position_of(val1)
         p2 = self._position_of(val2)
-        #debug_print(f"V1 {val1} P1 {p1} V2 {val2} P1 {p2}")
         assert self._is_valid_pos(p1) and self._is_valid_pos(p2)
+
         d = (p2[0] - p1[0], p2[1] - p1[1])
         d_move = (mathutils.sign(d[0]), mathutils.sign(d[1]))
         d_num = (abs(d[0]), abs(d[1]))
-        #debug_print(f"{val1} -> {val2}: {d} MOVE {d_move} NUM {d_num}")
         # no motion
         if d_num == (0, 0):
             return [d_num]
@@ -152,7 +133,8 @@ class Keypad:
         s = []
         p = p1
         #i = d_num.index(max(*d_num))
-        i = 0 if p2[1] == self.invalid_pos[1] else 1
+        #i = 0 if p2[1] == self.invalid_pos[1] else 1
+        i = 0 if p1[0] == self.invalid_pos[0] else 1 #if p1[1] == self.invalid_pos[1] else 1
         while p != p2:
             b = Keypad.basis[i]
             m = d_move[i]
@@ -162,12 +144,12 @@ class Keypad:
             if pp:
                 s.append(v)
                 p = pp
+                # reached the final row or column, switch to other axis
                 if p[i] == p2[i]:
                     i = 1 - i
             else:
-                # move along other axis
+                # can't move to this key, switch to other axis
                 i = 1 - i
-            #i = 1 - i
         return s
 
 
@@ -218,23 +200,40 @@ class AdventDay(Day.Base):
         from utils import string
 
         #self.input = AdventDay.REPEATS
+        complexity = 0
         for c in self.input:
-            p = self.numeric_keypad._code_path(c)
-            k = self.numeric_keypad._code_actions(c)
-            cc = self.numeric_keypad.to_input(k)
-            #debug_print(f"CODE {c} PATH {p} KEYS {k} INV {cc}")
-            p2 = self.directional_keypad._code_path(k)
-            k2 = self.directional_keypad._code_actions(k)
+            #p = self.numeric_keypad._code_path(c)
+            #k = self.numeric_keypad._code_actions(c)
+            #debug_print(f"CODE {c} PATH {p} KEYS {k}")
+            #p2 = self.directional_keypad._code_path(k)
+            #k2 = self.directional_keypad._code_actions(k)
             #debug_print(f"CODE {c} PATH {p2} DIR KEYS 1 {k2}")
-            k3 = self.directional_keypad._code_actions(k2)
+            #k3 = self.directional_keypad._code_actions(k2)
             #debug_print(f"CODE {c} DIR KEYS 2 {k3} LEN {len(k3)} NUM A {len(string.re_indices("A", k3))}")
-            t = "<v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A"
-            #debug_print(f"CODE {c} REAL KEYS 2 {t} LEN {len(t)} NUM A {len(string.re_indices("A", t))}")
-            i2 = self.directional_keypad.to_input(k3)
-            i1 = self.directional_keypad.to_input(i2)
-            debug_print(f"INPUTS {k3} -> {i2} -> {i1} -> {cc}")
-        return self._code_complexity("")
+            #i2 = self.directional_keypad.to_input(k3)
+            #i1 = self.directional_keypad.to_input(i2)
+            #cc = self.numeric_keypad.to_input(i1)
+            #debug_print(f"CODE {c} INPUTS {k3} -> {i2} -> {i1} -> {cc}")
+            complexity += self._code_complexity(c)
+        t = "<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A"
+        #t1 = "^A<<^^A>>AvvvA"
+        #t2 = "<A>Av<<AA>^AA>AvAA^A<vAAA>^A"
+        #t2 = self.directional_keypad._code_actions(t1)
+        #tt = self.directional_keypad._code_actions(t2)
+        #debug_print(tt)
+        ti = self.directional_keypad.to_input(t)
+        tii = self.directional_keypad.to_input(ti)
+        tiii = self.numeric_keypad.to_input(tii)
+        debug_print(f"T {t} -> {ti} -> {tii} -> {tiii}")
+        debug_print(f"COMPL {complexity}")
+        return complexity
 
 
     def _code_complexity(self, code):
-        return 0
+        k = self.directional_keypad._code_actions(
+            self.numeric_keypad._code_actions(code),
+            depth=1
+        )
+        n = int(re.match(r"\d+", code).group(0))
+        debug_print(f"CODE {code} len {len(k)} N {n}")
+        return n * len(k)
