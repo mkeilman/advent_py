@@ -134,7 +134,7 @@ class Keypad:
         return p
     
 
-    def _code_keys(self, code, depth=0):
+    def _code_keys(self, code, depth=0, key_dict=None):
         import sys
 
         def _keys(path):
@@ -147,15 +147,17 @@ class Keypad:
 
 
         assert depth >= 0
-        p = ""
+
+        #debug_print(f"{depth} CK {code}")
+
+        #p = ""
         key1 = self.init_key
-        keys = {}
-        keys[code] = []
+        keys = key_dict or {}
+        #keys[code] = []
+        keys[depth] = keys.get(depth) or {}
+        #keys[depth][code] = []
         pp = []
-        npp = 1
         for key2 in code:
-            #p = ""
-            #debug_print(f"{key1} -> {key2}: KP {self._key_paths(key1, key2)}")
             q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
             #debug_print(f"{key1} -> {key2}: Q {q}")
             key1 = key2
@@ -168,7 +170,6 @@ class Keypad:
                     d.append(x + y)
             pp = d
             #debug_print(f"{key1} -> {key2}: Q {q} PP {pp}")
-            npp *= len(q)
 
             #for path in self._key_paths(key1, key2):
             #    #p = ""
@@ -179,20 +180,26 @@ class Keypad:
             #    if p[-1] != self.init_key:
             #        p += self.init_key
             #key1 = key2
-        keys[code] = pp
-        #debug_print(f"C {code} -> PP {pp[0]} NPP {npp}")
-        
+        #min_len = min([len(x) for x in keys[depth].values()])
+        #mn = min([len(x) for x in pp])
+        keys[depth][code] = pp
+        #debug_print(f"{depth} C {code} -> NPP {len(pp)} MN {len(pp[0])}")
+        #min_len = min([len(x) for x in keys[depth].values()])
+        #min_len = min([len(x) for x in pp])
+
         if depth:
-            min_len = sys.maxsize
+            #min_len = sys.maxsize
+            #debug_print(f"{depth} NEW MIN {min_len}")
             for p in pp:
-                next = self._code_keys(p, depth=depth-1)
-                l = len(next[p][0])
-                if l > min_len:
-                    continue
+                next = self._code_keys(p, depth=depth-1, key_dict=keys)
+                #mn = min([len(x) for x in next[depth - 1][p]])
+                #l = len(next[p][0])
+                #if mn > min_len:
+                #    debug_print(f"{depth} SKIP {p} ({mn} VS {min_len})")
+                #    continue
+                #debug_print(f"{depth} KEEP {p} ({mn} VS {min_len})")
                 keys.update(next)
-                min_len = l
-                #else:
-                #    debug_print(f"SKIP {p}")
+                #min_len = mn
         return keys
         #return self._code_keys(p, depth=depth-1) if depth else p
     
@@ -294,10 +301,10 @@ class AdventDay(Day.Base):
     ]
 
     TEST = [
-        #"029A",
-        #"980A",
-        #"179A",
-        #"456A",
+        "029A",
+        "980A",
+        "179A",
+        "456A",
         "379A",
     ]
 
@@ -346,15 +353,28 @@ class AdventDay(Day.Base):
 
 
     def _code_complexity(self, code):
+        import sys
+
         nk = self.numeric_keypad._code_keys(code)
-        for c in nk[code]:
-            nk.update(self.directional_keypad._code_keys(c, depth=1))
+        dk = {}
+        for c in nk[0][code]:
+            dk = self.directional_keypad._code_keys(c, depth=1, key_dict=dk)
         #k = self.directional_keypad._code_keys(
         #    self.numeric_keypad._code_keys(code),
         #    depth=1
         #)
         n = int(re.match(r"\d+", code).group(0))
+        dkk = list(dk.keys())
         nkk = list(nk.keys())
+        # final iteration is 0
+        mn = sys.maxsize
+        for x in dk[0]:
+            a = dk[0][x]
+            #debug_print(f"{x}: {len(a)} {len(a[0])}")
+            mn = min(mn, len(a[0]))
+        ld = dk[0].keys()
+        l = [len(x) for x in dk[0].values()]
+        #mn = min(dk[0].values())
 
-        debug_print(f"CODE {code} LAST K {nkk[-1]} LAST KK LEN {len(nk[nkk[-1]][0])} {n}")
-        return n * len(nk[nkk[-1]][0])
+        debug_print(f"CODE {code} MN {mn} {n}")
+        return n * mn
