@@ -110,10 +110,8 @@ class Keypad:
         d = (mathutils.sign(dp[0]), mathutils.sign(dp[1]))
         if not d[0]:
             return [abs(dp[1]) * [d]]
-            return [(p1[0], x) for x in range(p1[1], p2[1], d[1])]
         if not d[1]:
             return [abs(dp[0]) * [d]]
-            return [(x, p1[1]) for x in range(p1[0], p2[0], d[0])]
         # row 1st
         n = (p1[0] + d[0], p1[1])
         if n != self.invalid_pos:
@@ -136,29 +134,83 @@ class Keypad:
         return p
     
 
-    def _code_actions(self, code, depth=0):
+    def _code_keys(self, code, depth=0):
+        import sys
+
+        def _keys(path):
+            k = ""
+            for d in path:
+                k += Keypad.dir_map.get(d) or k[-1]
+            if k[-1] != self.init_key:
+                k += self.init_key
+            return k
+
+
         assert depth >= 0
         p = ""
-        v = self.init_key
-        for c in code:
-            for i, d in enumerate(self._key_path(v, c)):
-                p += Keypad.dir_map.get(d) or p[-1]
-            if p[-1] != self.init_key:
-                p += self.init_key
-            v = c
-        debug_print(f"C {code} -> P {p}")
-        return self._code_actions(p, depth=depth-1) if depth else p
+        key1 = self.init_key
+        keys = {}
+        keys[code] = []
+        pp = []
+        npp = 1
+        for key2 in code:
+            #p = ""
+            #debug_print(f"{key1} -> {key2}: KP {self._key_paths(key1, key2)}")
+            q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
+            #debug_print(f"{key1} -> {key2}: Q {q}")
+            key1 = key2
+            if not pp:
+                pp = q
+                continue
+            d = []
+            for x in pp:
+                for y in q or [x[-1]]:
+                    d.append(x + y)
+            pp = d
+            #debug_print(f"{key1} -> {key2}: Q {q} PP {pp}")
+            npp *= len(q)
+
+            #for path in self._key_paths(key1, key2):
+            #    #p = ""
+            #    #key1 = self.init_key
+            #    for d in path: #self._key_path(key1, key2):
+            #        p += Keypad.dir_map.get(d) or p[-1]
+            #    #debug_print(f"{code} -> PATH {path} -> P {p}")
+            #    if p[-1] != self.init_key:
+            #        p += self.init_key
+            #key1 = key2
+        keys[code] = pp
+        #debug_print(f"C {code} -> PP {pp[0]} NPP {npp}")
+        
+        if depth:
+            min_len = sys.maxsize
+            for p in pp:
+                next = self._code_keys(p, depth=depth-1)
+                l = len(next[p][0])
+                if l > min_len:
+                    continue
+                keys.update(next)
+                min_len = l
+                #else:
+                #    debug_print(f"SKIP {p}")
+        return keys
+        #return self._code_keys(p, depth=depth-1) if depth else p
     
 
-    def _position_of(self, digit):
+    def _position_of(self, key):
         for i in range(self.size[0]):
-            if digit in self.layout[i]:
-                return (i, self.layout[i].index(digit))
+            if key in self.layout[i]:
+                return (i, self.layout[i].index(key))
         return None
 
 
     def _is_valid_pos(self, pos):
         return pos and pos != self.invalid_pos and 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
+
+
+    def _pos_paths(self, p1, p2):
+        assert self._is_valid_pos(p1) and self._is_valid_pos(p2)
+        return [[(0, 0)]] if p1 == p2 else self.all_paths[(p1, p2)]
 
 
     # really need the path or just the number of steps?
@@ -227,6 +279,10 @@ class Keypad:
         return self._pos_path(self._position_of(val1), self._position_of(val2))
 
 
+    def _key_paths(self, val1, val2):
+        return self._pos_paths(self._position_of(val1), self._position_of(val2))
+
+
 class AdventDay(Day.Base):
 
     REPEATS = [
@@ -238,10 +294,10 @@ class AdventDay(Day.Base):
     ]
 
     TEST = [
-        "029A",
-        "980A",
-        "179A",
-        "456A",
+        #"029A",
+        #"980A",
+        #"179A",
+        #"456A",
         "379A",
     ]
 
@@ -263,12 +319,12 @@ class AdventDay(Day.Base):
         complexity = 0
         for c in self.input:
             #p = self.numeric_keypad._code_path(c)
-            #k = self.numeric_keypad._code_actions(c)
+            #k = self.numeric_keypad._code_keys(c)
             #debug_print(f"CODE {c} PATH {p} KEYS {k}")
             #p2 = self.directional_keypad._code_path(k)
-            #k2 = self.directional_keypad._code_actions(k)
+            #k2 = self.directional_keypad._code_keys(k)
             #debug_print(f"CODE {c} PATH {p2} DIR KEYS 1 {k2}")
-            #k3 = self.directional_keypad._code_actions(k2)
+            #k3 = self.directional_keypad._code_keys(k2)
             #debug_print(f"CODE {c} DIR KEYS 2 {k3} LEN {len(k3)} NUM A {len(string.re_indices("A", k3))}")
             #i2 = self.directional_keypad.to_input(k3)
             #i1 = self.directional_keypad.to_input(i2)
@@ -278,8 +334,8 @@ class AdventDay(Day.Base):
         #t = "<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A"
         #t1 = "^A<<^^A>>AvvvA"
         #t2 = "<A>Av<<AA>^AA>AvAA^A<vAAA>^A"
-        #t2 = self.directional_keypad._code_actions(t1)
-        #tt = self.directional_keypad._code_actions(t2)
+        #t2 = self.directional_keypad._code_keys(t1)
+        #tt = self.directional_keypad._code_keys(t2)
         #debug_print(tt)
         #ti = self.directional_keypad.to_input(t)
         #tii = self.directional_keypad.to_input(ti)
@@ -290,10 +346,15 @@ class AdventDay(Day.Base):
 
 
     def _code_complexity(self, code):
-        k = self.directional_keypad._code_actions(
-            self.numeric_keypad._code_actions(code),
-            depth=1
-        )
+        nk = self.numeric_keypad._code_keys(code)
+        for c in nk[code]:
+            nk.update(self.directional_keypad._code_keys(c, depth=1))
+        #k = self.directional_keypad._code_keys(
+        #    self.numeric_keypad._code_keys(code),
+        #    depth=1
+        #)
         n = int(re.match(r"\d+", code).group(0))
-        debug_print(f"CODE {code} len {len(k)} N {n}")
-        return n * len(k)
+        nkk = list(nk.keys())
+
+        debug_print(f"CODE {code} LAST K {nkk[-1]} LAST KK LEN {len(nk[nkk[-1]][0])} {n}")
+        return n * len(nk[nkk[-1]][0])
