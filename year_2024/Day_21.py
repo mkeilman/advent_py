@@ -150,10 +150,8 @@ class Keypad:
 
         #debug_print(f"{depth} CK {code}")
 
-        #p = ""
         key1 = self.init_key
         keys = key_dict or {}
-        #keys[code] = []
         keys[depth] = keys.get(depth) or {}
         #keys[depth][code] = []
         pp = []
@@ -169,23 +167,12 @@ class Keypad:
                 for y in q or [x[-1]]:
                     d.append(x + y)
             pp = d
-            #debug_print(f"{key1} -> {key2}: Q {q} PP {pp}")
 
-            #for path in self._key_paths(key1, key2):
-            #    #p = ""
-            #    #key1 = self.init_key
-            #    for d in path: #self._key_path(key1, key2):
-            #        p += Keypad.dir_map.get(d) or p[-1]
-            #    #debug_print(f"{code} -> PATH {path} -> P {p}")
-            #    if p[-1] != self.init_key:
-            #        p += self.init_key
-            #key1 = key2
-        #min_len = min([len(x) for x in keys[depth].values()])
-        #mn = min([len(x) for x in pp])
+        min_len = min([len(x[0]) for x in keys[depth].values()]) if keys[depth] else sys.maxsize
+        mn = min([len(x) for x in pp])
+        debug_print(f"{depth} C {code} -> NPP {len(pp)} MN {mn} MIN LEN {min_len}")
+
         keys[depth][code] = pp
-        #debug_print(f"{depth} C {code} -> NPP {len(pp)} MN {len(pp[0])}")
-        #min_len = min([len(x) for x in keys[depth].values()])
-        #min_len = min([len(x) for x in pp])
 
         if depth:
             #min_len = sys.maxsize
