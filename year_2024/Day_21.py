@@ -233,41 +233,8 @@ class Keypad:
         d = (p2[0] - p1[0], p2[1] - p1[1])
         d_move = (mathutils.sign(d[0]), mathutils.sign(d[1]))
         d_num = (abs(d[0]), abs(d[1]))
-        # no motion
-        if d_num == (0, 0):
-            return [d_num]
-        
-        p = self.all_paths[(p1, p2)][0]
-        #debug_print(f"P1 {p1} -> P2 {p2}: {p}")
-        return self.all_paths[(p1, p2)][0]
-    
-        # no vertical
-        if not d_num[0]:
-            return d_num[1] * [(0, d_move[1])]
-        # no horizontal
-        if not d_num[1]:
-            return d_num[0] * [(d_move[0], 0)]
-        s = []
-        p = p1
-        #i = d_num.index(max(*d_num))
-        i = 0 if p1[0] == self.invalid_pos[0] else 1 #if p1[1] == self.invalid_pos[1] else 1
-        while p != p2:
-            b = Keypad.basis[i]
-            m = d_move[i]
-            v = (m * b[0], m * b[1])
-            pp = _next(p, v)
-            #debug_print(f"P {p} V {v} NEXT {pp}")
-            if pp:
-                s.append(v)
-                p = pp
-                # reached the final row or column, switch to other axis
-                if p[i] == p2[i]:
-                    i = 1 - i
-            else:
-                # can't move to this key, switch to other axis
-                i = 1 - i
-        #debug_print(f"P1 {p1} P2 {p2} PATH {s}")
-        return s
+        return [d_num] if d_num == (0, 0) else self.all_paths[(p1, p2)][0]
+
 
 
     def _digit_at(self, pos):
@@ -325,29 +292,7 @@ class AdventDay(Day.Base):
         #self.input = AdventDay.REPEATS
         complexity = 0
         for c in self.input:
-            #p = self.numeric_keypad._code_path(c)
-            #k = self.numeric_keypad._code_keys(c)
-            #debug_print(f"CODE {c} PATH {p} KEYS {k}")
-            #p2 = self.directional_keypad._code_path(k)
-            #k2 = self.directional_keypad._code_keys(k)
-            #debug_print(f"CODE {c} PATH {p2} DIR KEYS 1 {k2}")
-            #k3 = self.directional_keypad._code_keys(k2)
-            #debug_print(f"CODE {c} DIR KEYS 2 {k3} LEN {len(k3)} NUM A {len(string.re_indices("A", k3))}")
-            #i2 = self.directional_keypad.to_input(k3)
-            #i1 = self.directional_keypad.to_input(i2)
-            #cc = self.numeric_keypad.to_input(i1)
-            #debug_print(f"CODE {c} INPUTS {k3} -> {i2} -> {i1} -> {cc}")
             complexity += self._code_complexity(c)
-        #t = "<v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A"
-        #t1 = "^A<<^^A>>AvvvA"
-        #t2 = "<A>Av<<AA>^AA>AvAA^A<vAAA>^A"
-        #t2 = self.directional_keypad._code_keys(t1)
-        #tt = self.directional_keypad._code_keys(t2)
-        #debug_print(tt)
-        #ti = self.directional_keypad.to_input(t)
-        #tii = self.directional_keypad.to_input(ti)
-        #tiii = self.numeric_keypad.to_input(tii)
-        #debug_print(f"T {t} -> {ti} -> {tii} -> {tiii}")
         debug_print(f"COMPL {complexity}")
         return complexity
 
