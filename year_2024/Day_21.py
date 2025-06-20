@@ -304,21 +304,13 @@ class AdventDay(Day.Base):
         dk = {}
         for c in nk[0][code]:
             dk = self.directional_keypad._code_keys(c, depth=1, key_dict=dk)
-        #k = self.directional_keypad._code_keys(
-        #    self.numeric_keypad._code_keys(code),
-        #    depth=1
-        #)
         n = int(re.match(r"\d+", code).group(0))
-        dkk = list(dk.keys())
-        nkk = list(nk.keys())
         # final iteration is 0
         mn = sys.maxsize
         for x in dk[0]:
             a = dk[0][x]
             #debug_print(f"{x}: {len(a)} {len(a[0])}")
             mn = min(mn, len(a[0]))
-        ld = dk[0].keys()
-        l = [len(x) for x in dk[0].values()]
         #mn = min(dk[0].values())
 
         debug_print(f"CODE {code} MN {mn} {n}")
