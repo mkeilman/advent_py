@@ -134,7 +134,7 @@ class Keypad:
         return p
     
 
-    def _code_keys(self, code, depth=0, key_dict=None):
+    def _code_keys(self, code, iteration=0, key_dict=None):
         import sys
 
         def _keys(path):
@@ -146,14 +146,14 @@ class Keypad:
             return k
 
 
-        assert depth >= 0
+        assert iteration >= 0
 
-        #debug_print(f"{depth} CK {code}")
+        #debug_print(f"{iteration} CK {code}")
 
         key1 = self.init_key
         keys = key_dict or {}
-        keys[depth] = keys.get(depth) or {}
-        #keys[depth][code] = []
+        keys[iteration] = keys.get(iteration) or {}
+        #keys[iteration][code] = []
         pp = []
         for key2 in code:
             q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
@@ -168,27 +168,28 @@ class Keypad:
                     d.append(x + y)
             pp = d
 
-        min_len = min([len(x[0]) for x in keys[depth].values()]) if keys[depth] else sys.maxsize
+        min_len = min([len(x[0]) for x in keys[iteration].values()]) if keys[iteration] else sys.maxsize
         mn = min([len(x) for x in pp])
-        debug_print(f"{depth} C {code} -> NPP {len(pp)} MN {mn} MIN LEN {min_len}")
+        debug_print(f"{iteration} C {code} -> NPP {len(pp)} MN {mn} MIN LEN {min_len}")
 
-        keys[depth][code] = pp
 
-        if depth:
+        keys[iteration][code] = pp
+
+        if iteration:
             #min_len = sys.maxsize
-            #debug_print(f"{depth} NEW MIN {min_len}")
+            #debug_print(f"{iteration} NEW MIN {min_len}")
             for p in pp:
-                next = self._code_keys(p, depth=depth-1, key_dict=keys)
-                #mn = min([len(x) for x in next[depth - 1][p]])
+                next = self._code_keys(p, iteration=iteration-1, key_dict=keys)
+                #mn = min([len(x) for x in next[iteration - 1][p]])
                 #l = len(next[p][0])
                 #if mn > min_len:
-                #    debug_print(f"{depth} SKIP {p} ({mn} VS {min_len})")
+                #    debug_print(f"{iteration} SKIP {p} ({mn} VS {min_len})")
                 #    continue
-                #debug_print(f"{depth} KEEP {p} ({mn} VS {min_len})")
+                #debug_print(f"{iteration} KEEP {p} ({mn} VS {min_len})")
                 keys.update(next)
                 #min_len = mn
         return keys
-        #return self._code_keys(p, depth=depth-1) if depth else p
+        #return self._code_keys(p, iteration=iteration-1) if iteration else p
     
 
     def _position_of(self, key):
@@ -290,7 +291,7 @@ class AdventDay(Day.Base):
         nk = self.numeric_keypad._code_keys(code)
         dk = {}
         for c in nk[0][code]:
-            dk = self.directional_keypad._code_keys(c, depth=1, key_dict=dk)
+            dk = self.directional_keypad._code_keys(c, iteration=1, key_dict=dk)
         n = int(re.match(r"\d+", code).group(0))
         # final iteration is 0
         mn = sys.maxsize
