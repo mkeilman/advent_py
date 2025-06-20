@@ -266,18 +266,22 @@ class AdventDay(Day.Base):
 
     def __init__(self, run_args):
         super(AdventDay, self).__init__(2024, 21)
-        d = [
-            " ^A",
-            "<v>",
-        ]
+        self.args_parser.add_argument(
+            "--num-iterations",
+            type=int,
+            help="number of directional keypad iterations",
+            default=1,
+            dest="num_iterations",
+        )
+        self.add_args(run_args)
         self.numeric_keypad = Keypad()
-        self.directional_keypad = Keypad(layout=d)
+        self.directional_keypad = Keypad(layout=[" ^A", "<v>",])
     
 
     def run(self):
         from utils import string
 
-        #self.input = AdventDay.REPEATS
+        self.input = AdventDay.SINGLE
         complexity = 0
         for c in self.input:
             complexity += self._code_complexity(c)
@@ -291,7 +295,7 @@ class AdventDay(Day.Base):
         nk = self.numeric_keypad._code_keys(code)
         dk = {}
         for c in nk[0][code]:
-            dk = self.directional_keypad._code_keys(c, iteration=1, key_dict=dk)
+            dk = self.directional_keypad._code_keys(c, iteration=self.num_iterations, key_dict=dk)
         n = int(re.match(r"\d+", code).group(0))
         # final iteration is 0
         mn = sys.maxsize
