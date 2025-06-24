@@ -96,6 +96,91 @@ class Keypad:
         paths.update(r)
         return paths
 
+    def _code_keys(self, code, iteration=0):
+        import sys
+
+        def _keys(path):
+            k = ""
+            for d in path:
+                k += Keypad.dir_map.get(d) or k[-1]
+            if k[-1] != self.init_key:
+                k += self.init_key
+            return k
+
+
+        def _next_keys(last_keys, max_size=sys.maxsize):
+            debug_print(f"LAST {last_keys} LENS {len(last_keys)}")
+            next_keys = []
+            key1 = self.init_key
+            for key2 in last_keys:
+                q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
+                if q:
+                    debug_print(f"Q {q} LWNS {len(q[0])}")
+                key1 = key2
+                if not next_keys:
+                    next_keys = q
+                    continue
+                d = []
+                for x in next_keys:
+                    for y in q or [x[-1]]:
+                        d.append(x + y)
+                        #debug_print(f"D {d}")
+                next_keys = d
+            return next_keys
+
+        assert iteration >= 0
+
+        #debug_print(f"{iteration} CK {code}")
+
+        is_single_code = isinstance(code, str)
+        
+        codes = [code] if is_single_code else code
+
+        while iteration >= 0:
+            mn = sys.maxsize
+            cc = []
+            for c in codes:
+                n = _next_keys(c, max_size=mn)
+                if not n:
+                    continue
+                l = len(n[0])
+                #if iteration:
+                #    #debug_print(f"{iteration} KEEP ALL {l}")
+                #    #cc = n
+                #    cc.extend(n)
+                #    continue
+                # new min, replace
+                if l < mn:
+                    #debug_print(f"{iteration} NEW MIN {l}")
+                    mn = l
+                    cc = n
+                # existing min, add
+                elif l == mn:
+                    #debug_print(f"{iteration} EXISTING MIN {l}")
+                    cc.extend(n)
+                else:
+                    #debug_print(f"{iteration} TOO BIG {l}")
+                    pass
+            codes = cc
+            debug_print(f"C {code} MAPS TO {len(codes)} KEYS")
+            #keys[iteration][code] = _next_keys(code) #pp
+            iteration -= 1
+
+        return codes if is_single_code else codes[0]
+
+
+    def _digit_at(self, pos):
+        return self.layout[pos[0]][pos[1]]
+
+
+    def _is_valid_pos(self, pos):
+        return pos and pos != self.invalid_pos and 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
+
+
+    def _key_paths(self, val1, val2):
+        return self._pos_paths(self._position_of(val1), self._position_of(val2))
+
+
     def _paths(self, p1, p2):
         from utils import mathutils
         
@@ -123,136 +208,13 @@ class Keypad:
             for x in self._paths(n, p2):
                 paths.append([(0, d[1])]  + x)
         return paths
-
-
-    def _code_path(self, code):
-        p = []
-        v = self.init_key
-        for c in code:
-            p.extend(self._key_path(v, c))
-            v = c
-        return p
-    
-
-    def _code_keys(self, code, iteration=0, key_dict=None):
-        import sys
-
-        #debug_print(f"GET KEYS FROM {code}")
-
-        def _keys(path):
-            k = ""
-            for d in path:
-                k += Keypad.dir_map.get(d) or k[-1]
-            if k[-1] != self.init_key:
-                k += self.init_key
-            return k
-
-
-        def _next_keys(last_keys):
-            next_keys = []
-            #mnd = sys.maxsize
-            key1 = self.init_key
-            for key2 in last_keys:
-                q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
-                key1 = key2
-                if not next_keys:
-                    next_keys = q
-                    continue
-                d = []
-                for x in next_keys:
-                    for y in q or [x[-1]]:
-                        #mnd = min(mnd, len(x + y))
-                        d.append(x + y)
-                next_keys = d
-            #debug_print(f"LAST {last_keys} -> NEXT {next_keys}")
-            return next_keys
-
-        assert iteration >= 0
-
-        #debug_print(f"{iteration} CK {code}")
-
-        is_single_code = isinstance(code, str)
-        keys = key_dict or {}
         
-        codes = [code] if is_single_code else code
-
-        while iteration >= 0:
-            mn = sys.maxsize
-            #key1 = self.init_key
-            #keys = key_dict or {}
-            #keys[iteration] = {} #keys.get(iteration) or {}
-            #keys[iteration][code] = []
-            #pp = []
-            #mnd = sys.maxsize
-            #for key2 in code:
-            #    q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
-            #    #debug_print(f"{key1} -> {key2}: Q {q}")
-            #    key1 = key2
-            #    if not pp:
-            #        pp = q
-            #        continue
-            #    d = []
-            #    for x in pp:
-            #        for y in q or [x[-1]]:
-            #            mnd = min(mnd, len(x + y))
-            #            d.append(x + y)
-            #    pp = d
-
-            #min_len = min([len(x[0]) for x in keys[iteration].values()]) if keys[iteration] else sys.maxsize
-            #mn = min([len(x) for x in pp])
-            #debug_print(f"{iteration} C {code} -> MN {mn} MIN LEN {min_len}")
-            #codes = [_next_keys(x) for x in codes]
-            cc = []
-            for c in codes:
-                n = _next_keys(c)
-                l = len(n[0])
-                #if iteration:
-                #    #debug_print(f"{iteration} KEEP ALL {l}")
-                #    #cc = n
-                #    cc.extend(n)
-                #    continue
-                # new min, replace
-                if l < mn:
-                    #debug_print(f"{iteration} NEW MIN {l}")
-                    mn = l
-                    cc = n
-                # existing min, add
-                elif l == mn:
-                    #debug_print(f"{iteration} EXISTING MIN {l}")
-                    cc.extend(n)
-                else:
-                    #debug_print(f"{iteration} TOO BIG {l}")
-                    pass
-            codes = cc
-            debug_print(f"C {code} MAPS TO {len(codes)} KEYS")
-            #keys[iteration][code] = _next_keys(code) #pp
-            iteration -= 1
-        #keys[code] = codes
-        #debug_print(f"LENS {[len(x) for x in codes]}")
-        return codes if is_single_code else codes[0]
-
-
-        #keys[iteration][code] = pp
-        #if iteration:
-        #    for p in pp:
-        #        keys.update(self._code_keys(p, iteration=iteration-1, key_dict=keys))
-        return keys
-    
 
     def _position_of(self, key):
         for i in range(self.size[0]):
             if key in self.layout[i]:
                 return (i, self.layout[i].index(key))
         return None
-
-
-    def _is_valid_pos(self, pos):
-        return pos and pos != self.invalid_pos and 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
-
-
-    def _pos_paths(self, p1, p2):
-        assert self._is_valid_pos(p1) and self._is_valid_pos(p2)
-        return [[(0, 0)]] if p1 == p2 else self.all_paths[(p1, p2)]
 
 
     # really need the path or just the number of steps?
@@ -271,9 +233,9 @@ class Keypad:
         return [d_num] if d_num == (0, 0) else self.all_paths[(p1, p2)][0]
 
 
-
-    def _digit_at(self, pos):
-        return self.layout[pos[0]][pos[1]]
+    def _pos_paths(self, p1, p2):
+        assert self._is_valid_pos(p1) and self._is_valid_pos(p2)
+        return [[(0, 0)]] if p1 == p2 else self.all_paths[(p1, p2)]
 
 
     def _reverse_direction(self, dir):
@@ -282,14 +244,6 @@ class Keypad:
 
     def _reverse_key(self, key):
         return Keypad.dir_map[self._reverse_direction(Keypad.move_map[key])]
-
-
-    def _key_path(self, val1, val2):
-        return self._pos_path(self._position_of(val1), self._position_of(val2))
-
-
-    def _key_paths(self, val1, val2):
-        return self._pos_paths(self._position_of(val1), self._position_of(val2))
 
 
 class AdventDay(Day.Base):
@@ -345,7 +299,7 @@ class AdventDay(Day.Base):
         #for c in nk[0][code]:
         #for c in nk[code]:
         #for c in nk:
-        dk = self.directional_keypad._code_keys(nk, iteration=self.num_iterations, key_dict=dk)
+        dk = self.directional_keypad._code_keys(nk, iteration=self.num_iterations)
         #debug_print(f"DK {dk}")
         n = int(re.match(r"\d+", code).group(0))
         mn = len(dk)
