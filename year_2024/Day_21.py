@@ -137,6 +137,8 @@ class Keypad:
     def _code_keys(self, code, iteration=0, key_dict=None):
         import sys
 
+        #debug_print(f"GET KEYS FROM {code}")
+
         def _keys(path):
             k = ""
             for d in path:
@@ -146,50 +148,95 @@ class Keypad:
             return k
 
 
+        def _next_keys(last_keys):
+            next_keys = []
+            #mnd = sys.maxsize
+            key1 = self.init_key
+            for key2 in last_keys:
+                q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
+                key1 = key2
+                if not next_keys:
+                    next_keys = q
+                    continue
+                d = []
+                for x in next_keys:
+                    for y in q or [x[-1]]:
+                        #mnd = min(mnd, len(x + y))
+                        d.append(x + y)
+                next_keys = d
+            #debug_print(f"LAST {last_keys} -> NEXT {next_keys}")
+            return next_keys
+
         assert iteration >= 0
 
         #debug_print(f"{iteration} CK {code}")
 
-        key1 = self.init_key
+        is_single_code = isinstance(code, str)
         keys = key_dict or {}
-        keys[iteration] = keys.get(iteration) or {}
-        #keys[iteration][code] = []
-        pp = []
-        for key2 in code:
-            q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
-            #debug_print(f"{key1} -> {key2}: Q {q}")
-            key1 = key2
-            if not pp:
-                pp = q
-                continue
-            d = []
-            for x in pp:
-                for y in q or [x[-1]]:
-                    d.append(x + y)
-            pp = d
+        
+        codes = [code] if is_single_code else code
 
-        min_len = min([len(x[0]) for x in keys[iteration].values()]) if keys[iteration] else sys.maxsize
-        mn = min([len(x) for x in pp])
-        debug_print(f"{iteration} C {code} -> NPP {len(pp)} MN {mn} MIN LEN {min_len}")
+        while iteration >= 0:
+            mn = sys.maxsize
+            #key1 = self.init_key
+            #keys = key_dict or {}
+            #keys[iteration] = {} #keys.get(iteration) or {}
+            #keys[iteration][code] = []
+            #pp = []
+            #mnd = sys.maxsize
+            #for key2 in code:
+            #    q = [] if key1 == key2 else [_keys(x) for x in self._key_paths(key1, key2)]
+            #    #debug_print(f"{key1} -> {key2}: Q {q}")
+            #    key1 = key2
+            #    if not pp:
+            #        pp = q
+            #        continue
+            #    d = []
+            #    for x in pp:
+            #        for y in q or [x[-1]]:
+            #            mnd = min(mnd, len(x + y))
+            #            d.append(x + y)
+            #    pp = d
 
-
-        keys[iteration][code] = pp
-
-        if iteration:
-            #min_len = sys.maxsize
-            #debug_print(f"{iteration} NEW MIN {min_len}")
-            for p in pp:
-                next = self._code_keys(p, iteration=iteration-1, key_dict=keys)
-                #mn = min([len(x) for x in next[iteration - 1][p]])
-                #l = len(next[p][0])
-                #if mn > min_len:
-                #    debug_print(f"{iteration} SKIP {p} ({mn} VS {min_len})")
+            #min_len = min([len(x[0]) for x in keys[iteration].values()]) if keys[iteration] else sys.maxsize
+            #mn = min([len(x) for x in pp])
+            #debug_print(f"{iteration} C {code} -> MN {mn} MIN LEN {min_len}")
+            #codes = [_next_keys(x) for x in codes]
+            cc = []
+            for c in codes:
+                n = _next_keys(c)
+                l = len(n[0])
+                #if iteration:
+                #    #debug_print(f"{iteration} KEEP ALL {l}")
+                #    #cc = n
+                #    cc.extend(n)
                 #    continue
-                #debug_print(f"{iteration} KEEP {p} ({mn} VS {min_len})")
-                keys.update(next)
-                #min_len = mn
+                # new min, replace
+                if l < mn:
+                    #debug_print(f"{iteration} NEW MIN {l}")
+                    mn = l
+                    cc = n
+                # existing min, add
+                elif l == mn:
+                    #debug_print(f"{iteration} EXISTING MIN {l}")
+                    cc.extend(n)
+                else:
+                    #debug_print(f"{iteration} TOO BIG {l}")
+                    pass
+            codes = cc
+            debug_print(f"C {code} MAPS TO {len(codes)} KEYS")
+            #keys[iteration][code] = _next_keys(code) #pp
+            iteration -= 1
+        #keys[code] = codes
+        #debug_print(f"LENS {[len(x) for x in codes]}")
+        return codes if is_single_code else codes[0]
+
+
+        #keys[iteration][code] = pp
+        #if iteration:
+        #    for p in pp:
+        #        keys.update(self._code_keys(p, iteration=iteration-1, key_dict=keys))
         return keys
-        #return self._code_keys(p, iteration=iteration-1) if iteration else p
     
 
     def _position_of(self, key):
@@ -293,16 +340,21 @@ class AdventDay(Day.Base):
         import sys
 
         nk = self.numeric_keypad._code_keys(code)
+        #debug_print(f"NK {nk}")
         dk = {}
-        for c in nk[0][code]:
-            dk = self.directional_keypad._code_keys(c, iteration=self.num_iterations, key_dict=dk)
+        #for c in nk[0][code]:
+        #for c in nk[code]:
+        #for c in nk:
+        dk = self.directional_keypad._code_keys(nk, iteration=self.num_iterations, key_dict=dk)
+        #debug_print(f"DK {dk}")
         n = int(re.match(r"\d+", code).group(0))
+        mn = len(dk)
         # final iteration is 0
-        mn = sys.maxsize
-        for x in dk[0]:
-            a = dk[0][x]
-            #debug_print(f"{x}: {len(a)} {len(a[0])}")
-            mn = min(mn, len(a[0]))
+        #mn = sys.maxsize
+        #for x in dk[0]:
+        #    a = dk[0][x]
+        #    #debug_print(f"{x}: {len(a)} {len(a[0])}")
+        #    mn = min(mn, len(a[0]))
         #mn = min(dk[0].values())
 
         debug_print(f"CODE {code} MN {mn} {n}")
