@@ -33,6 +33,7 @@ class Keypad:
         self.activation_pos = self._position_of(self.activation_key)
         self.invalid_pos = self._position_of(self.invalid_key)
         self.all_paths = self._all_paths()
+        self.all_path_lengths = self._all_path_lengths()
         self.current_digit = self.init_key
         self.current_pos = self.init_pos
         
@@ -96,6 +97,11 @@ class Keypad:
         paths.update(r)
         return paths
 
+
+    def _all_path_lengths(self):
+        return {k:len(v[0]) for k, v in self.all_paths.items()}
+
+
     def _code_keys(self, code, iteration=0):
         import sys
 
@@ -109,7 +115,7 @@ class Keypad:
 
 
         def _next_keys(last_keys, max_size=sys.maxsize):
-            debug_print(f"LAST {last_keys} LENS {len(last_keys)}")
+            debug_print(f"LAST {last_keys} LENS {len(last_keys)} PL {self._path_length(last_keys)}")
             next_keys = []
             key1 = self.init_key
             for key2 in last_keys:
@@ -209,6 +215,17 @@ class Keypad:
                 paths.append([(0, d[1])]  + x)
         return paths
         
+
+    def _path_length(self, keys):
+        from utils import mathutils
+
+        p = [(self._position_of(keys[i]), self._position_of(keys[i + 1])) for i in range(len(keys) - 1)]
+        l = 0
+        for x in p:
+            l += self.all_path_lengths.get(x, 0)
+        debug_print(f"K {keys} P {p} L {l}")
+        return l
+
 
     def _position_of(self, key):
         for i in range(self.size[0]):
