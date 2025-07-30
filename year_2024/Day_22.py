@@ -28,9 +28,7 @@ class AdventDay(Day.Base):
     def run(self):
         n = 0
         for s in self._parse(self.input):
-            c = self._next(s)
-            #debug_print(f"{s} -> {c}")
-            n += c
+            n += self._next(s)
         debug_print(f"N {n}")
         return n
     
