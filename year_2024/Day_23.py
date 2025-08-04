@@ -54,8 +54,7 @@ class AdventDay(Day.Base):
 
     def run(self):
         test_char = "t"
-        pairs = self._parse(self.input)
-        trips = self._triples(pairs)
+        trips = self._triples(self._parse(self.input))
         t_trips = [x for x in trips if any([y[0] == test_char for y in x])]
         debug_print(f"N T TRIPS {len(t_trips)}")
         return len(t_trips)
@@ -72,7 +71,7 @@ class AdventDay(Day.Base):
         tt = set()
         for p in pairs:
             # all unique pairs sharing one element of this pair
-            s = set([x for x in pairs if x[0] in p or x[1] in p])
+            s = {x for x in pairs if x[0] in p or x[1] in p}
             # combinations of 3 pairs
             for e in itertools.combinations(s, 3):
                 u = set()
@@ -83,3 +82,4 @@ class AdventDay(Day.Base):
                 t.append(u)
                 tt = tt | u
         return t
+
