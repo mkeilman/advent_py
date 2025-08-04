@@ -53,13 +53,33 @@ class AdventDay(Day.Base):
 
 
     def run(self):
-        debug_print(f"RUN")
-        return 0
+        test_char = "t"
+        pairs = self._parse(self.input)
+        trips = self._triples(pairs)
+        t_trips = [x for x in trips if any([y[0] == test_char for y in x])]
+        debug_print(f"N T TRIPS {len(t_trips)}")
+        return len(t_trips)
     
 
     def _parse(self, grid):
-        return [int(x) for x in grid]
+        return [tuple(sorted(re.findall(r"[a-z][a-z]", x))) for x in grid]
 
 
+    def _triples(self, pairs):
+        import itertools 
 
-
+        t = []
+        tt = set()
+        for p in pairs:
+            # all unique pairs sharing one element of this pair
+            s = set([x for x in pairs if x[0] in p or x[1] in p])
+            # combinations of 3 pairs
+            for e in itertools.combinations(s, 3):
+                u = set()
+                for ee in e:
+                    u = u | set(ee)
+                if len(u) != 3 or u in t:
+                    continue
+                t.append(u)
+                tt = tt | u
+        return t
