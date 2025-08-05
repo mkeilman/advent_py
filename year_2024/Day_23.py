@@ -42,23 +42,68 @@ class AdventDay(Day.Base):
 
     def __init__(self, run_args):
         super(AdventDay, self).__init__(2024, 23)
-        #self.args_parser.add_argument(
-        #    "--num-iterations",
-        #    type=int,
-        #    help="number of iterations",
-        #    default=1,
-        #    dest="num_iterations",
-        #)
-        #self.add_args(run_args)
+        self.args_parser.add_argument(
+            "--num-connections",
+            type=int,
+            help="number of connections",
+            default=3,
+            dest="num_connections",
+        )
+        self.add_args(run_args)
 
 
     def run(self):
         test_char = "t"
-        trips = self._triples(self._parse(self.input))
+        trips = self._connections(self._parse(self.input))
         t_trips = [x for x in trips if any([y[0] == test_char for y in x])]
-        debug_print(f"N T TRIPS {len(t_trips)}")
+        debug_print(f"N T {self.num_connections} {trips} {len(trips)}")
         return len(t_trips)
     
+
+    def _connections(self, pairs):
+        import itertools 
+        import math
+
+        t = []
+        tt = set()
+        n = self.num_connections
+        nc = (n * (n - 1)) // 2
+        debug_print(f"{n} ELEMENTS -> {nc} CONNECTIONS")
+        #all_c = list(itertools.combinations(pairs, nc))
+        for p in pairs:
+            all_c = itertools.combinations(pairs, nc)
+            #pc = []
+            debug_print(f"CHECK P {p} IN {math.comb(len(pairs), nc)}")
+            #for x in all_c:
+                #debug_print(f"CHECK X {x}")
+            #    f = any([p[0] in y for y in x]) and any([p[1] in y for y in x])
+                #debug_if(f"P {p} IN {x}", f)
+            #    if f:
+            #        pc.append(x)
+                #for y in x:
+                #    debug_if(f"P {p} IN {x}", p[0] in y or p[1] in y)
+                    #if p[0] in y or p[1] in y:
+                        #pc.append(x)
+                        #break
+            # each element of p must appear in at least one pair in this selection
+            pc = [x for x in all_c if any([any([p[0] in y]) and any([p[1] in y]) for y in x])]
+            #debug_print(f"P {p} -> PC {len(pc)}")
+            # all unique pairs sharing one element of this pair
+            s = {x for x in pairs if x[0] in p or x[1] in p}
+            # combinations of <num_connections> pairs
+            #for e in itertools.combinations(s, nc):
+            for e in pc:
+                u = set()
+                for ee in e:
+                    u = u | set(ee)
+                # u is the set of all elements
+                if len(u) != n or u in t:
+                    continue
+                debug_print(f"FOUND {self.num_connections}-TUPLE {u} IN {e}")
+                t.append(u)
+                tt = tt | u
+        return t
+
 
     def _parse(self, grid):
         return [tuple(sorted(re.findall(r"[a-z][a-z]", x))) for x in grid]
