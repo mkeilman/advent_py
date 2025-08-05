@@ -64,44 +64,48 @@ class AdventDay(Day.Base):
         import itertools 
         import math
 
+        def _units(pair_list):
+            return {x[0] for x in pair_list} | {x[1] for x in pair_list}
+        
         t = []
         tt = set()
         n = self.num_connections
         nc = (n * (n - 1)) // 2
-        debug_print(f"{n} ELEMENTS -> {nc} CONNECTIONS")
+        comps = _units(pairs)
+        debug_print(f"{len(comps)} COMPS {n} ELEMENTS -> {nc} CONNECTIONS COMBOS {math.comb(len(pairs), nc)}")
         #all_c = list(itertools.combinations(pairs, nc))
-        for p in pairs:
-            all_c = itertools.combinations(pairs, nc)
+        #for p in pairs:
+        for combo in itertools.combinations(pairs, nc):
             #pc = []
-            debug_print(f"CHECK P {p} IN {math.comb(len(pairs), nc)}")
-            #for x in all_c:
-                #debug_print(f"CHECK X {x}")
-            #    f = any([p[0] in y for y in x]) and any([p[1] in y for y in x])
-                #debug_if(f"P {p} IN {x}", f)
-            #    if f:
-            #        pc.append(x)
-                #for y in x:
-                #    debug_if(f"P {p} IN {x}", p[0] in y or p[1] in y)
-                    #if p[0] in y or p[1] in y:
-                        #pc.append(x)
-                        #break
+            #debug_print(f"CHECK COMBO {combo}")
+            #all_c = itertools.combinations(pairs, nc)
+            #for p in pairs:
+            ##    #debug_print(f"CHECK P {p} IN {math.comb(len(pairs), nc)}")
+            #    if not any([any([p[0] in y]) and any([p[1] in y]) for y in combo]):
+            #        continue
+            #    pc.append(combo)
             # each element of p must appear in at least one pair in this selection
-            pc = [x for x in all_c if any([any([p[0] in y]) and any([p[1] in y]) for y in x])]
-            #debug_print(f"P {p} -> PC {len(pc)}")
+            #pc = [x for x in all_c if any([any([p[0] in y]) and any([p[1] in y]) for y in x])]
+            #debug_print(f"P {p} -> PC {pc}")
             # all unique pairs sharing one element of this pair
-            s = {x for x in pairs if x[0] in p or x[1] in p}
-            # combinations of <num_connections> pairs
-            #for e in itertools.combinations(s, nc):
-            for e in pc:
-                u = set()
-                for ee in e:
-                    u = u | set(ee)
-                # u is the set of all elements
-                if len(u) != n or u in t:
-                    continue
-                debug_print(f"FOUND {self.num_connections}-TUPLE {u} IN {e}")
-                t.append(u)
-                tt = tt | u
+            #s = {x for x in pairs if x[0] in p or x[1] in p}
+            #for e in pc:
+            u = _units(combo)
+            #debug_print(f"UNOTS {_units(combo)}")
+            if len(u) != n:
+                continue
+            t.append(u)
+            debug_if(f"FOUND {self.num_connections}-TUPLE {u} IN {combo} TOTAL {len(t)}", len(t) % 100 == 0)
+            #for e in _units(combo):
+            #    u = set()
+            #    for ee in e:
+            #        u = u | set(ee)
+            #    # u is the set of all elements
+            #    if len(u) != n or u in t:
+            #        continue
+            #    debug_print(f"FOUND {self.num_connections}-TUPLE {u} IN {e}")
+            #    t.append(u)
+            #    tt = tt | u
         return t
 
 
