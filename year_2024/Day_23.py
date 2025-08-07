@@ -44,18 +44,18 @@ class AdventDay(Day.Base):
         "aa-bb",
         "aa-cc",
         "aa-dd",
-        "aa-ee",
-        "aa-ff",
+        #"aa-ee",
+        #"aa-ff",
         "bb-cc",
-        "bb-dd",
-        "bb-ee",
-        "bb-ff",
-        "cc-dd",
-        "cc-ee",
-        "cc-ff",
-        "dd-ee",
-        "dd-ff",
-        "ee-ff",
+        #"bb-dd",
+        #"bb-ee",
+        #"bb-ff",
+        #"cc-dd",
+        #"cc-ee",
+        #"cc-ff",
+        #"dd-ee",
+        #"dd-ff",
+        #"ee-ff",
     ]
 
     def __init__(self, run_args):
@@ -81,35 +81,54 @@ class AdventDay(Day.Base):
     
 
     def _connected_set(self, pairs, num_members=2):
+        import time
+
         # no sets with a single member since they are always defined in pairs
         if num_members <= 1:
             return []
-        if num_members <= 2:
-            return [set(x) for x in pairs]
+        #if num_members <= 2:
+        #    return [set(x) for x in pairs]
         
         # sets of size >= 3 are "non-trvial" in that they reduce the number of pairs
         c = []
         s = []
         p = pairs
         pa = [pairs]
-        for n in range(3, num_members + 1):
+        for n in range(2, num_members + 1):
+            debug_print(f"N {n} NUM P {len(pa)}", include_time=True)
             pp = []
+            #ppp = set()
             all_c = []
+            last_loop = n == num_members
             for i, p in enumerate(pa):
+                debug_print(f"N {n} {i} CONN LEN P {len(p)}...", end="", include_time=True)
                 c = self._connections(p, num_members=n)
-                if c in all_c:
+                debug_print(f"DONE", include_time=True)
+                if not c or c in all_c:
                     continue
-                debug_print(f"{n} {i} {c}")
+                debug_print(f"{n} {i} {len(c)}", include_time=True)
+                #debug_print(f"APPENDING...", end="", include_time=True)
                 all_c.append(c)
-                if n == num_members:
-                    s.extend(c)
+                #debug_print(f"DONE", include_time=True)
+                if last_loop:
+                    #debug_print(f"EXTENDING...", end="", include_time=True)
+                    for comp in c:
+                        if comp not in s:
+                            s.append(comp)
+                    #debug_print(f"DONE {c}", include_time=True)
+                    continue
+                #debug_print(f"MAKE PAIRS...", end="", include_time=True)
                 for cc in c:
                     # next pairs under consideration must include the members already found
-                    p = [x for x in pairs if any([y in x for y in cc])]
-                    #debug_print(f"{n} {i} {cc} -> {p}")
-                    pp.append(p)
+                    # sorted so we can avoid pair arrays alreay added
+                    sp = sorted([x for x in pairs if any([y in x for y in cc])])
+                    debug_print(f"{n} {i} {cc} -> {sp}")
+                    #ppp = ppp | set(p)
+                    if sp not in pp:
+                        pp.append(sp)
+                #debug_print(f"DONE", include_time=True)
             pa = pp
-            #debug_print(f"NEW PA {pa}")
+            #debug_print(f"NEW PA {pa} SET {ppp}")
         return s
 
 
@@ -122,6 +141,7 @@ class AdventDay(Day.Base):
         
         n = num_members
         nc = (n * (n - 1)) // 2
+        debug_print(f"N {n} NC {nc} NUM P {len(pairs)} NUM COMBOS {math.comb(len(pairs), nc)}")
         comps = _units(pairs)
         assert len(comps) >= n
         assert len(pairs) >= nc
@@ -132,7 +152,6 @@ class AdventDay(Day.Base):
             if len(u) != n:
                 continue
             t.append(combo)
-            #debug_print(f"FOUND CONNECTED {combo}")
         return t
 
 
@@ -144,33 +163,7 @@ class AdventDay(Day.Base):
             return {x[0] for x in pair_list} | {x[1] for x in pair_list}
         
         return[_units(x) for x in self._connected_combos(pairs, num_members=num_members)]
-    
-        t = []
-        #n = self.num_connections
-        n = num_comps
-        nc = (n * (n - 1)) // 2
-        comps = _units(pairs)
-        assert len(comps) >= n
-        assert len(pairs) >= nc
-        debug_print(f"{len(comps)} COMPS {len(pairs)} PAIRS {n} ELEMENTS -> {nc} CONNECTIONS COMBOS {math.comb(len(pairs), nc)}")
 
-        #for c in comps:
-        #    p = [x for x in pairs if c in x]
-            #for cc in itertools.combinations(p, nc):
-
-            #debug_print(f"{p} PAIRS HAVE {c}")
-            #if len([x for x in pairs if c in x]) < nc - 1:
-            #    debug_print(f"NOT ENOUGH PAIRS HAVE {c}")
-
-        
-    
-        for combo in itertools.combinations(pairs, nc):
-            u = _units(combo)
-            if len(u) != n:
-                continue
-            t.append(u)
-            debug_if(f"FOUND {self.num_connections}-TUPLE {u} IN {combo} TOTAL {len(t)}", True)
-        return t
 
 
     def _parse(self, grid):
