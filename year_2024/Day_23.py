@@ -44,18 +44,31 @@ class AdventDay(Day.Base):
         "aa-bb",
         "aa-cc",
         "aa-dd",
-        #"aa-ee",
-        #"aa-ff",
+        "aa-ee",
+        "aa-ff",
+        "aa-gg",
+        "aa-hh",
         "bb-cc",
-        #"bb-dd",
-        #"bb-ee",
-        #"bb-ff",
-        #"cc-dd",
-        #"cc-ee",
-        #"cc-ff",
-        #"dd-ee",
-        #"dd-ff",
-        #"ee-ff",
+        "bb-dd",
+        "bb-ee",
+        "bb-ff",
+        "bb-gg",
+        "bb-hh",
+        "cc-dd",
+        "cc-ee",
+        "cc-ff",
+        "cc-gg",
+        "cc-hh",
+        "dd-ee",
+        "dd-ff",
+        "dd-gg",
+        "dd-hh",
+        "ee-ff",
+        "ee-gg",
+        "ee-hh",
+        "ff-gg",
+        "ff-hh",
+        "gg-hh",
     ]
 
     def __init__(self, run_args):
@@ -74,10 +87,14 @@ class AdventDay(Day.Base):
         #self.input = AdventDay.SIX
         #test_char = "t"
         #trips = self._connections(self._parse(self.input), num_members=self.num_connections)
-        trips = self._connected_set(self._parse(self.input), num_members=self.num_connections)
+        pairs = self._parse(self.input)
+        trips = self._connected_set(pairs, num_members=self.num_connections)
         #t_trips = [x for x in trips if any([y[0] == test_char for y in x])]
-        debug_print(f"N T {self.num_connections} {trips} {len(trips)}")
+        #c = self._connected_combos(pairs, num_members=self.num_connections)
+        #debug_print(f"N T {self.num_connections} {len(c)}")
+        debug_print(f"N T {self.num_connections} {len(trips)}")
         return len(trips)
+        #return len(c)
     
 
     def _connected_set(self, pairs, num_members=2):
@@ -87,93 +104,76 @@ class AdventDay(Day.Base):
         # no sets with a single member since they are always defined in pairs
         if num_members <= 1:
             return []
-        #if num_members <= 2:
-        #    return [set(x) for x in pairs]
         
         # sets of size >= 3 are "non-trvial" in that they reduce the number of pairs
-        c = []
-        #c_map = {}
+        # to be considered
         s = []
-        #p = pairs
-        #pa = [pairs]
         c_map = {(): pairs}
         for n in range(2, num_members + 1):
-            debug_print(f"N {n} NUM P {len(c_map)}")
-            #pp = []
-            #ppp = set()
-            #all_c = []
+            debug_print(f"N {n} NUM P {len(c_map)}", include_time=True)
             last_loop = n == num_members
             next_map = {}
-            #for i, p in enumerate(pa):
             i = -1
+            t0 = time.time()
             for combo in c_map:
+                t1 = time.time()
                 i += 1
-                #debug_print(f"COMBO {combo}")
+                do_print = i % 1000 == 0
                 p = c_map[combo]
                 nc = (n * (n - 1)) // 2 - len(combo)
-                debug_if(f"N {n} {i} CONN LEN P {len(p)} NUM COMBOS {math.comb(len(p), nc)}...", condition=i % 1000 == 0, include_time=True)
-                cxc = self._connected_combos(p, base_combo=combo, num_members=n)
-                #c = self._connections(p, num_members=n)
-                c = [self._members(x) for x in cxc]
-                #debug_print(f"DONE", include_time=True)
-                if not c: # or c in all_c:
+                debug_if(f"N {n} {i} CONN LEN P {len(p)} NUM COMBOS {math.comb(len(p), nc)}...", condition=do_print, include_time=True)
+                cxc = self._connected_combos(p, base_combo=combo, num_members=n, do_print=do_print)
+                #debug_if(f"DONE NEXT CXC {len(cxc)}", condition=do_print, include_time=True)
+                if not cxc:
                     continue
-                #debug_print(f"{n} {i} {len(c)}", include_time=True)
-                #all_c.append(c)
                 if last_loop:
-                    for comp in c:
+                    # don't calculate next pairs since we won't use them
+                    for comp in [self._members(x) for x in cxc]:
                         if comp not in s:
                             s.append(comp)
+                    debug_if(f"N {n} LAST LOOP {i} DONE {time.time() - t1}", condition=do_print, include_time=True)
                     continue
-                #for cc in c:
-                #c_map = {}
+                #debug_if(f"N {n} {i} BUIDLING NEXT MAP...", condition=do_print, include_time=True, end="")
+                #debug_if(f"DONE NEXT CXC {len(cxc)}", condition=do_print, include_time=True)
+                t2 = time.time()
+                ms = set()
                 for cc in cxc:
+                    m = self._members(cc)
+                    ms = ms | m
                     # next pairs under consideration must include the members already found
-                    # sorted so we can avoid pair arrays alreay added
-                    #sp = sorted([x for x in pairs if any([y in x for y in cc])])
-                    tcc = tuple(cc)
-                    sp = [x for x in pairs if any([y in x for y in self._members(cc)])]
-                    next_map[tcc] = sp
-                    #debug_print(f"{n} {i} {cc} -> {sp}")
-                    #ppp = ppp | set(p)
-                    #if sp not in pp:
-                    #    pp.append(sp)
-            #pa = pp
-            #debug_print(f"NEW PA {pa} SET {ppp}")
+                    next_map[cc] = [x for x in pairs if any([y in x for y in m])]
+                debug_if(f"N {n} LOOP {i} DONE LOOP TIME {time.time() - t1} CC TIME {time.time() - t2} CXC {len(cxc)} MEMS {len(ms)}", condition=do_print, include_time=True)
+            #debug_print(f"N {n} ASSIGN NEXT MAP", include_time=True)
             c_map = next_map
-            debug_print(f"N {n} DONE")
+            debug_print(f"N {n} DONE {time.time() - t0}", include_time=True)
         return s
 
 
-    def _connected_combos(self, pairs, base_combo=(), num_members=2):
+    def _connected_combos(self, pairs, base_combo=(), num_members=2, do_print=True):
         import itertools 
         import math
+        import time
         
+        t0 = time.time()
         p = [x for x in pairs if x not in base_combo]
         n = num_members
         nc = (n * (n - 1)) // 2 - len(base_combo)
-        #debug_print(f"N {n} NC {nc} NUM P {len(p)} NUM COMBOS {math.comb(len(p), nc)} BASE {base_combo}")
+        #debug_if(f"N {n} NC {nc} NUM P {len(p)} NUM COMBOS {math.comb(len(p), nc)} BASE {base_combo}", condition=do_print, include_time=True)
         comps = self._members(p)
         assert len(comps) >= n
         assert len(p) >= nc
 
         t = []
         combos = itertools.combinations(p, nc)
-        #if base_combo:
-        #    new_c = []
-        #    #for x in combos:
-        #    #    debug_print(f"CHECK FOR {base_combo} IN {x}")
-        #    combos = [x for x in combos if all([y for y in base_combo if y in x])]
-        #    debug_print(f"NEW C LEN {len(combos)}")
+        #debug_if(f"BUILING NEXT COMBOS...", condition=do_print, include_time=True, end="")
         for combo in combos:
-        #for combo in [x for x in combos if len(self._members(x)) == n]:
             c = base_combo + combo
-            #u = self._members(combo)
             u = self._members(c)
             if len(u) != n:
                 continue
-            #t.append(combo)
             t.append(c)
+        #debug_print(f"{time.time() - t0}")
+        #debug_if(f"DONE {time.time() - t0}", condition=do_print, include_time=True)
         return t
 
 
