@@ -108,6 +108,7 @@ class AdventDay(Day.Base):
         if num_members <= 1:
             return []
         
+        sample_freq = 1000
         # sets of size >= 3 are "non-trvial" in that they reduce the number of pairs
         # to be considered
         s = []
@@ -121,7 +122,7 @@ class AdventDay(Day.Base):
             for combo in c_map:
                 t1 = time.time()
                 i += 1
-                do_print = i % 1000 == 0
+                do_print = i % sample_freq == 0
                 p = c_map[combo]
                 #debug_print(f"CM {combo} P {p}")
                 nc = (n * (n - 1)) // 2 - len(combo)
@@ -139,11 +140,12 @@ class AdventDay(Day.Base):
                     continue
                 t2 = time.time()
                 for cc in combos:
-                    np = self._next_pairs(pairs, cc)
+                    np = self._next_pairs(pairs, cc, do_print)
                     #debug_print(f"{cc} -> {np}")
                     if np:
                         next_map[cc] = np
-                debug_if(f"N {n} LOOP {i} DONE LOOP TIME {time.time() - t1} CC TIME {time.time() - t2}", condition=do_print, include_time=True)
+                t = time.time()
+                debug_if(f"N {n} LOOP {i} DONE LOOP TIME {t - t1} CC TIME {t - t2} TOTAL TIME {t - t0}", condition=do_print, include_time=True)
             c_map = next_map
             debug_print(f"N {n} DONE {time.time() - t0}", include_time=True)
         return s
@@ -154,28 +156,16 @@ class AdventDay(Day.Base):
         import math
         import time
         
-        t0 = time.time()
-        #p = [x for x in pairs if x not in base_combo]
         p = pairs
         n = num_members
         nc = (n * (n - 1)) // 2 - len(base_combo)
         #debug_if(f"N {n} NC {nc} NUM P {len(p)} NUM COMBOS {math.comb(len(p), nc)} BASE {base_combo}", condition=do_print, include_time=True)
-        comps = self._members(p)
-        if len(comps) < n or len(p) < nc:
+        if len(self._members(p)) < n or len(p) < nc:
             return []
 
-        t = []
         combos = itertools.combinations(p, nc)
         #debug_if(f"BUILING NEXT COMBOS...", condition=do_print, include_time=True, end="")
-        for combo in combos:
-            c = base_combo + combo
-            u = self._members(c)
-            if len(u) != n:
-                continue
-            t.append(c)
-        #debug_print(f"{time.time() - t0}")
-        #debug_if(f"DONE {time.time() - t0}", condition=do_print, include_time=True)
-        return t
+        return [base_combo + x for x in combos if len(self._members(base_combo + x)) == n]
 
 
     def _connections(self, pairs, num_members=2):
@@ -206,10 +196,16 @@ class AdventDay(Day.Base):
         return counts
 
 
-    def _next_pairs(self, pairs, combo):
+    # next pairs under consideration must include the individual members already found,
+    # but not the pairs already found
+    def _next_pairs(self, pairs, combo, do_print=False):
+        import time
+
+        #t0 = time.time()
         m = self._members(combo)
-        # next pairs under consideration must include the members already found
         next_pairs = [x for x in pairs if x not in combo and any([self._has_member(y, x) for y in m])]
+        #t = time.time()
+        #debug_if(f"DT FOR RAW NEXT PAIRS {t - t0}", condition=do_print)
         for new_m in self._members(next_pairs) - m:
             np = [tuple(sorted((x, new_m))) for x in m]
             for new_pair in np:
@@ -217,6 +213,8 @@ class AdventDay(Day.Base):
                     continue
                 for p in [x for x in np if x in next_pairs]:
                     del next_pairs[next_pairs.index(p)]
+        #t = time.time()
+        #debug_if(f"DT FOR FILTERED NEXT PAIRS {t - t0}", condition=do_print)
         return next_pairs
 
 
