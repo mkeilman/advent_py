@@ -112,9 +112,8 @@ class AdventDay(Day.Base):
         # to be considered
         s = []
         c_map = {(): pairs}
-        #c_map = {(): [self._members(x) for x in pairs]}
         for n in range(2, num_members + 1):
-            #debug_print(f"N {n} NUM P {len(c_map)}", include_time=True)
+            debug_print(f"N {n} NUM COMBOS {len(c_map)}", include_time=True)
             last_loop = n == num_members
             next_map = {}
             i = -1
@@ -124,13 +123,11 @@ class AdventDay(Day.Base):
                 i += 1
                 do_print = i % 1000 == 0
                 p = c_map[combo]
-                #c = c_map[combo]
-                #p = [x for x in pairs if any([y in x for y in c])]
-                #debug_print(f"CM {c} P {p}")
+                #debug_print(f"CM {combo} P {p}")
                 nc = (n * (n - 1)) // 2 - len(combo)
-                debug_if(f"N {n} {i} CONN LEN P {len(p)} NUM COMBOS {math.comb(len(p), nc)}...", condition=do_print, include_time=True)
+                debug_if(f"N {n} NC {nc} LOOP {i} NUM PAIRS {len(p)} NUM COMBOS {math.comb(len(p), nc)}...", condition=do_print, include_time=True)
                 combos = self._connected_combos(p, base_combo=combo, num_members=n, do_print=do_print)
-                #debug_if(f"DONE NEXT combos {len(combos)}", condition=do_print, include_time=True)
+                debug_if(f"DONE NEXT combos {len(combos)}", condition=do_print, include_time=True)
                 if not combos:
                     continue
                 if last_loop:
@@ -140,39 +137,12 @@ class AdventDay(Day.Base):
                             s.append(comp)
                     debug_if(f"N {n} LAST LOOP {i} DONE {time.time() - t1}", condition=do_print, include_time=True)
                     continue
-                #debug_if(f"N {n} {i} BUIDLING NEXT MAP...", condition=do_print, include_time=True, end="")
-                #debug_if(f"DONE NEXT combos {len(combos)}", condition=do_print, include_time=True)
                 t2 = time.time()
-                #ms = set()
                 for cc in combos:
-                    m = self._members(cc)
-                    #debug_print(f"M {m}")
-                    #ms = ms | m
-                    # next pairs under consideration must include the members already found
-                    next_pairs = [x for x in pairs if x not in cc and any([self._has_member(y, x) for y in m])]
-                    new_members = self._members(next_pairs) - m
-                    for newm in new_members:
-                        np = [tuple(sorted((x, newm))) for x in m]
-                        ok = True
-                        for ppp in np:
-                            if ppp not in next_pairs:
-                                #debug_print(f"INVALID NEWM {newm}: {ppp} NOT IN {next_pairs}")
-                                ok = False
-                                break
-                            #else:
-                            #    debug_print(f"OK NEWM {newm}")
-                        #debug_print(f"{newm} NP {np} VS {next_pairs}")
-                        #ok = ok and all([x in next_pairs for x in np])
-                        #debug_print(f"{np} VS {next_pairs}")
-                        #debug_if(f"N {n} VALID NEWM {newm}", condition=ok)
-                        if not ok:
-                            for ppp in [x for x in np if x in next_pairs]:
-                                del next_pairs[next_pairs.index(ppp)]
-                                #debug_print(f"DEL {ppp}")
-                    next_map[cc] = next_pairs
-                    #debug_print(f"NEXT PAIRS {cc} -> {next_pairs}")
-                    #next_map[cc] = [x for x in pairs if any([y in x for y in m])]
-                    #next_map[cc] = self._members(cc)
+                    np = self._next_pairs(pairs, cc)
+                    #debug_print(f"{cc} -> {np}")
+                    if np:
+                        next_map[cc] = np
                 debug_if(f"N {n} LOOP {i} DONE LOOP TIME {time.time() - t1} CC TIME {time.time() - t2}", condition=do_print, include_time=True)
             c_map = next_map
             debug_print(f"N {n} DONE {time.time() - t0}", include_time=True)
@@ -191,14 +161,8 @@ class AdventDay(Day.Base):
         nc = (n * (n - 1)) // 2 - len(base_combo)
         #debug_if(f"N {n} NC {nc} NUM P {len(p)} NUM COMBOS {math.comb(len(p), nc)} BASE {base_combo}", condition=do_print, include_time=True)
         comps = self._members(p)
-        if len(comps) < n:
-            #debug_print(f"NOT ENOUGH COMPS: {len(comps)} < {n}")
+        if len(comps) < n or len(p) < nc:
             return []
-        #assert len(comps) >= n
-        if len(p) < nc:
-            #debug_print(f"NOT ENOUGH COMBOS: {len(p)} < {nc}")
-            return []
-        #assert len(p) >= nc
 
         t = []
         combos = itertools.combinations(p, nc)
@@ -240,6 +204,20 @@ class AdventDay(Day.Base):
                 if c in p:
                     counts[c] += 1
         return counts
+
+
+    def _next_pairs(self, pairs, combo):
+        m = self._members(combo)
+        # next pairs under consideration must include the members already found
+        next_pairs = [x for x in pairs if x not in combo and any([self._has_member(y, x) for y in m])]
+        for new_m in self._members(next_pairs) - m:
+            np = [tuple(sorted((x, new_m))) for x in m]
+            for new_pair in np:
+                if new_pair in next_pairs:
+                    continue
+                for p in [x for x in np if x in next_pairs]:
+                    del next_pairs[next_pairs.index(p)]
+        return next_pairs
 
 
     def _parse(self, grid):
