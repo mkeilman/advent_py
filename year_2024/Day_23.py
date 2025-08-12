@@ -208,10 +208,13 @@ class AdventDay(Day.Base):
         #debug_if(f"DT FOR RAW NEXT PAIRS {t - t0}", condition=do_print)
         for new_m in self._members(next_pairs) - m:
             np = [tuple(sorted((x, new_m))) for x in m]
-            for new_pair in np:
-                if new_pair in next_pairs:
-                    continue
+            nnp = [x for x in np if x not in next_pairs]
+            for _ in nnp:
+                #if new_pair in next_pairs:
+                #    continue
+                #debug_print(f"NEWP {new_pair}")
                 for p in [x for x in np if x in next_pairs]:
+                    #debug_print(f"DEL {p}")
                     del next_pairs[next_pairs.index(p)]
         #t = time.time()
         #debug_if(f"DT FOR FILTERED NEXT PAIRS {t - t0}", condition=do_print)
