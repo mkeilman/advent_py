@@ -210,6 +210,7 @@ class AdventDay(Day.Base):
         for new_m in self._members(next_pairs) - current_m:
             # pairs that have one new member and one current member
             np = [tuple(sorted((x, new_m))) for x in current_m]
+            # mixed pairs not among the next pairs
             nnp = [x for x in np if x not in next_pairs]
             for new_pair in nnp:
                 #if new_pair in next_pairs:
