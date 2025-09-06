@@ -196,18 +196,20 @@ class AdventDay(Day.Base):
         return counts
 
 
-    # next pairs under consideration must include the individual members already found,
-    # but not the pairs already found
     def _next_pairs(self, pairs, combo, do_print=False):
         import time
 
         #t0 = time.time()
-        m = self._members(combo)
-        next_pairs = [x for x in pairs if x not in combo and any([self._has_member(y, x) for y in m])]
+        current_m = self._members(combo)
+        # next pairs under consideration must include the individual members already found,
+        # but not the pairs already found
+        next_pairs = [x for x in pairs if x not in combo and any([self._has_member(y, x) for y in current_m])]
         #t = time.time()
         #debug_if(f"DT FOR RAW NEXT PAIRS {t - t0}", condition=do_print)
-        for new_m in self._members(next_pairs) - m:
-            np = [tuple(sorted((x, new_m))) for x in m]
+        # new members
+        for new_m in self._members(next_pairs) - current_m:
+            # pairs that have one new member and one current member
+            np = [tuple(sorted((x, new_m))) for x in current_m]
             nnp = [x for x in np if x not in next_pairs]
             for new_pair in nnp:
                 #if new_pair in next_pairs:

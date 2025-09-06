@@ -14,7 +14,9 @@ def debug_print(txt, include_time=False, **kwargs):
     print(txt, **kwargs)
 
 
-def debug_if(txt, condition=None, include_time=False, **kwargs):
+def debug_if(txt, alt_txt="", final_txt="", condition=None, include_time=False, **kwargs):
     if condition:
-        debug_print(txt, include_time=include_time, **kwargs)
+        debug_print(txt + final_txt, include_time=include_time, **kwargs)
+    elif alt_txt:
+        debug_print(alt_txt + final_txt, include_time=include_time, **kwargs)
 
