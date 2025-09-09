@@ -8,13 +8,21 @@ class Wire:
     def __init__(self, name, init_val=None):
         self.name = name
         self.init_val = init_val
-        self.val = init_val
+        self.reset()
+
+    def __repr__(self):
+        return f"{self.name}: {self.val}"
     
+
+    def reset(self):
+        self.val = self.init_val
+
+
 class Gate:
 
     op_map = {
-        "AND": lambda x, y: x and y,
-        "OR": lambda x, y: x or y,
+        "AND": lambda x, y: int(x and y),
+        "OR": lambda x, y: int(x or y),
         "XOR": lambda x, y: int(x != y),
     }
 
@@ -23,16 +31,24 @@ class Gate:
         self.in2 = in2
         self.inputs = (self.in1, self.in2)
         self.out = out
+        self.name = out.name
         self.op_str = op_str
         self.wires = (in1, in2, out)
         self.op = Gate.op_map[op_str]
 
 
+    def __repr__(self):
+        return f"{self.in1.name} {self.op_str} {self.in2.name}: {self.out.name}"
+
+
+    def eval(self):
+        self.out.val = self.op(self.in1.val, self.in2.val)
+    
+
     def vals(self):
         return [x.val for x in self.wires]
     
-    def eval(self):
-        self.out.val = self.op(self.in1.val, self.in2.val)
+    
     
 
 class AdventDay(Day.Base):
@@ -100,16 +116,38 @@ class AdventDay(Day.Base):
         "tnw OR pbm -> gnj",
     ]
 
+    TEST_SWAPPED = [
+        "x00: 0",
+        "x01: 1",
+        "x02: 0",
+        "x03: 1",
+        "x04: 0",
+        "x05: 1",
+        "y00: 0",
+        "y01: 0",
+        "y02: 1",
+        "y03: 1",
+        "y04: 0",
+        "y05: 1",
+        "",
+        "x00 AND y00 -> z00",
+        "x01 AND y01 -> z01",
+        "x02 AND y02 -> z02",
+        "x03 AND y03 -> z03",
+        "x04 AND y04 -> z04",
+        "x05 AND y05 -> z05",
+    ]
+
     def __init__(self, run_args):
+        import argparse
         super(AdventDay, self).__init__(2024, 24)
-        #self.args_parser.add_argument(
-        #    "--num-connections",
-        #    type=int,
-        #    help="number of connections",
-        #    default=3,
-        #    dest="num_connections",
-        #)
-        #self.add_args(run_args)
+        self.args_parser.add_argument(
+            "--validate-sum",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            dest="validate_sum",
+        )
+        self.add_args(run_args)
         self.gates = []
         self.wires = {}
     
@@ -118,33 +156,71 @@ class AdventDay(Day.Base):
         while self._wires_with_no_value():
             for g in self._annealed_gates():
                 g.eval()
-        res = 0
-        for i, w in enumerate(self._z_wires()):
-            #debug_print(f"{w.name}")
-            res += w.val << i
-        return res
-
-
-    def output_bits(self):
-        return len(self._z_wires())
     
+
+    def reset(self):
+        for w in self.wires:
+            w.reset()
 
 
     def run(self):
-        #self.input = AdventDay.TEST_LARGE
+        #self.input = AdventDay.TEST_SWAPPED
         self._parse()
-        n = self.anneal()
-        debug_print(f"N {n}")
-        return n
+        self.anneal()
+        xyz, sum = self._get_sum(6)
+        debug_print(f"X {xyz['x']} + Y {xyz['y']} -> Z {xyz['z']} VS SUM {sum}")
+        if not self.validate_sum:
+            return xyz["z"]
+        debug_print(f"VALIDATE {len([x.name for x in self._get_outputs()])}")
+        self._validate(4)
+        return 0
 
 
     def _annealed_gates(self):
         return [x for x in self.gates if x.in1.val is not None and x.in2.val is not None]
 
 
+    def _gates_with_wire(self, wire_name):
+        gates = []
+        for g in self.gates:
+            if wire_name in [x.name for x in g.wires]:
+                gates.append(g)
+        return gates
+    
+
+    def _gates_connected_to(self, wire_name):
+        res = []
+        for g in self._gates_with_wire(wire_name):
+            res.extend([self._gates_connected_to(x.name) for x in g.wires])
+        return res
+
+
+    def _gates_for_bits(self, n_bits):
+        res = []
+        #res = {}
+        #tags = ("x", "y", "z")
+        #tags = ("z")
+        #for t in tags:
+        #    res[t] = []
+        for i in range(n_bits):
+            res.extend(self._gates_with_wire(f"z{i:02}"))
+        return res
+
+
+    def _get_sum(self, max_bits=None):
+        res = {}
+        for w in ("x", "y", "z"):
+            res[w] = self._tag_number(w, max_bits=max_bits)
+        return res, res["x"] + res["y"]
+
+
+    def _get_outputs(self):
+        return [x.out for x in self.gates]
+
+
     def _parse(self):
         def _parse_wire(txt):
-            m = re.search(fr"({n}):\s+([01])", txt)
+            m = re.search(fr"({n}):\s+([01])$", txt)
             return Wire(m.group(1), init_val=int(m.group(2)))
         
         def _parse_gate(txt, preset_wires):
@@ -171,8 +247,58 @@ class AdventDay(Day.Base):
                 self.gates.append(g)
                 for w in [x for x in g.wires if x.name not in self.wires]:
                     self.wires[w.name] = w
-                
+    
+
+    def _swap_vals(self, w1, w2):
+        t = w1.val
+        w1.val = w2.val
+        w2.val = t
+
+
+    def _tag_number(self, tag, max_bits=None):
+        res = 0
+        w = self._tag_wires(tag)
+        mb = max_bits or len(w)
+        for i, w in enumerate(w[:mb]):
+            res += w.val << i
+        return res
+
+
+    def _tag_wires(self, tag):
+        return sorted([v for k, v in self.wires.items() if k.startswith(tag)], key=lambda x: x.name)
+    
+
+    def _validate(self, num_pairs):
+        import math
+        import itertools
+
+        #o = self._get_outputs()
+        # number of pairs
+        #n = math.comb(len(o), 2)
+        #oo = itertools.combinations(o, 2)
+        # number of pairs taken <num_pairs> at a time
+        #m = math.comb(n, num_pairs)
+        #p = math.comb(len(o), 2 * num_pairs)
+        #q = math.comb(p, 2)
+        #debug_print(f"NUM OUTPUTS: {len(o)}; NUM PAIRS: {n}; NUM OF {num_pairs} PAIRS: {m}; NUM GROUPS OF {2 * num_pairs}: {p}; Q {q}")
+        #xyz, sum = self._get_sum()
+        #while sum != xyz["x"] + xyz["y"]:
+        b = 1
+        gates = self._gates_for_bits(b)
+        s = set(gates)
+        #debug_print(f"B {b} GATES {[x.to_string() for x in gates]}")
+        for g in gates:
+            debug_print(f"B {b} G {g}")
+            for w in g.wires:
+                gg = self._gates_with_wire(w.name)
+                s = s | set(gg)
+                #gg = self._gates_connected_to(w.name)
+                debug_print(f"B {b} GG {gg}")
+        #debug_print(f"B {b} SET {s}")
+        outs = [x.out for x in s]
+        debug_print(f"B {b} SET OUT {outs}")
         
+
     def _wire_names(self):
         return [x.name for x in self.wires]
 
@@ -183,8 +309,3 @@ class AdventDay(Day.Base):
 
     def _wires_with_no_value(self):
         return [v for k, v in self.wires.items() if v.val is None]
-    
-
-    def _z_wires(self):
-        return sorted([v for k, v in self.wires.items() if k.startswith("z")], key=lambda x: x.name)
-    
