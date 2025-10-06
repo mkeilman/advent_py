@@ -31,13 +31,6 @@ class DirectedPath:
         return None
 
 
-    def is_line(self):
-        p = self.positions()
-        allx = all([x[0] == p[0][0] for x in p])
-        ally = all([x[1] == p[0][1] for x in p])
-        return allx or ally
-
-
     def is_loop(self):
         #return self.elements[0] == self.elements[-1]
         return len(self.elements) > len(set(self.elements))
@@ -62,23 +55,6 @@ class Room:
         def _is_in_room(pos):
             return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
 
-        def _sub_string(pos, dir):
-            if dir[0] == 0:
-                s = self.grid[pos[0]][::dir[1]]
-            elif dir[1] == 0:
-                s = [x[pos[1]] for x in self.grid][::dir[0]]
-            else:
-                return ""
-
-            if dir[1] > 0:
-                try:
-                    j = s.index(Room.WALL, pos[0])
-                except  ValueError:
-                    j = len(self.grid[0])
-                return s[pos[1]:j + 1]
-                
-            return "X"
-
         p = DirectedPath()
         p.append(start_pos, start_dir)
         pos = start_pos
@@ -86,7 +62,6 @@ class Room:
         d = list(Guard.DIRECTIONS.values())
 
         while _is_in_room(pos) and not p.is_loop():
-            #debug_print(f"CHECK STR {_sub_string(pos, dir)}")
             q = (pos[0] + dir[0], pos[1] + dir[1])
             if _is_in_room(q):
                 if self.grid[q[0]][q[1]] == Room.WALL:
@@ -172,8 +147,6 @@ class AdventDay(Day.Base):
     def count_loops(self, grid, init_path):
         
         o = []
-        #loops = set()
-        n_lines = 0
         n_loops = 0
         e = init_path.elements
         # omit initial step
@@ -181,44 +154,20 @@ class AdventDay(Day.Base):
         for k in range(1, len(e)):
             #debug_print(f"CHECK K {k}")
             i, j = e[k][0]
-            # already placed a barrier here
+            # already placed a barrier here, so thr guard could not have reached this step
             if (i, j) in o:
                 continue
-
             o.append((i, j))
+
             # copy the gird
             g = grid[:]
 
-            # place a wall in this spot
+            # place a wall here
             g[i] = g[i][:j] + Room.WALL + g[i][j + 1:]
         
             # make a room with the new wall and find a path starting at the previous step
-            r = Room(g)
-            p = r.find_path(*e[k - 1])
+            n_loops += Room(g).find_path(*e[k - 1]).is_loop()
 
-            # lines happen if the only way to bounce off the new wall is to return to
-            # the start
-            
-            if p.is_line():
-                debug_print(f"K {k} PATH IS LINE")
-                n_lines += 1
-                #continue
-            if not p.is_loop():
-                continue
-            #o.append((i, j))
-            #if p.is_line():
-            #    debug_print(f"K {k} LINE IS LOOP {p.elements}")
-                #r.print_path(p.elements)
-            n_loops += 1
-            #l = p.get_loop()
-            # last element is the same as the first
-            #del p.elements[-1]
-            #r.print_path(l)
-            #debug_if(f"K {k}/{len(init_path)} LOOP {l[0]}-{l[-1]} LEN {len(l)}", condition=True, include_time=True)
-            #loops = loops | set(p.elements)
-
-        #debug_print(f"FOUND {n_lines} LINES")
-        #return len(o)
         return n_loops
             
 
