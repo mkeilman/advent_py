@@ -11,8 +11,13 @@ class PathTree:
         self.children = []
 
 
+    def __eq__(self, other_tree):
+        return self.unique_id == other_tree.unique_id
+
+
     def __repr__(self):
         return f"{self.unique_id}"
+
     
     
     def add(self, node):
@@ -23,7 +28,7 @@ class PathTree:
     def descendants(self):
         d = self.children[:]
         for c in self.children:
-            d.extend(c.descendants())
+            d.extend([x for x in c.descendants() if x not in d])
         return d
         
 
@@ -76,8 +81,32 @@ class PathTree:
             p.append(pp)
             pp = pp.parent
         p.reverse()
-        debug_print(f"ROUTE TO {node}: {p}")
         return p
+    
+
+    def routes(self, node, parent=None):
+        p = parent or self
+        if not p.find_node(node):
+            return []
+        
+        r = []
+        #for c in p.descendants():
+        for c in p.children:
+            r.append(c)
+            rr = self.routes(node, parent=c)
+            if rr:
+                r.append(rr)
+        #debug_print(f"{p}-{node} NR {len(r)}")
+        return r
+    
+    def nr(self, routes):
+        n = 1 #len(routes)
+        l = [x for x in routes if type(x) == list]
+        debug_print(f"N ARR {len(l)}")
+        for r in routes:
+            #n += 1 if type(r) == list else 0
+            n *= len(r) if type(r) == list else 1
+        return n
     
 
 class Terrain:
@@ -91,8 +120,7 @@ class Terrain:
     def th_routes(self):
         r = []
         for th in self.trailheads:
-            p = self._paths(th)
-            r.append(p.leaf_routes())
+            r.append(self._path_tree(th).leaf_routes())
         return r
 
 
@@ -115,7 +143,7 @@ class Terrain:
         return self._elevations("9")
 
 
-    def _paths(self, pos):
+    def _path_tree(self, pos):
         def _neighborhood(pos):
             n = []
             for p in ((-1, 0), (1, 0), (0, -1), (0, 1)):
@@ -133,7 +161,6 @@ class Terrain:
 
 
         return _path(pos)
-        #return paths
 
 
     def _val(self, pos):
@@ -185,9 +212,26 @@ class AdventDay(Day.Base):
 
     def run(self):
         t = Terrain(self.input)
+        #debug_print(f"{t.th_routes()}")
         n = 0
+        #for s in t.summits:
+        th = t.trailheads[0]
+        s = t.summits[0]
+        p = t._path_tree(th)
+        r = p.routes(s)
+        #debug_print(f"{p}-{s}: {r} LEN {p.nr(r)}")
+        #debug_print(f"{th}-{s}: {t._path_tree(t.trailheads[0]).routes(s)}")
         for th in t.trailheads:
-            pt = [x for x in t._paths(th).leaves() if x.unique_id in t.summits]
+            nt = 0
+            #debug_print(f"{t._path_tree(th).children}")
+            pt = [x for x in t._path_tree(th).leaves() if x.unique_id in t.summits]
             n += len(pt)
+    
+            for s in t.summits:
+                p = t._path_tree(th)
+                r = p.routes(s)
+                debug_print(f"{p}-{s}: LEN {p.nr(r)}")
+                nt += p.nr(r)
+            debug_print(f"NT {th}: {nt}")
 
         debug_print(f"N {n}")
