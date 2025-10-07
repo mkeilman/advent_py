@@ -10,14 +10,10 @@ class PathTree:
         self.parent = None
         self.children = []
 
+
     def __repr__(self):
         return f"{self.unique_id}"
-        # avoid nested f-strings
-        s = "" + f"{self.unique_id}" + ": ["
-        for c in self.children:
-            s = s + f"{c}" #c.to_string()
-        s += "]"
-        return s
+    
     
     def add(self, node):
         node.parent = self
@@ -40,32 +36,13 @@ class PathTree:
         if node_id in ids:
             return d[ids.index(node_id)]
         return None
-
-        #for c in self.children:
-        #    #debug_print(f"CHECK {c.unique_id} VS {node_id}")
-        #    if c.unique_id == node_id:
-        #        #debug_print("FOUND")
-        #        return c
-        #    return c.find_node(node_id)
-        #return None
-
+    
 
     def is_leaf(self):
         return not self.children
 
 
     def leaves(self):
-        #l = []
-        #for c in self.children:
-        #    #debug_print(f"{self.unique_id} SO FAR {[x.unique_id for x in l]}")
-        #    if c.is_leaf() and c.unique_id not in [x.unique_id for x in l]:
-        #        #debug_print(f"{self.unique_id} LEAF {c.unique_id}")
-        #        l.append(c)
-        #        continue
-        #    for ll in c.leaves():
-        #        if ll.is_leaf() and ll.unique_id not in l:
-        #            l.append(ll)
-        #    #l.extend()
         return [self.find_node(x) for x in self.leaf_ids()]
     
 
@@ -76,9 +53,6 @@ class PathTree:
                 l.add(c.unique_id)
                 continue
             l = l | c.leaf_ids()
-            #for ll in c.leaves():
-            ##    if ll.is_leaf():
-            #        l.add(ll.unique_id)
         return l
 
 
@@ -104,15 +78,6 @@ class PathTree:
         p.reverse()
         debug_print(f"ROUTE TO {node}: {p}")
         return p
-
-        
-    #def to_string(self):
-    #    # avoid nested f-strings
-    #    s = "" + f"{self.unique_id}" + ": ["
-    #    for c in self.children:
-    #        s = s + c.to_string()
-    #    s += "]"
-    #    return s
     
 
 class Terrain:
@@ -127,9 +92,7 @@ class Terrain:
         r = []
         for th in self.trailheads:
             p = self._paths(th)
-            debug_print(f"{th} {len(p.leaf_routes())}")
             r.append(p.leaf_routes())
-            #r.append([x.leaf_routes() for x in p if len(x.leaf_routes()) == 10])
         return r
 
 
@@ -165,23 +128,9 @@ class Terrain:
         def _path(pos):
             t = PathTree(pos)
             for p in _neighborhood(pos):
-                #if self._val(p) == self._val(pos) + 1:
                 t.add(_path(p))
             return t
 
-        #debug_print(f"P {trailhead} N {_neighborhood(trailhead)}")
-        #debug_print(f"{[x for x in _neighborhood(trailhead) if self._val(x) == self._val(trailhead) + 1]}")
-        
-        #paths = []
-        #p = _path(pos)
-        #for l in p.leaves():
-        #    debug_print(f"P {p.unique_id} TO {l.unique_id}: {[x.unique_id for x in p.path_to(l)]}")
-        #paths.append(p)
-        #if p and self._val(p[-1]) == 9:
-        #    paths.append(p)
-
-        #for p in [x for x in _neighborhood(trailhead) if self._val(x) == self._val(trailhead) + 1]:
-            #paths.extend(self._paths(p))
 
         return _path(pos)
         #return paths
@@ -236,26 +185,9 @@ class AdventDay(Day.Base):
 
     def run(self):
         t = Terrain(self.input)
-        #p = t._paths(t.trailheads[0])
-        #debug_print(f"TH {t.trailheads} SUMMITS {t.summits}")
         n = 0
         for th in t.trailheads:
             pt = [x for x in t._paths(th).leaves() if x.unique_id in t.summits]
-            #debug_print(f"R {t.th_routes()}")
-            #debug_if(f"TH {th} LEN {pt}", condition=True)
             n += len(pt)
-            #for r in pt:
-            #    pass
-                #debug_print(f"TH {th} LEN {len(pt)}")
-                #debug_print(f"TH {th}  {[(x.unique_id, t._val(x.unique_id)) for x in r]}")
 
         debug_print(f"N {n}")
-        #thr = t.th_routes()
-        #debug_print(f"P {p[0]} L {len(p[0])} V {[t._val(x) for x in p[0]]}")
-        #for p in thr:
-        #    for pp in p:
-        #        for r in pp:
-        #            debug_print(f"RR {[rr.unique_id for rr in r]}")
-
-
- #   5, 6, 5, 3, 1, 3, 5, 3, and 5
