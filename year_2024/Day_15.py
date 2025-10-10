@@ -312,12 +312,9 @@ class AdventDay(Day.Base):
         "v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^",
     ]
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 15)
         self.args_parser.add_argument(
             "--warehouse-size",
             type=str,
@@ -336,8 +333,8 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
        
 
-    def run(self, v):
-        w = self._parse(v)
+    def run(self):
+        w = self._parse(self.input)
         #w.display()
         w.run_robot()
         debug_print(f"GPS {w.gps()} BOX STUCK {w.box_hits}")
@@ -352,19 +349,9 @@ class AdventDay(Day.Base):
             w.append(s)
             j += 1
             s = v[j]
-        wh = Warehouse(w, size=self.args["warehouse_size"])
-        wh.robot.max_moves = self.args["max_moves"]
+        wh = Warehouse(w, size=self.warehouse_size)
+        wh.robot.max_moves = self.max_moves
         wh.robot.set_path("".join(v[j + 1:]))
         return wh
 
 
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
