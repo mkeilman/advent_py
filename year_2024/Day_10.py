@@ -9,6 +9,7 @@ class PathTree:
         self.unique_id = unique_id
         self.parent = None
         self.children = []
+        self.lc = 0
 
 
     def __eq__(self, other_tree):
@@ -18,7 +19,6 @@ class PathTree:
     def __repr__(self):
         return f"{self.unique_id}"
 
-    
     
     def add(self, node):
         node.parent = self
@@ -84,25 +84,28 @@ class PathTree:
         return p
     
 
-    def routes(self, node, parent=None):
+    def routes(self, node, parent=None, depth=0):
         p = parent or self
         if not p.find_node(node):
             return []
         
         r = []
-        #for c in p.descendants():
+        if not p.children:
+            #debug_print(f"{depth} FOUND LEAF {p}")
+            self.lc += 1
+            return r
         for c in p.children:
             r.append(c)
-            rr = self.routes(node, parent=c)
+            rr = self.routes(node, parent=c, depth=depth + 1)
             if rr:
                 r.append(rr)
-        #debug_print(f"{p}-{node} NR {len(r)}")
+        #debug_print(f"{depth} {p}-{node} NR {r}")
         return r
     
     def nr(self, routes):
         n = 1 #len(routes)
         l = [x for x in routes if type(x) == list]
-        debug_print(f"N ARR {len(l)}")
+        #debug_print(f"N ARR {len(l)}")
         for r in routes:
             #n += 1 if type(r) == list else 0
             n *= len(r) if type(r) == list else 1
@@ -122,6 +125,10 @@ class Terrain:
         for th in self.trailheads:
             r.append(self._path_tree(th).leaf_routes())
         return r
+    
+
+    def summit_routes(self):
+        return [x for x in self.th_routes() if x[-1] in self.summits];
 
 
     def _elevations(self, e):
@@ -199,6 +206,25 @@ class AdventDay(Day.Base):
         "98765",
     ]
 
+    THREE = [
+        "9999909",
+        "9943219",
+        "9959929",
+        "9965439",
+        "9979949",
+        "2287659",
+        "2292222",
+    ]
+
+    TWO_TWO_SEVEN = [
+        "012345",
+        "123456",
+        "234567",
+        "345678",
+        "486789",
+        "567898",
+    ]
+
     def __init__(self, run_args):
         import argparse
         super(AdventDay, self).__init__(2024, 10)
@@ -211,27 +237,29 @@ class AdventDay(Day.Base):
         self.whole_files = self.args_parser.parse_args(run_args).whole_files
 
     def run(self):
+        #self.input = AdventDay.TWO_TWO_SEVEN
         t = Terrain(self.input)
-        #debug_print(f"{t.th_routes()}")
+        #debug_print(f"TH: {t.trailheads}")
+        for thr in t.th_routes():
+            pass
+            #debug_print(f"{thr}")
         n = 0
-        #for s in t.summits:
-        th = t.trailheads[0]
-        s = t.summits[0]
-        p = t._path_tree(th)
-        r = p.routes(s)
-        #debug_print(f"{p}-{s}: {r} LEN {p.nr(r)}")
-        #debug_print(f"{th}-{s}: {t._path_tree(t.trailheads[0]).routes(s)}")
+        nt = 0
         for th in t.trailheads:
-            nt = 0
-            #debug_print(f"{t._path_tree(th).children}")
+            #nt = 0
+            #debug_print(f"TH {th} {t._path_tree(th).routes()}")
             pt = [x for x in t._path_tree(th).leaves() if x.unique_id in t.summits]
             n += len(pt)
     
             for s in t.summits:
                 p = t._path_tree(th)
                 r = p.routes(s)
-                debug_print(f"{p}-{s}: LEN {p.nr(r)}")
-                nt += p.nr(r)
-            debug_print(f"NT {th}: {nt}")
+                if not r:
+                    continue
+                #debug_print(f"{p}-{s}: R {r} LEN {len(r)}")
+                #debug_print(f"{p} LC {p.lc}")
+                nt += p.lc
+            #    nt += p.nr(r)
+            #debug_print(f"NT {th}: {nt}")
 
-        debug_print(f"N {n}")
+        debug_print(f"N {n} NT {nt}")
