@@ -288,11 +288,8 @@ class AdventDay(Day.Base):
         "OOOOO",
     ]
 
-    def __init__(self, year, day, run_args):
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+    def __init__(self, run_args):
+        super(AdventDay, self).__init__(2024, 12)
         self.args_parser.add_argument(
             "--length-type",
             type=str,
@@ -303,19 +300,7 @@ class AdventDay(Day.Base):
         )
         self.length_type = self.args_parser.parse_args(run_args).length_type
 
-    def run(self, v):
-        p = Plot(v)
+    def run(self):
+        p = Plot(self.input)
         debug_print(f"PRICE {p.price(length_type=self.length_type)}")
 
-
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
