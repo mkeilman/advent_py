@@ -9,7 +9,6 @@ class PathTree:
         self.unique_id = unique_id
         self.parent = None
         self.children = []
-        self.lc = 0
 
 
     def __eq__(self, other_tree):
@@ -63,14 +62,6 @@ class PathTree:
 
     def leaf_routes(self):
         return [self.route(x) for x in self.leaves()]
-    
-
-    def prune(self, node_id):
-        n = self.find_node(node_id)
-        if not n:
-            return
-        n.children = []
-        del n.parent[n]
         
 
     def route(self, node):
@@ -87,29 +78,20 @@ class PathTree:
     def routes(self, node, parent=None, depth=0):
         p = parent or self
         if not p.find_node(node):
-            return []
+            return [], 0
+        
+        if not p.children:
+            return [], 1
         
         r = []
-        if not p.children:
-            #debug_print(f"{depth} FOUND LEAF {p}")
-            self.lc += 1
-            return r
+        leaf_count = 0
         for c in p.children:
             r.append(c)
-            rr = self.routes(node, parent=c, depth=depth + 1)
+            rr, lc = self.routes(node, parent=c, depth=depth + 1)
+            leaf_count += lc
             if rr:
                 r.append(rr)
-        #debug_print(f"{depth} {p}-{node} NR {r}")
-        return r
-    
-    def nr(self, routes):
-        n = 1 #len(routes)
-        l = [x for x in routes if type(x) == list]
-        #debug_print(f"N ARR {len(l)}")
-        for r in routes:
-            #n += 1 if type(r) == list else 0
-            n *= len(r) if type(r) == list else 1
-        return n
+        return r, leaf_count
     
 
 class Terrain:
@@ -239,27 +221,16 @@ class AdventDay(Day.Base):
     def run(self):
         #self.input = AdventDay.TWO_TWO_SEVEN
         t = Terrain(self.input)
-        #debug_print(f"TH: {t.trailheads}")
-        for thr in t.th_routes():
-            pass
-            #debug_print(f"{thr}")
         n = 0
         nt = 0
         for th in t.trailheads:
-            #nt = 0
-            #debug_print(f"TH {th} {t._path_tree(th).routes()}")
             pt = [x for x in t._path_tree(th).leaves() if x.unique_id in t.summits]
             n += len(pt)
     
             for s in t.summits:
-                p = t._path_tree(th)
-                r = p.routes(s)
+                r, lc = t._path_tree(th).routes(s)
                 if not r:
                     continue
-                #debug_print(f"{p}-{s}: R {r} LEN {len(r)}")
-                #debug_print(f"{p} LC {p.lc}")
-                nt += p.lc
-            #    nt += p.nr(r)
-            #debug_print(f"NT {th}: {nt}")
+                nt += lc
 
         debug_print(f"N {n} NT {nt}")
