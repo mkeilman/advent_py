@@ -474,12 +474,9 @@ class AdventDay(Day.Base):
     ]
 
 
-    def __init__(self, year, day, run_args):
+    def __init__(self, run_args):
         import argparse
-        super(AdventDay, self).__init__(
-            year,
-            day,
-        )
+        super(AdventDay, self).__init__(2024, 16)
         self.args_parser.add_argument(
             "--warehouse-size",
             type=str,
@@ -491,8 +488,8 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
        
 
-    def run(self, v):
-        m = Maze(v)
+    def run(self):
+        m = Maze(self.input)
         debug_print(f"RUN START {m.start} END {m.end}")
         t = m._t()
         #m.display_path(t)
@@ -503,17 +500,3 @@ class AdventDay(Day.Base):
         #p = [x for x in t if m.score(x) == min_score][0]
         #m.display_path(p)
         #debug_print(f"MIN PATH LEN {len(p)}")
-
-
-
-
-def main():
-    d = AdventDay()
-    debug_print("TEST:")
-    d.run_from_test_input()
-    debug_print("FILE:")
-    d.run_from_file()
-
-
-if __name__ == '__main__':
-    main()
