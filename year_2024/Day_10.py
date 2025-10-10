@@ -211,26 +211,30 @@ class AdventDay(Day.Base):
         import argparse
         super(AdventDay, self).__init__(2024, 10)
         self.args_parser.add_argument(
-            "--whole-files",
+            "--count-routes",
             action=argparse.BooleanOptionalAction,
-            default=True,
-            dest="whole_files",
+            default=False,
+            dest="count_routes",
         )
-        self.whole_files = self.args_parser.parse_args(run_args).whole_files
+        self.count_routes = self.args_parser.parse_args(run_args).count_routes
 
     def run(self):
         #self.input = AdventDay.TWO_TWO_SEVEN
         t = Terrain(self.input)
-        n = 0
-        nt = 0
+        th_scores = 0
+        th_ratings = 0
         for th in t.trailheads:
             pt = [x for x in t._path_tree(th).leaves() if x.unique_id in t.summits]
-            n += len(pt)
+            th_scores += len(pt)
     
+            if not self.count_routes:
+                continue
+
             for s in t.summits:
                 r, lc = t._path_tree(th).routes(s)
                 if not r:
                     continue
-                nt += lc
+                th_ratings += lc
 
-        debug_print(f"N {n} NT {nt}")
+        debug_print(f"N {th_scores} NT {th_ratings}")
+        return th_ratings if self.count_routes else th_scores
