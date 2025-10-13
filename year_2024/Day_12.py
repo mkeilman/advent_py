@@ -48,10 +48,10 @@ class Region:
 
 class Plot:
     def __init__(self, grid, exclude=None, offset=(0,0)):
-        self.grid = Day.Grid(grid)
+        self.grid = Day.Grid.grid_of_size(len(grid), len(grid[0]))
         self.plants = set()
         for r in self.grid.coord_array:
-            self.plants = self.plants.union(set(r))
+            self.plants = self.plants | set(r)
         self.regions = {}
         self.areas = {}
         self.perimeters = {}
