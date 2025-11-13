@@ -10,7 +10,7 @@ def random_base62(length):
     return "".join([random.choice(BASE62_CHARS) for _ in range(length)]) 
 
 
-def random_exchanges(elements, exclusions=None):
+def random_exchanges(elements, inclusions=None, exclusions=None):
     """From the given list, retruns a list of pairs of random elements
     where each element appears in each position once and only once, and
     never in both positions of a single pair. Consider a gift exchange where each person draws a
@@ -18,6 +18,7 @@ def random_exchanges(elements, exclusions=None):
 
     Args:
         elements (list): elements to pair
+        inclusions (list): require these pairings
         exclusions (list): exclude these pairings (both to and from)
     """
 
@@ -27,16 +28,34 @@ def random_exchanges(elements, exclusions=None):
         return [(el[i], x) for i, x in enumerate(exch)]
 
     def _has_exclusion(a, b):
-        return (a, b) in excl or (b, a) in excl
+        return (a, b) in excl
     
-    def _valid_exchange(el, exch):
-        return [x for x in elements if x != el and x not in exch and not _has_exclusion(el, x)]
+    def _valid_exchange(el, els, exch):
+        return [x for x in els if x != el and x not in exch and not _has_exclusion(el, x)]
     
     n = len(elements)
     if n < 2:
         raise ValueError(f"cannot make pairs from {n} elements")
 
+
+    incl = inclusions or []
     excl = exclusions or []
+
+    # an element cannot exchange with itself
+    if any([x[0] == x[1] for x in incl]):
+        raise ValueError(f"an element cannot exchange with itself: {incl}")
+
+    # an element can appear at most once in each position of the inclusions
+    i0 = [x[0] for x in incl]
+    i1 = [x[1] for x in incl]
+    if len(set(i0)) != len(i0) or len(set(i1)) != len(i1):
+         raise ValueError(f"elements must appear at most once in each position: {incl}")
+
+
+    # naturally inclusions and exclusions may not share any elements
+    intx = set(incl).intersection(set(flatten([[x, x[::-1]] for x in excl])))
+    if intx:
+        raise ValueError(f"inclusions and exclusions cannot share elements: {intx}")
 
     # there are n(n - 1) / 2 possible exchanges, and each exclusion removes 2, so
     # check if enough remain to pair (at least n pairings)
@@ -50,10 +69,18 @@ def random_exchanges(elements, exclusions=None):
 
     # unique excluded elements
     excluded_elements = list(set(flatten(excl)))
-    # accomodate the exclusions first
+    # accomodate the inclusions first, then exclusions, then the rest
+    idx = []
+    for exch in incl:
+        idx.append(elements.index(exch[0]))
+        exchanges.append(exch[1])
+    for i in sorted(idx, reverse=True):
+        del[elements[i]]
+
+    
     eeee = excluded_elements + [x for x in elements if x not in excluded_elements]
     for i, e in enumerate(eeee):
-        v = _valid_exchange(e, exchanges)
+        v = _valid_exchange(e, elements, exchanges)
 
         # if we're down to the last 2 elements and the last element has not
         # already been selected, select it now - otherwise it will not be paired
@@ -68,10 +95,11 @@ def random_exchanges(elements, exclusions=None):
 
 def main():
     e = ["Mike", "John", "Joe", "Thomb", "Patrick", "Jerry", "Sari", "Erin"]
-    ex = [("Jerry", "Sari"), ("Joe", "Erin")]
+    exc = [("Jerry", "Sari"), ("Sari", "Jerry"), ("Erin", "Joe"), ("Joe", "Erin")]
+    inc = [("Erin", "Sari")]
     #e = [1, 2, 3]
     #ex = [(1, 2)]
-    debug_print(random_exchanges(e, exclusions=ex))
+    debug_print(random_exchanges(e, inclusions=inc, exclusions=exc))
     #x = random_exchanges(e)
     #for x in e:
     #    debug_print(f"{x} {random_base62(10)}")
