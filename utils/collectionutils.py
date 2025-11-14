@@ -24,14 +24,21 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
 
     import itertools
 
-    def _exchanges(el, exch):
-        return [(el[i], x) for i, x in enumerate(exch)]
+    def _exchanges(els, exchs):
+        return [(els[i], x) for i, x in enumerate(exchs)]
+    
+    def _first(exchs):
+        return [x[0] for x in exchs]
 
     def _has_exclusion(a, b):
         return (a, b) in excl
     
-    def _valid_exchange(el, els, exch):
-        return [x for x in els if x != el and x not in exch and not _has_exclusion(el, x)]
+    def _second(exchs):
+        return [x[1] for x in exchs]
+    
+
+    def _valid_exchanges(el, els, exchs):
+        return [x for x in els if x != el and x not in _second(exchs) and not _has_exclusion(el, x)]
     
     n = len(elements)
     if n < 2:
@@ -65,32 +72,35 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
     # randomize the elements so any forced assignment is not always the same
     random.shuffle(elements)
     
-    exchanges = []
+    # accomodate the inclusions first, then exclusions, then the rest
+    exchanges = incl[:]
+
+    debug_print(f"INCLS {_first(incl)}")
+
 
     # unique excluded elements
-    excluded_elements = list(set(flatten(excl)))
-    # accomodate the inclusions first, then exclusions, then the rest
-    idx = []
-    for exch in incl:
-        idx.append(elements.index(exch[0]))
-        exchanges.append(exch[1])
-    for i in sorted(idx, reverse=True):
-        del[elements[i]]
+    excluded_elements = list(set(_first(excl))) #list(set(flatten(excl)))
+    debug_print(f"EXCLS {excluded_elements}")
 
     
     eeee = excluded_elements + [x for x in elements if x not in excluded_elements]
+    debug_print(f"SEARCH ELS {eeee}")
     for i, e in enumerate(eeee):
-        v = _valid_exchange(e, elements, exchanges)
+        # already added by inclusions
+        if e in _first(incl):
+            continue
+        v = _valid_exchanges(e, elements, exchanges)
+        debug_print(f"VALID {e}: {v}")
 
         # if we're down to the last 2 elements and the last element has not
         # already been selected, select it now - otherwise it will not be paired
         if i == len(eeee) - 2 and eeee[-1] not in exchanges:
-            exchanges.append(eeee[-1])
+            exchanges.append((e, eeee[-1]))
             continue
 
-        exchanges.append(random.choice(v))
+        exchanges.append((e, random.choice(v)))
 
-    return _exchanges(eeee, exchanges)
+    return exchanges #_exchanges(eeee, exchanges)
 
 
 def main():
