@@ -20,20 +20,21 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
     Args:
         elements (list): elements to pair
         inclusions (list): require these pairings
-        exclusions (list): exclude these pairings (both to and from)
+        exclusions (list): exclude these pairings
     """
     
     def _first(exchs):
         return [x[0] for x in exchs]
-
-    def _has_exclusion(a, b):
-        return 
     
     def _second(exchs):
         return [x[1] for x in exchs]
     
-    def _valid_exchanges(el, els, exchs):
-        return [x for x in els if x != el and x not in _second(exchs) and (el, x) not in excl]
+    # an exchange is valid if:
+    # - the first element differs from the second
+    # - the second element has not been selected
+    # - the exchange is not forbidden by the exclusions
+    def _valid_exchanges(el, els, exchs, ex):
+        return [x for x in els if x != el and x not in _second(exchs) and (el, x) not in ex]
     
     n = len(elements)
     if n < 2:
@@ -84,7 +85,7 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
             exchanges.append((e, eeee[-1]))
             continue
 
-        exchanges.append((e, random.choice(_valid_exchanges(e, elements, exchanges))))
+        exchanges.append((e, random.choice(_valid_exchanges(e, elements, exchanges, excl))))
 
     return exchanges
 
