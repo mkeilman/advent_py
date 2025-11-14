@@ -5,6 +5,7 @@ import random
 def flatten(arr):
     return [x for y in arr for x in y]
 
+
 def random_base62(length):
     BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     return "".join([random.choice(BASE62_CHARS) for _ in range(length)]) 
@@ -26,13 +27,13 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
         return [x[0] for x in exchs]
 
     def _has_exclusion(a, b):
-        return (a, b) in excl
+        return 
     
     def _second(exchs):
         return [x[1] for x in exchs]
     
     def _valid_exchanges(el, els, exchs):
-        return [x for x in els if x != el and x not in _second(exchs) and not _has_exclusion(el, x)]
+        return [x for x in els if x != el and x not in _second(exchs) and (el, x) not in excl]
     
     n = len(elements)
     if n < 2:
@@ -70,7 +71,7 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
     # unique excluded elements
     excluded_elements = list(set(_first(excl)))
 
-    # go through exclusions first so 
+    # go through exclusions first; otherwise they may not be pairable
     eeee = excluded_elements + [x for x in elements if x not in excluded_elements]
     for i, e in enumerate(eeee):
         # already added by inclusions
@@ -93,9 +94,6 @@ def main():
     exc = [("Jerry", "Sari"), ("Sari", "Jerry"), ("Erin", "Joe"), ("Joe", "Erin")]
     inc = [("Erin", "Sari")]
     debug_print(random_exchanges(e, inclusions=inc, exclusions=exc))
-    #x = random_exchanges(e)
-    #for x in e:
-    #    debug_print(f"{x} {random_base62(10)}")
 
 
 if __name__ == "__main__":
