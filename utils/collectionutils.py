@@ -21,11 +21,6 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
         inclusions (list): require these pairings
         exclusions (list): exclude these pairings (both to and from)
     """
-
-    import itertools
-
-    def _exchanges(els, exchs):
-        return [(els[i], x) for i, x in enumerate(exchs)]
     
     def _first(exchs):
         return [x[0] for x in exchs]
@@ -36,14 +31,12 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
     def _second(exchs):
         return [x[1] for x in exchs]
     
-
     def _valid_exchanges(el, els, exchs):
         return [x for x in els if x != el and x not in _second(exchs) and not _has_exclusion(el, x)]
     
     n = len(elements)
     if n < 2:
         raise ValueError(f"cannot make pairs from {n} elements")
-
 
     incl = inclusions or []
     excl = exclusions or []
@@ -53,11 +46,10 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
         raise ValueError(f"an element cannot exchange with itself: {incl}")
 
     # an element can appear at most once in each position of the inclusions
-    i0 = [x[0] for x in incl]
-    i1 = [x[1] for x in incl]
+    i0 = _first(incl)
+    i1 = _second(incl)
     if len(set(i0)) != len(i0) or len(set(i1)) != len(i1):
          raise ValueError(f"elements must appear at most once in each position: {incl}")
-
 
     # naturally inclusions and exclusions may not share any elements
     intx = set(incl).intersection(set(flatten([[x, x[::-1]] for x in excl])))
@@ -75,22 +67,15 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
     # accomodate the inclusions first, then exclusions, then the rest
     exchanges = incl[:]
 
-    debug_print(f"INCLS {_first(incl)}")
-
-
     # unique excluded elements
-    excluded_elements = list(set(_first(excl))) #list(set(flatten(excl)))
-    debug_print(f"EXCLS {excluded_elements}")
+    excluded_elements = list(set(_first(excl)))
 
-    
+    # go through exclusions first so 
     eeee = excluded_elements + [x for x in elements if x not in excluded_elements]
-    debug_print(f"SEARCH ELS {eeee}")
     for i, e in enumerate(eeee):
         # already added by inclusions
         if e in _first(incl):
             continue
-        v = _valid_exchanges(e, elements, exchanges)
-        debug_print(f"VALID {e}: {v}")
 
         # if we're down to the last 2 elements and the last element has not
         # already been selected, select it now - otherwise it will not be paired
@@ -98,17 +83,15 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
             exchanges.append((e, eeee[-1]))
             continue
 
-        exchanges.append((e, random.choice(v)))
+        exchanges.append((e, random.choice(_valid_exchanges(e, elements, exchanges))))
 
-    return exchanges #_exchanges(eeee, exchanges)
+    return exchanges
 
 
 def main():
     e = ["Mike", "John", "Joe", "Thomb", "Patrick", "Jerry", "Sari", "Erin"]
     exc = [("Jerry", "Sari"), ("Sari", "Jerry"), ("Erin", "Joe"), ("Joe", "Erin")]
     inc = [("Erin", "Sari")]
-    #e = [1, 2, 3]
-    #ex = [(1, 2)]
     debug_print(random_exchanges(e, inclusions=inc, exclusions=exc))
     #x = random_exchanges(e)
     #for x in e:
