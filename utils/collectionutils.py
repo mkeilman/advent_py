@@ -36,6 +36,12 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
     def _valid_exchanges(el, els, exchs, ex):
         return [x for x in els if x != el and x not in _second(exchs) and (el, x) not in ex]
     
+    def _validate(exchs):
+        i0 = _first(exchs)
+        i1 = _second(exchs)
+        return len(set(i0)) == len(i0) and len(set(i1)) == len(i1)
+    
+    
     n = len(elements)
     if n < 2:
         raise ValueError(f"cannot make pairs from {n} elements")
@@ -48,10 +54,12 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
         raise ValueError(f"an element cannot exchange with itself: {incl}")
 
     # an element can appear at most once in each position of the inclusions
-    i0 = _first(incl)
-    i1 = _second(incl)
-    if len(set(i0)) != len(i0) or len(set(i1)) != len(i1):
-         raise ValueError(f"elements must appear at most once in each position: {incl}")
+    if not _validate(incl):
+        raise ValueError(f"elements must appear at most once in each position: {incl}")
+    #i0 = _first(incl)
+    #i1 = _second(incl)
+    #if len(set(i0)) != len(i0) or len(set(i1)) != len(i1):
+    #     raise ValueError(f"elements must appear at most once in each position: {incl}")
 
     # naturally inclusions and exclusions may not share any elements
     intx = set(incl).intersection(set(flatten([[x, x[::-1]] for x in excl])))
@@ -81,20 +89,27 @@ def random_exchanges(elements, inclusions=None, exclusions=None):
 
         # if we're down to the last 2 elements and the last element has not
         # already been selected, select it now - otherwise it will not be paired
-        if i == len(eeee) - 2 and eeee[-1] not in exchanges:
+        if i == len(eeee) - 2 and eeee[-1] not in _second(exchanges):
+            debug_print(f"NEXT TO LAST: {(e, eeee[-1])}")
             exchanges.append((e, eeee[-1]))
             continue
 
-        exchanges.append((e, random.choice(_valid_exchanges(e, elements, exchanges, excl))))
+        v = _valid_exchanges(e, elements, exchanges, excl)
+        x = (e, random.choice(v))
+        debug_print(f"V {e}: {v} X {x}")
+        exchanges.append(x)
 
+    assert _validate(exchanges)
     return exchanges
-
+    
 
 def main():
-    e = ["Mike", "John", "Joe", "Thomb", "Patrick", "Jerry", "Sari", "Erin"]
-    exc = [("Jerry", "Sari"), ("Sari", "Jerry"), ("Erin", "Joe"), ("Joe", "Erin")]
-    inc = [("Erin", "Sari")]
-    debug_print(random_exchanges(e, inclusions=inc, exclusions=exc))
+    e = ["a", "b", "c", "d"]  #["Mike", "John", "Joe", "Thomb", "Patrick", "Jerry", "Sari", "Erin"]
+    #exc = [("Jerry", "Sari"), ("Sari", "Jerry"), ("Erin", "Joe"), ("Joe", "Erin")]
+    #inc = [("Erin", "Sari")]
+    #r = random_exchanges(e, inclusions=inc, exclusions=exc)
+    r = random_exchanges(e)
+    debug_print(r)
 
 
 if __name__ == "__main__":
