@@ -489,6 +489,7 @@ class AdventDay(Day.Base):
        
 
     def run(self):
+        #self.input = AdventDay.TEST_LARGE
         m = Maze(self.input)
         debug_print(f"RUN START {m.start} END {m.end}")
         t = m._t()

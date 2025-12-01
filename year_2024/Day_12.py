@@ -48,9 +48,11 @@ class Region:
 
 class Plot:
     def __init__(self, grid, exclude=None, offset=(0,0)):
+        #self.grid = Day.Grid(grid)
         self.grid = Day.Grid.grid_of_size(len(grid), len(grid[0]))
         self.plants = set()
-        for r in self.grid.coord_array:
+        #for r in self.grid.coord_array:
+        for r in grid:
             self.plants = self.plants | set(r)
         self.regions = {}
         self.areas = {}
@@ -63,6 +65,7 @@ class Plot:
             self.areas[p] = [len(x) for x in self.regions[p]]
             self.perimeters[p] = [self._perimeter(x) for x in self.regions[p]]
             self.sides[p] = [self._num_sides(p, x) for x in self.regions[p]]
+        debug_print(f"REG {self.regions}")
         #for p in self.plants:
         #    n = [self._num_interior_sides(p, x) for x in self.regions[p]]
         #    self.sides[p] = [x + n[i] for i, x in enumerate(self.sides[p])]
@@ -301,6 +304,8 @@ class AdventDay(Day.Base):
         self.length_type = self.args_parser.parse_args(run_args).length_type
 
     def run(self):
+        #self.input = AdventDay.EX
         p = Plot(self.input)
-        debug_print(f"PRICE {p.price(length_type=self.length_type)}")
+        debug_print(f"SIDES {p.sides}")
+        #debug_print(f"PRICE {p.price(length_type=self.length_type)}")
 
