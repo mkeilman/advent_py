@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 class Disk:
@@ -55,7 +55,7 @@ class Disk:
 
         def _move_files(arr):
             for i in reversed(range(self.num_files)):
-                a = string.indices(i, arr)
+                a = stringutils.indices(i, arr)
                 na = len(a)
                 e = [x for x in _empty_ranges(arr) if len(x) >= na]
                 if not e or e[0][0] > a[-1]:

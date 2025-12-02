@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print, debug_if
 
 class PathTree:
@@ -116,7 +116,7 @@ class Terrain:
     def _elevations(self, e):
         arr = []
         for i, r in enumerate(self.grid):
-            arr.extend([(i, j) for j in string.indices(e, r)])
+            arr.extend([(i, j) for j in stringutils.indices(e, r)])
         return arr
 
 

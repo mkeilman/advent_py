@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print, debug_if
 
 
@@ -25,7 +25,7 @@ class DirectedPath:
 
     def get_loop(self):
         for c in self.elements:
-            inds = string.indices(c, self.elements)
+            inds = stringutils.indices(c, self.elements)
             if len(inds) > 1:
                 return self.elements[inds[0]:inds[1]]
         return None

@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 class Antenna:
@@ -68,7 +68,7 @@ class Antenna:
             for n in re.findall(r"[0-9a-zA-Z]", r):
                 if n not in nodes:
                     nodes[n] = []
-                nodes[n].extend([(i, j) for j in string.indices(n, r)])
+                nodes[n].extend([(i, j) for j in stringutils.indices(n, r)])
         return nodes
     
     def _is_in_grid(self, pos):

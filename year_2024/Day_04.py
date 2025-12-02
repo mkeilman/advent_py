@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 class WordGrid:
@@ -77,7 +77,7 @@ class WordGrid:
         w = []
         for i, txt in enumerate(arr):
             for v in self.valid_words:
-                w.extend([(i, x) for x in string.indices(v, txt)])
+                w.extend([(i, x) for x in stringutils.indices(v, txt)])
         return w
     
     def _get_subgrid_indices(self, sub_grid):
@@ -85,7 +85,7 @@ class WordGrid:
         nr = len(self.rows) - len(sub_grid) + 1
         nc = len(self.rows[0])
         for i in range(nr):
-            p = [string.re_indices(x, self.rows[i + j]) for j, x in enumerate(sub_grid)]
+            p = [stringutils.re_indices(x, self.rows[i + j]) for j, x in enumerate(sub_grid)]
             p = [x for x in p if all([len(y) for y in p])]
             if not p:
                 continue
@@ -97,7 +97,7 @@ class WordGrid:
             #for j in range(nc):
             #    m = True
             #    for k, r in enumerate(sub_grid):
-            #        M = string.re_indices(r, self)
+            #        M = stringutils.re_indices(r, self)
             #        
             #        debug_print(f"MATCH {(i, j)} {r} in {self.rows[i + k][j:]}: {MM}")
             #        m = m and re.match(r, self.rows[i + k][j:])

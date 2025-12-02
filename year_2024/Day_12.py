@@ -2,7 +2,7 @@ import math
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 class Region:
@@ -209,7 +209,7 @@ class Plot:
 
         reg = []
         for i, r in enumerate(self.grid.coord_array):
-            reg.extend([(i + offset[0], j + offset[1]) for j in string.indices(plant, r)])
+            reg.extend([(i + offset[0], j + offset[1]) for j in stringutils.indices(plant, r)])
         conn = {}
         for p in reg:
             n = []

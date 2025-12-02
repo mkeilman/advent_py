@@ -2,7 +2,7 @@ import math
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 class Warehouse:
@@ -67,7 +67,7 @@ class Warehouse:
         dy = int(self.size == "double")
         self.boxes = []
         for i, s in enumerate(self.grid):
-            for j in string.indices(Warehouse.TOKENS["box"][self.size], s):
+            for j in stringutils.indices(Warehouse.TOKENS["box"][self.size], s):
                 p = [(i, j)]
                 if self.size == "double":
                     p.append((i, j + 1))
@@ -201,7 +201,7 @@ class Warehouse:
     def _walls(self):
         w = []
         for i, s in enumerate(self.grid):
-            for j in string.indices(Warehouse.TOKENS["wall"]["single"], s):
+            for j in stringutils.indices(Warehouse.TOKENS["wall"]["single"], s):
                 w.append((i, j))
         return w
 

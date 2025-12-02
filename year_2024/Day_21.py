@@ -297,7 +297,7 @@ class AdventDay(Day.Base):
     
 
     def run(self):
-        from utils import string
+        from utils import stringutils
 
         self.input = AdventDay.SINGLE
         complexity = 0

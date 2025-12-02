@@ -141,7 +141,7 @@ import math
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 
@@ -270,7 +270,7 @@ class Maze:
     def _walls(self):
         w = []
         for i, r in enumerate(self.grid):
-            for j in string.indices(Maze.WALL, r):
+            for j in stringutils.indices(Maze.WALL, r):
                 w.append((i, j))
         return w
 

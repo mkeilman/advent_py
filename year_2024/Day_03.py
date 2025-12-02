@@ -1,7 +1,7 @@
 import re
 import Day
 from utils import mathutils
-from utils import string
+from utils import stringutils
 from utils.debug import debug_print
 
 class AdventDay(Day.Base):
@@ -68,12 +68,12 @@ class AdventDay(Day.Base):
             return [m]
         
         n = []
-        e = [0] + string.indices("do()", vv)
-        d = string.indices("don\'t", vv)
+        e = [0] + stringutils.indices("do()", vv)
+        d = stringutils.indices("don\'t", vv)
         er = _enabled_ranges(e, d, len(vv))
         for mm in m:
             # could be duplicates
-            for pos in [x for x in string.indices(mm, vv) if any([x in y for y in er])]:
+            for pos in [x for x in stringutils.indices(mm, vv) if any([x in y for y in er])]:
                 n.append(mm)
         return [n]
 
