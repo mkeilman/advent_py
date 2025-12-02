@@ -39,7 +39,7 @@ class AdventDay(Day.Base):
     def _find_dupe_seqs(self):
         dupe_sum = 0
         for r in self.id_ranges:
-            # skip lengths that are odd numbers
+            # skip ids whose lengths are odd numbers
             for id_num in [x for x in r if not len(str(x)) % 2]:
                 s = str(id_num)
                 n = len(s)
