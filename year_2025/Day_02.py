@@ -17,13 +17,13 @@ class AdventDay(Day.Base):
     def __init__(self, run_args):
         import argparse
         super(AdventDay, self).__init__(2025, 2)
-        #self.args_parser.add_argument(
-        #    "--count-interim-zeros",
-        #    action=argparse.BooleanOptionalAction,
-        #    default=False,
-        #    dest="count_interim_zeros",
-        #)
-        #self.add_args(run_args)
+        self.args_parser.add_argument(
+            "--allow-any-repeat",
+            action=argparse.BooleanOptionalAction,
+            default=False,
+            dest="allow_any_repeat",
+        )
+        self.add_args(run_args)
 
 
     def run(self):
