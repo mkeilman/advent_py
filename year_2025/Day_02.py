@@ -37,20 +37,14 @@ class AdventDay(Day.Base):
     # find ids with pattern <N><N>, that is any sequence repeated exactly twice
     # note this means we consider only those ids with an even number of digits
     def _find_dupe_seqs(self):
-        num_dupes = 0
         dupe_sum = 0
         for r in self.id_ranges:
-            for id_num in r:
+            # skip lengths that are odd numbers
+            for id_num in [x for x in r if not len(str(x)) % 2]:
                 s = str(id_num)
                 n = len(s)
-                # skip lengths that are odd numbers
-                if n % 2:
-                    continue
                 if s[:n // 2] == s[n // 2:]:
-                    #debug_print(f"DUPES {s}")
-                    num_dupes += 1
                     dupe_sum += id_num
-        #debug_print(f"NUM DUPES {num_dupes} SUM {dupe_sum}")
         return dupe_sum
     
 
