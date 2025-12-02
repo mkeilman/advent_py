@@ -1,4 +1,4 @@
-from debug import debug_print
+from utils.debug import debug_print
 import random
 
 
