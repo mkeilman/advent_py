@@ -580,3 +580,10 @@ def _has_entry(self, combo_map, combo, pairs):
 
 
 
+2025 1
+
+part 2
+5493 too low
+5685 too low
+5695 too low
+
