@@ -28,7 +28,6 @@ class AdventDay(Day.Base):
 
     def run(self):
         self.id_ranges = self._parse()
-        #debug_print(f"{self.id_ranges}")
         n = self._find_dupe_seqs()
         debug_print(f"DUPE SUM {n}")
         return n
@@ -39,15 +38,21 @@ class AdventDay(Day.Base):
     def _find_dupe_seqs(self):
         dupe_sum = 0
         for r in self.id_ranges:
-            # skip ids whose lengths are odd numbers
-            for id_num in [x for x in r if not len(str(x)) % 2]:
+            for id_num in r:
                 s = str(id_num)
                 n = len(s)
-                if s[:n // 2] == s[n // 2:]:
-                    dupe_sum += id_num
+                max_divs = n if self. allow_any_repeat else 2
+                for num_divs in range(2, max_divs + 1):
+                    # skip ids whose lengths are not divisible by div_len
+                    if n % num_divs:
+                        continue
+                    div_len = n // num_divs
+                    divs = [s[i * div_len:(i + 1) * div_len] for i in range(num_divs)]
+                    if all([x == divs[0] for x in divs]):
+                        dupe_sum += id_num
+                        break
         return dupe_sum
     
-
 
     def _parse(self):
         # single element
