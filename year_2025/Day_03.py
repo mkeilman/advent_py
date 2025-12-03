@@ -1,0 +1,20 @@
+import Day
+from utils.debug import debug_print, debug_if
+
+class AdventDay(Day.Base):
+
+    TEST = [
+    ]
+
+
+    def __init__(self, run_args):
+        import argparse
+        super(AdventDay, self).__init__(2025, 3)
+        self.add_args(run_args)
+
+
+    def run(self):
+        n = 0
+        debug_print(f"RUN {self.year} {self.day}: {n}")
+        return n
+ 
