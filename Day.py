@@ -6,6 +6,35 @@ class Base:
     TEST = []
 
     @classmethod
+    def build_day(cls, year, day):
+        import jinja2
+        import os.path
+        from pathlib import Path
+
+        day_file = cls.py_file(year, day)
+        if os.path.exists(day_file):
+            raise FileExistsError(f"advent day already exists: year {year} day {day}")
+        
+        Path(cls.input_file(year, day)).touch()
+
+        t  = None
+        with open("Day.py.jinja", "rt") as f:
+            t = f.read()
+
+        res = jinja2.Environment(
+            **dict(
+                trim_blocks=True,
+                lstrip_blocks=True,
+                keep_trailing_newline=True,
+            )
+        ).from_string(t).render({"year": year, "day": day})
+
+        with open(day_file, "wt") as f:
+            f.write(res)
+
+
+
+    @classmethod
     def get_day(cls, year, day, run_args):
         """Builds a specific advent day
 
@@ -15,7 +44,23 @@ class Base:
             run_args (dict): command line arguments
         """
         import importlib
-        return importlib.import_module(f"year_{year}.Day_{day:02d}").AdventDay(run_args)
+        return importlib.import_module(cls.py_module(year, day)).AdventDay(run_args)
+
+
+    @classmethod
+    def input_file(cls, year, day):
+        return f"year_{year}/input_day_{day:02d}.txt"
+
+
+    @classmethod
+    def py_file(cls, year, day):
+        return f"year_{year}/Day_{day:02d}.py"
+    
+
+    @classmethod
+    def py_module(cls, year, day):
+        return f"year_{year}.Day_{day:02d}"
+
 
 
     def __init__(self, year, day):
@@ -27,8 +72,10 @@ class Base:
         """
         import argparse
 
+        self.year = year
+        self.day = day
         self.input = []
-        self.input_file = f"year_{year}/input_day_{day:02d}.txt"
+        self.input_file = Base.input_file(year, day)
         self.test_input = type(self).TEST or []
         self.args_parser = argparse.ArgumentParser()
 

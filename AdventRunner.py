@@ -11,11 +11,15 @@ def main():
         "--mode",
         type=str,
         help="run mode",
-        choices=["test", "file", "all"],
+        choices=["test", "file", "all", "create"],
         default="all",
         dest="mode",
     )
     a, u = p.parse_known_args()
+    if a.mode == "create":
+        Day.Base.build_day(a.year, a.day)
+        return
+    
     d = Day.Base.get_day(a.year, a.day, u)
     d.mode = a.mode
 
