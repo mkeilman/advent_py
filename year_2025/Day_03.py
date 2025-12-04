@@ -10,6 +10,11 @@ class AdventDay(Day.Base):
         "818181911112111",
     ]
 
+    SHORT_BANK = [
+        #"8119",
+        "24234278",
+    ]
+
 
     def __init__(self, run_args):
         import argparse
@@ -25,41 +30,52 @@ class AdventDay(Day.Base):
 
 
     def run(self):
+        self.input = AdventDay.SHORT_BANK
         n = self._max_joltage_sum()
         debug_print(f"RUN {self.year} {self.day}: {n}")
         return n
  
 
     def _max_joltage(self, bank):
+        if self.num_batts > len(bank):
+            raise ValueError(f"too many batteries: {self.num_batts} > {len(bank)}")
+        
         i = 0
         last_i = 0
         j = ""
         k = len(bank)
         n = 0
-        while n < self.num_batts:
+        #while n < self.num_batts:
+        while len(j) < self.num_batts:
             b = bank[i:k]
-            debug_print(f"CHECK {b}")
+            debug_print(f"CHECK {b} I {i} -> K {k}")
+            # no more batts
             # start over?
-            #if not b:
-            #    i = 0
-            #    last_i = 0
-            #    k -= 1
-            #    j = ""
+            if not b:
+                debug_print(f"EMPTY BANK")
+                i = 0
+                last_i = 0
+                k -= 1
+                j = ""
             #    n = 0
-            #    continue
+                continue
             i = bank.index(str(max([int(x) for x in b])))
             # if we still have batteries to connect but have reached the
             # end of the bank, start again excluding the last battery
-            if n < self.num_batts - 1 and i == len(bank) - 1:
+            #if n < self.num_batts - 1 and i == len(bank) - 1:
+            if len(j) < self.num_batts - 1 and i == len(bank) - 1:
                 debug_print(f"BANK {bank} J {bank[i]} AT {i} NO MORE BATTS")
                 k -= 1
                 i = last_i
+                #j = j[:-1]
                 continue
             j += bank[i]
-            #debug_print(f"BANK {bank} J {j} AT {i}")
+            debug_print(f"J {j} AT {i}")
+            # search for next digit after the one we found
             i += 1
             last_i = i
             n += 1
+            # reset to check to the end of the bank?
             k = len(bank)
 
         debug_print(f"BANK {bank} J {j}")
