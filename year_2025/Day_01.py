@@ -53,14 +53,25 @@ class Dial:
         return interim
 
 
+    # move one space at a time - easier than trying to keep track of
+    # loops
+    def cheesy_turn(self, num_spaces):
+        n = 0
+        s = mathutils.sign(num_spaces)
+        for _ in range(abs(num_spaces)):
+            self.current_pos = (self.current_pos + s + self.num_digits) % self.num_digits
+            n += not self.current_pos
+        return n
+
+
     def spin(self, turns, count_interim_zeros=False):
         num_zeros = 0
         for t in turns:
-            int_zeros = self.turn(t)
-            # lands on 0
-            num_zeros += not self.current_pos
+            int_zeros = self.cheesy_turn(t)
             if count_interim_zeros:
                 num_zeros += int_zeros
+            else:
+                num_zeros += not self.current_pos
         return num_zeros
 
 
