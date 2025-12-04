@@ -124,6 +124,7 @@ class Grid:
     neighborhoods = {
         "col": ((0, -1), (0, 1)),
         "row": ((-1, 0), (1, 0)),
+        "corners": ((-1, -1), (-1, 1), (1, -1), (1, 1))
     }
 
     @staticmethod
@@ -220,11 +221,15 @@ class Grid:
         return l
 
 
-    def neighborhood(self, pos, restrict_to=None):
+    def neighborhood(self, pos, include=("row", "col")):
         from utils import mathutils
+        from utils.debug import debug_print
+
+        if any([x not in Grid.neighborhoods.keys() for x in include]):
+            raise ValueError(f"invalid inclusion: {include}")
 
         n = []
-        s = mathutils.sum(Grid.neighborhoods.values(), init_val=()) if restrict_to is None else Grid.neighborhoods[restrict_to]
+        s = mathutils.sum([Grid.neighborhoods[x] for x in include], init_val=())
         for p in s:
             q = (pos[0] + p[0], pos[1] + p[1])
             if self.contains(q):
