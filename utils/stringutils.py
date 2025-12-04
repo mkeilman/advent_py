@@ -36,6 +36,11 @@ def indices(element, collection):
     return [i for i, x in enumerate(collection) if x == element]
 
 
+def print_str_arr(arr):
+    for r in arr:
+        debug_print(r)
+
+
 def re_indices(r, txt):
     import re
 
