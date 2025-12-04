@@ -1,7 +1,6 @@
 import Day
 from utils.debug import debug_print, debug_if
-from utils import collectionutils
-from utils import stringutils
+
 
 class AdventDay(Day.Base):
 
@@ -38,26 +37,13 @@ class AdventDay(Day.Base):
         n = 0
         self.grid = Day.Grid.grid_of_size(len(self.input[0]), len(self.input))
         b = self._accessable_bales()
-        #n = self._num_accessable_bales()
-        #debug_print(f"INIT BALES {len(b)}")
         if not self.count_removed_bales:
-            debug_print(f"INIT BALES {b} {len(b)}")
             return len(b)
-        #fb = collectionutils.flatten(b)
         while b:
             n += len(b)
-            m = len(b)
             for pos in b:
-                #m += len(nb)
-                #n += len(nb)
-                #for p in nb:
                 self._remove_bale(pos)
-            #debug_print(f"REMOVED {m}, NEXT")
             b = self._accessable_bales()
-            #debug_print(f"REMOVED {m}, NEXT {b}")
-            #stringutils.print_str_arr(self.input)
-            #if not m:
-            #    break
         debug_print(f"REMOVED BALES {n}")
         return n
  
@@ -85,5 +71,5 @@ class AdventDay(Day.Base):
     def _remove_bale(self, pos):
         r = self.input[pos[0]]
         self.input[pos[0]] = r[:pos[1]] + AdventDay.FLOOR + r[pos[1] + 1:]
-        #debug_print(f"R WAS {r} NOW {self.input[pos[0]]}")
+
 
