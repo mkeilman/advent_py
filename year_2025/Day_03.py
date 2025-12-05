@@ -61,22 +61,40 @@ class AdventDay(Day.Base):
         i = 0
         #while not done:
         while len(digits) < self.num_batts:
-            j = inds[start + i]
+            #j = inds[start + i]
+            j = inds[start]
             # extract j?
-            ii = [j] + [x for x in inds if x != j]
-            i += 1
+            ii = [x for x in inds if x != j]
+            debug_print(f"NEW INDS {ii}")
+            for index in ii:
+                digits.append(bank[j])
+                debug_print(f"DIGITS NOW {digits}")
+                debug_print(f"CHECK INDS {index} VS J {j}")
+                if len(digits) == self.num_batts:
+                    break
+                if index < j:
+                    debug_print(f"START OVER")
+                    digits = []
+                    start += 1
+                    break
+                #digits.append(bank[j])
+                #debug_print(f"DIGITS NOW {digits}")
+                #if len(digits) == self.num_batts:
+                #    break
+                j = index
+            #i += 1
             # next digit is before the current
             #debug_print(f"CHECK INDS {ii[i]} VS J {j}")
-            if inds[start + i] < j:
+            #if inds[start + i] < j:
             #if ii[i] < j:
-                debug_print(f"START OVER")
-                digits = []
-                start += 1
-                i = 0
-                continue
-            debug_print(f"ADD IDX {j}")
-            digits.append(bank[j])
-            debug_print(f"DIGITS NOW {digits}")
+            #    debug_print(f"START OVER")
+            #    digits = []
+            #    start += 1
+            #    i = 0
+            #    continue
+            #debug_print(f"ADD IDX {j}")
+            #digits.append(bank[j])
+            #debug_print(f"DIGITS NOW {digits}")
         joltage = "".join(digits)
 
 
