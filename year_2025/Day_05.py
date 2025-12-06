@@ -19,6 +19,23 @@ class AdventDay(Day.Base):
         "32",
     ]
 
+    NESTED = [
+        "1-10",
+        "4-5",
+        "6-7"
+    ]
+
+    OVERLAPPING = [
+        "1-10",
+        "5-20",
+        "4-21",
+    ]
+
+    SINGLE = [
+        "1-1",
+        "1-10",
+    ]
+
 
     def __init__(self, run_args):
         import argparse
@@ -29,6 +46,7 @@ class AdventDay(Day.Base):
 
 
     def run(self):
+        #self.input = AdventDay.SINGLE
         n = 0
         self._parse()
         n = self._num_fresh_ingredients()
@@ -45,33 +63,39 @@ class AdventDay(Day.Base):
         maxs = sorted([x[-1] for x in self.fresh_ranges])
         all_limits = sorted(mins + maxs)
         #debug_print(f"MINS {mins} MAXS {maxs} ALL {all_limits}")
-        do_count = True
 
         # first limit is guaranteed to be the lowest minimum
         r = [all_limits[0]]
-        d = [r]
+        ranges = [r]
+        depth = 1
         # go through all limits
         for x in all_limits[1:]:
+            #debug_print(f"DEPTH {depth}")
             # found a minimum - if we are counting, ignore it;
             # otherwise start a new range and start counting
             if x in mins:
                 #debug_print(f"FOUND MIN {x}")
-                if do_count:
-                    continue
-                r = [x]
-                d.append(r)
-                do_count = True
+                if not depth:
+                #depth += 1
+                #if do_count:
+                #    continue
+                    r = [x]
+                    ranges.append(r)
+                depth += 1
             # found a maximum - if we are counting, close the current range and stop counting;
             # otherwise not possible ???
             else:
                 #debug_print(f"FOUND MAX {x}")
-                if do_count:
+                if depth == 1:
+                #depth -= 1
+                #if do_count:
                     r.append(x)
-                    do_count = False
-                    continue
-                d.append([d[-1][1] + 1, x])
-        #debug_print(f"DISJOINT RANGES {d}")
-        n = mathutils.sum([x[1] - x[0] + 1 for x in d])
+                    #continue
+                #d.append([d[-1][1] + 1, x])
+                depth -= 1
+        debug_print(f"DISJOINT RANGES {ranges} DEPTH {depth}")
+        #debug_print(f"DEPTH {depth}")
+        n = mathutils.sum([x[-1] - x[0] + 1 for x in ranges if x])
         return n
 
 
@@ -87,7 +111,25 @@ class AdventDay(Day.Base):
             if not line:
                 continue
             if "-" in line:
-                r = [int(x) for x in re.findall(r'\d+', line)]
+                r = [int(x) for x in re.findall(r"\d+", line)]
+                #if r[0] == r[-1]:
+                #    debug_print(f"ZERO RANGE {r}")
                 self.fresh_ranges.append(range(r[0], r[1] + 1))
+                
             else:
                 self.available_ingredients.append(int(line))
+
+        # if any ranges have the same start, combine them
+        starts = {}
+        for i, r in enumerate(self.fresh_ranges):
+            start = r[0]
+            #debug_print(f"CHECK {start}")
+            rr = [x for x in self.fresh_ranges if x[0] == start and x != r]
+            if not rr:
+                continue
+            starts[start] = [i]
+            starts[start].extend([self.fresh_ranges.index(x) for x in rr])
+            #new_end = max([x[-1] for x in rr])
+            #new_range = range(r[0], new_end + 1)
+            #debug_print(f"SAME START {rr} NEW {new_range}")
+        debug_print(f"SAME STARTS {starts}")
