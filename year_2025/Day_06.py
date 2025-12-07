@@ -60,7 +60,7 @@ class AdventDay(Day.Base):
         self.nums = []
         for line in self.input[:-1]:
             self.nums.append([int(x) for x in re.findall(r"\d+", line)])
-            self.txt.append(re.findall(r"\s*\d+\s?", line))
+            self.txt.append(re.findall(r"\s*\d+\s*", line))
         
         #debug_print(f"TXT {self.txt}")
         self.magnitudes = len(self.nums[0]) * [0]
@@ -79,8 +79,8 @@ class AdventDay(Day.Base):
         #    if all([x[0] == " " for x in c]):
         #        self.num_cols[i] = [x[1:] for x in c]
         for i, c in enumerate(self.num_cols):
-            if all([x[-1] == " " for x in c]):
-                self.num_cols[i] = [x[:-1] for x in c]
+            #if all([x[-1] == " " for x in c]):
+            #    self.num_cols[i] = [x[:-1] for x in c]
             debug_print(f"CEPH {self._to_ceph(c)}")
         debug_print(f"NUM COLS {self.num_cols}")
 
