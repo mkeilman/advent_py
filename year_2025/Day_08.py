@@ -47,6 +47,12 @@ class AdventDay(Day.Base):
             default=3,
             dest="num_circuit_lens",
         )
+        self.args_parser.add_argument(
+            "--stop-on-single-circuit",
+            action=argparse.BooleanOptionalAction,
+            default=False,
+            dest="stop_on_single_circuit",
+        )
         self.add_args(run_args)
 
         self.junctions = []
@@ -63,7 +69,9 @@ class AdventDay(Day.Base):
                 [len(x) for x in self.circuits]
             )[-self.num_circuit_lens:]
         )
-        debug_print(f"PROD {n}")
+        #debug_print(len(self.dists))
+        debug_print(f"C {self.circuits}")
+        debug_print(f"NUM C {len(self.circuits)} PROD {n}")
         return n
  
     
@@ -82,7 +90,8 @@ class AdventDay(Day.Base):
             del self.circuits[self.circuits.index(from_circuit)]
 
 
-        for d in sorted(self.inverted_dists.keys())[:self.num_dists]:
+        num_dists = self.num_dists or len(self.dists)
+        for d in sorted(self.inverted_dists.keys())[:num_dists]:
             p = self.inverted_dists[d]
 
             # junctions always in 1 and only 1 circuit
@@ -100,6 +109,9 @@ class AdventDay(Day.Base):
                     # both == 1
                     _move_junctions(c1, c0)
 
+            if self.stop_on_single_circuit and len(self.circuits) == 1:
+                debug_print(f"LAST PAIR {p} XP {p[0][0] * p[1][0]}")
+                break
 
 
     def _parse(self):
