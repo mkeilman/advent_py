@@ -69,8 +69,6 @@ class AdventDay(Day.Base):
                 [len(x) for x in self.circuits]
             )[-self.num_circuit_lens:]
         )
-        #debug_print(len(self.dists))
-        debug_print(f"C {self.circuits}")
         debug_print(f"NUM C {len(self.circuits)} PROD {n}")
         return n
  
@@ -99,7 +97,7 @@ class AdventDay(Day.Base):
             c1 = _find_circ_with_junction(p[1])
             
             # circuits must have length >= 1;
-            # cannot both be > 1 (???)
+            # cannot both be > 1
             if len(c0) > 1:
                 _move_junctions(c1, c0)
             else:
