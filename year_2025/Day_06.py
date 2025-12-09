@@ -3,6 +3,7 @@ import operator
 import re
 from utils.debug import debug_print, debug_if
 from utils import mathutils
+from utils import stringutils
 
 class AdventDay(Day.Base):
 
@@ -58,31 +59,54 @@ class AdventDay(Day.Base):
 
     def _parse(self):
         self.nums = []
+        space_cols = set()
         for line in self.input[:-1]:
             self.nums.append([int(x) for x in re.findall(r"\d+", line)])
             self.txt.append(re.findall(r"\s*\d+\s*", line))
-        
-        #debug_print(f"TXT {self.txt}")
+            spaces = stringutils.re_indices(r"\s+", line)
+            sp = set(spaces)
+            if space_cols:
+                space_cols = space_cols.intersection(sp)
+            else:
+                space_cols = sp
+
+        # reproduce the alignment - prolly a way to do this with regex
+        # find the indices that are spaces for all rows
+        space_cols = sorted(list(space_cols))
+        #debug_print(f"SPACES {space_cols}")
+        justified = []
+        for line in self.input[:-1]:
+            nc = []
+            j = 0
+            for i in space_cols:
+                nc.append(line[j:i])
+                j = i + 1
+            nc.append(line[j:])
+            justified.append(nc)
+
         self.magnitudes = len(self.nums[0]) * [0]
         self.num_cols = [[] for _ in range(len(self.nums[0]))]
         #self.num_cols = ["" for _ in range(len(self.nums[0]))]
 
-        for i, r in enumerate(self.nums):
+        for i, r in enumerate(justified):
             for j, n in enumerate(r):
-                self.magnitudes[j] = max(self.magnitudes[j], len(str(n)) - 1)
-                #self.num_cols[j].append(self.input[i][j])
-                #self.num_cols[j] = self.input[i][j]
-                self.num_cols[j].append(self.txt[i][j])
+        #        self.magnitudes[j] = max(self.magnitudes[j], len(str(n)) - 1)
+        #        #self.num_cols[j].append(self.input[i][j])
+        #        #self.num_cols[j] = self.input[i][j]
+                #self.num_cols[j].append(self.txt[i][j])
+                self.num_cols[j].append(r[j])
 
         #self.num_cols.reverse()
         #for i, c in enumerate(self.num_cols):
         #    if all([x[0] == " " for x in c]):
         #        self.num_cols[i] = [x[1:] for x in c]
-        for i, c in enumerate(self.num_cols):
+        #for i, c in enumerate(self.num_cols):
             #if all([x[-1] == " " for x in c]):
             #    self.num_cols[i] = [x[:-1] for x in c]
-            debug_print(f"CEPH {self._to_ceph(c)}")
-        debug_print(f"NUM COLS {self.num_cols}")
+            #debug_print(f"CEPH {self._to_ceph(c)}")
+        cephs = [self._to_ceph(x) for x in self.num_cols]
+
+        debug_print(f"CEPHS {cephs}")
 
         k = ["\\" + x for x in AdventDay.OPS.keys()]
         re_ops = fr"[{'|'.join(k)}]"
@@ -94,8 +118,8 @@ class AdventDay(Day.Base):
     
     def _to_ceph(self, num_strings):
         ceph = len(num_strings) * [""]
-        max_len = max([len(str(int(x))) for x in num_strings])
+        max_len = len(num_strings[0])
         for j in range(max_len):
             for s in num_strings:
                 ceph[j] += s[j]
-        return ceph
+        return [int(x) for x in ceph]
