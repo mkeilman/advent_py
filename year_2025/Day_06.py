@@ -14,7 +14,13 @@ class AdventDay(Day.Base):
         "*   +   *   + ",
     ]
 
-    
+    TWO_DIGITS = [
+        "12 90",
+        "34 12",
+        "45 34",
+        "78 46",
+        "*   + ",
+    ]
 
     OPS = {
         "+": {
@@ -36,33 +42,55 @@ class AdventDay(Day.Base):
 
     def run(self):
         self.nums = []
-        self.txt = []
+        self.cephs = []
         self.num_cols = []
         self.ops = []
-        self.results = []
-        self.magnitudes = []
-        self.magnitude = pow(10, len(self.input) - 2)
+
         n = 0
         self._parse()
-        self._apply_ops()
-        #debug_print(f"OPS {self.ops} NUMS {self.nums} RES {self.results}")
-        n = mathutils.sum(self.results)
-        #debug_print(f"RES SUM {n} NUM COLS {self.num_cols}")
+        n = mathutils.sum(self._apply_ops(self.nums))
+        m =  mathutils.sum(self._apply_ops_ceph(self.cephs))
+        debug_print(f"RES SUM {n}")
+        debug_print(f"CEPH SUM {m}")
         return n
     
 
-    def _apply_ops(self):
-        for r in self.nums:
-            for i, n in enumerate(r):
-                self.results[i] = self.ops[i](self.results[i], n)
+    def _apply_ops_ceph(self, vals):
+        res = self._get_unit_res()
+        for i, r in enumerate(vals):
+            for n in r:
+                res[i] = self.ops[i](res[i], n)
+        return res
     
+
+    def _apply_ops(self, vals):
+        res = self._get_unit_res()
+        for r in vals:
+            for i, n in enumerate(r):
+                res[i] = self.ops[i](res[i], n)
+        return res
+    
+
+    def _get_ops(self):
+        return self._get_op_params("op")
+
+
+    def _get_unit_res(self):
+        return self._get_op_params("unit")
+
+
+    def _get_op_params(self, key):
+        k = ["\\" + x for x in AdventDay.OPS.keys()]
+        re_ops = fr"[{'|'.join(k)}]"
+        op_keys = re.findall(re_ops, self.input[-1])
+        return [AdventDay.OPS[x][key] for x in op_keys]
+
 
     def _parse(self):
         self.nums = []
         space_cols = set()
         for line in self.input[:-1]:
             self.nums.append([int(x) for x in re.findall(r"\d+", line)])
-            self.txt.append(re.findall(r"\s*\d+\s*", line))
             spaces = stringutils.re_indices(r"\s+", line)
             sp = set(spaces)
             if space_cols:
@@ -73,7 +101,6 @@ class AdventDay(Day.Base):
         # reproduce the alignment - prolly a way to do this with regex
         # find the indices that are spaces for all rows
         space_cols = sorted(list(space_cols))
-        #debug_print(f"SPACES {space_cols}")
         justified = []
         for line in self.input[:-1]:
             nc = []
@@ -84,42 +111,19 @@ class AdventDay(Day.Base):
             nc.append(line[j:])
             justified.append(nc)
 
-        self.magnitudes = len(self.nums[0]) * [0]
         self.num_cols = [[] for _ in range(len(self.nums[0]))]
-        #self.num_cols = ["" for _ in range(len(self.nums[0]))]
 
         for i, r in enumerate(justified):
             for j, n in enumerate(r):
-        #        self.magnitudes[j] = max(self.magnitudes[j], len(str(n)) - 1)
-        #        #self.num_cols[j].append(self.input[i][j])
-        #        #self.num_cols[j] = self.input[i][j]
-                #self.num_cols[j].append(self.txt[i][j])
                 self.num_cols[j].append(r[j])
 
-        #self.num_cols.reverse()
-        #for i, c in enumerate(self.num_cols):
-        #    if all([x[0] == " " for x in c]):
-        #        self.num_cols[i] = [x[1:] for x in c]
-        #for i, c in enumerate(self.num_cols):
-            #if all([x[-1] == " " for x in c]):
-            #    self.num_cols[i] = [x[:-1] for x in c]
-            #debug_print(f"CEPH {self._to_ceph(c)}")
-        cephs = [self._to_ceph(x) for x in self.num_cols]
-
-        debug_print(f"CEPHS {cephs}")
-
-        k = ["\\" + x for x in AdventDay.OPS.keys()]
-        re_ops = fr"[{'|'.join(k)}]"
-        op_keys = re.findall(re_ops, self.input[-1])
-        self.ops = [AdventDay.OPS[x]["op"] for x in op_keys]
-        self.results = [AdventDay.OPS[x]["unit"] for x in op_keys]
-
-
+        self.cephs = [self._to_ceph(x) for x in self.num_cols]
+        self.ops = self._get_ops()
     
     def _to_ceph(self, num_strings):
-        ceph = len(num_strings) * [""]
-        max_len = len(num_strings[0])
-        for j in range(max_len):
+        num_len = len(num_strings[0])
+        ceph = num_len * [""]
+        for i in range(num_len):
             for s in num_strings:
-                ceph[j] += s[j]
+                ceph[i] += s[i]
         return [int(x) for x in ceph]
