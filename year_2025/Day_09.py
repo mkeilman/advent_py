@@ -26,9 +26,16 @@ class AdventDay(Day.Base):
     def __init__(self, run_args):
         import argparse
         super(AdventDay, self).__init__(2025, 9)
+        self.args_parser.add_argument(
+            "--interior-only",
+            action=argparse.BooleanOptionalAction,
+            default=False,
+            dest="interior_only",
+        )
         self.add_args(run_args)
         self.red_tiles = []
         self.green_tiles = []
+        self.colored_tiles = []
 
 
     def run(self):
@@ -44,8 +51,12 @@ class AdventDay(Day.Base):
 
         max_area = 0
         for pair in itertools.combinations(self.red_tiles, 2):
-            # add one to get the length instead of the distance
+            rect = self._rect(pair)
+            if self.interior_only and any([x not in self.colored_tiles for x in rect]):
+                #debug_print(f"P {pair} OUTSIDE")
+                continue
             dr, dc = self._tile_span(pair)
+            #debug_print(f"P {pair} OK {dr * dc}")
             max_area = max(max_area, dr * dc)
         return max_area
 
@@ -70,24 +81,35 @@ class AdventDay(Day.Base):
                 self.green_tiles.extend([(t[0] + mathutils.sign(dr) * x, t[1]) for x in range(1, abs(dr))])
             else:
                 self.green_tiles.extend([(t[0], t[1] + mathutils.sign(dc) * x) for x in range(1, abs(dc))])
-        #debug_print(self.green_tiles)
 
-        interior_tiles = []
         outline_tiles = self.red_tiles + self.green_tiles
-        b = self._bounds()
-        for r in range(b[0][0], b[2][0] + 1):
-            coords = [(r, c) for c in range(b[0][1], b[3][1] + 1)]
-            tiles_in_rows = [x for x in coords if x in outline_tiles]
-            first = tiles_in_rows[0]
-            last = tiles_in_rows[-1]
-            i_t = [x for x in coords if x[1] > first[1] and x[1] < last[1]]
-            debug_print(i_t)
-            interior_tiles.append(i_t)
-            self.green_tiles.extend(i_t)
+        debug_print("DONE OUTLINE")
 
-        #self.green_tiles.extend()
-        #debug_print(self._bounds())
-        self._print_tiles()
+        b = self._bounds()
+        debug_print(f"{b[0][0], b[2][0] + 1}")
+        for r in range(b[0][0], b[2][0] + 1):
+            #debug_if(f"{r}", "", "", not r % 100, include_time=True)
+            # outline tiles in this row
+            outline_row = [x for x in outline_tiles if x[0] == r]
+            mn = min(x[1] for x in outline_row)
+            mx = max(x[1] for x in outline_row)
+            debug_if(f"{outline_row}", "", "", False, include_time=True)
+            # all tiles in this row between the outline tiles
+            #col_coords = [(r, c) for c in range(b[0][1], b[3][1] + 1)]
+            col_coords = [(r, c) for c in range(mn, mx + 1)]
+            
+            
+            tiles_in_rows = [x for x in col_coords if x in outline_row]
+            debug_if(f"GOT TILES NUM OUTLINE {len(outline_row)}", "", "", False, include_time=True)
+            first = tiles_in_rows[0][1]
+            last = tiles_in_rows[-1][1]
+            i_t = [x for x in col_coords if x[1] > first and x[1] < last]
+            debug_if(f"GOT INTERNAL", "", "", False, include_time=True)
+            self.green_tiles.extend(i_t)
+            debug_if(f"EXTENDED", "", "", not r % 100, include_time=True)
+
+        self.colored_tiles = self.red_tiles + self.green_tiles
+        #self._print_tiles()
 
 
     def _print_tiles(self, padding=2):
@@ -109,6 +131,19 @@ class AdventDay(Day.Base):
             debug_print(padding * AdventDay.NONE)
         for _ in range(padding):
             debug_print(empty_row)
+
+
+    def _rect(self, pair):
+
+        rect = []
+        min_r = min(pair[0][0], pair[1][0])
+        max_r = max(pair[0][0], pair[1][0])
+        min_c = min(pair[0][1], pair[1][1])
+        max_c = max(pair[0][1], pair[1][1])
+        for r in range(min_r, max_r + 1):
+            rect.extend([(r, c) for c in range(min_c, max_c + 1)])
+        return rect
+
 
     def _tile_span(self, tile_pair, signed=False):
         dr = tile_pair[0][0] - tile_pair[1][0]
