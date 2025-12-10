@@ -51,9 +51,10 @@ class AdventDay(Day.Base):
 
         max_area = 0
         for pair in itertools.combinations(self.red_tiles, 2):
-            rect = self._rect(pair)
-            if self.interior_only and any([x not in self.colored_tiles for x in rect]):
-                #debug_print(f"P {pair} OUTSIDE")
+            #rect = self._rect(pair)
+            #if self.interior_only and any([x not in self.colored_tiles for x in rect]):
+            if self.interior_only and not self._is_interior(pair):
+                debug_print(f"P {pair} OUTSIDE")
                 continue
             dr, dc = self._tile_span(pair)
             #debug_print(f"P {pair} OK {dr * dc}")
@@ -65,6 +66,33 @@ class AdventDay(Day.Base):
         r = [x[0] for x in self.red_tiles]
         c = [x[1] for x in self.red_tiles]
         return (min(r), min(c)), (min(r), max(c)), (max(r), min(c)), (max(r), max(c))
+
+
+    def _is_interior(self, pair):
+        #rect = self._rect(pair)
+        debug_print(f"CHECK P {pair}")
+        min_row = min(pair[0][0], pair[1][0])
+        max_row = max(pair[0][0], pair[1][0])
+        min_col = min(pair[0][1], pair[1][1])
+        max_col = max(pair[0][1], pair[1][1])
+        for r in range(min_row, max_row + 1):
+            #debug_print(r)
+            # outline tiles in this row
+            outline_tiles_in_row = [x for x in self.outline_tiles if x[0] == r]
+            #debug_print(f"{r} OUTLINE {len(outline_tiles_in_row)}")
+            min_outline_col = min(x[1] for x in outline_tiles_in_row)
+            max_outline_col = max(x[1] for x in outline_tiles_in_row)
+            #debug_print(f"MC {min_outline_col} MX {max_outline_col}")
+            # all tiles in this row between the outline tiles
+            #col_coords = [(r, c) for c in range(min_col, max_col + 1)]
+            #debug_print(f"{r} COL COORDS DONE {len(col_coords)}", include_time=True)
+            #if any([x not in col_coords for x in rect]):
+            if min_col < min_outline_col or max_col > max_outline_col:
+                debug_print(f"{r} OUTSIDE")
+                return False
+        debug_print("INSIDE")
+        return True
+
 
 
     def _parse(self):
@@ -82,36 +110,27 @@ class AdventDay(Day.Base):
             else:
                 self.green_tiles.extend([(t[0], t[1] + mathutils.sign(dc) * x) for x in range(1, abs(dc))])
 
-        outline_tiles = self.red_tiles + self.green_tiles
+        self.outline_tiles = self.red_tiles + self.green_tiles
         debug_print("DONE OUTLINE")
-
+        return
+        
         b = self._bounds()
         debug_print(f"{b[0][0], b[2][0] + 1}")
         for r in range(b[0][0], b[2][0] + 1):
-            #debug_if(f"{r}", "", "", not r % 100, include_time=True)
             # outline tiles in this row
             outline_tiles_in_row = [x for x in outline_tiles if x[0] == r]
             mn = min(x[1] for x in outline_tiles_in_row)
             mx = max(x[1] for x in outline_tiles_in_row)
-            debug_if(f"{outline_tiles_in_row}", "", "", False, include_time=True)
             # all tiles in this row between the outline tiles
             col_coords = [(r, c) for c in range(mn, mx + 1)]
-            #tiles_in_rows = [x for x in col_coords if x in outline_tiles_in_row]
-            #debug_if(f"GOT TILES NUM OUTLINE {len(outline_tiles_in_row)}", "", "", False, include_time=True)
-            #first = tiles_in_rows[0][1]
-            #last = tiles_in_rows[-1][1]
-            #debug_if(f"FIRST {first} LAST {last} CC {col_coords}", "", "", not r % 100, include_time=True)
-            #i_t = [x for x in col_coords if x[1] > first and x[1] < last]
-            #debug_if(f"GOT INTERNAL", "", "", False, include_time=True)
-            #self.green_tiles.extend(i_t)
             self.green_tiles.extend(col_coords)
-            debug_if(f"{r} EXTENDED", "", "", not r % 100, include_time=True)
+            debug_if(f"{r} DONE", "", "", not r % 100, include_time=True)
 
         self.colored_tiles = self.red_tiles + self.green_tiles
         #self._print_tiles()
 
 
-    def _print_tiles(self, padding=2):
+    def _print_tiles(self, padding=2, scale=1):
         b = self._bounds()
         num_cols = b[1][1] - b[0][1] + 1
         empty_row = (2 * padding + num_cols) * AdventDay.NONE
