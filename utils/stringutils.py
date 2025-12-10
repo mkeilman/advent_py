@@ -31,7 +31,15 @@ def indices(element, collection):
         return []
     
     if isinstance(collection, str):
-        return re_indices(element, collection)
+        i = -1
+        s = []
+        while True:
+            try:
+                i = collection.index(element, i + 1)
+                s.append(i)
+            except ValueError:
+                break
+        return s
     
     return [i for i, x in enumerate(collection) if x == element]
 
