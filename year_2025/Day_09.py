@@ -90,23 +90,22 @@ class AdventDay(Day.Base):
         for r in range(b[0][0], b[2][0] + 1):
             #debug_if(f"{r}", "", "", not r % 100, include_time=True)
             # outline tiles in this row
-            outline_row = [x for x in outline_tiles if x[0] == r]
-            mn = min(x[1] for x in outline_row)
-            mx = max(x[1] for x in outline_row)
-            debug_if(f"{outline_row}", "", "", False, include_time=True)
+            outline_tiles_in_row = [x for x in outline_tiles if x[0] == r]
+            mn = min(x[1] for x in outline_tiles_in_row)
+            mx = max(x[1] for x in outline_tiles_in_row)
+            debug_if(f"{outline_tiles_in_row}", "", "", False, include_time=True)
             # all tiles in this row between the outline tiles
-            #col_coords = [(r, c) for c in range(b[0][1], b[3][1] + 1)]
             col_coords = [(r, c) for c in range(mn, mx + 1)]
-            
-            
-            tiles_in_rows = [x for x in col_coords if x in outline_row]
-            debug_if(f"GOT TILES NUM OUTLINE {len(outline_row)}", "", "", False, include_time=True)
-            first = tiles_in_rows[0][1]
-            last = tiles_in_rows[-1][1]
-            i_t = [x for x in col_coords if x[1] > first and x[1] < last]
-            debug_if(f"GOT INTERNAL", "", "", False, include_time=True)
-            self.green_tiles.extend(i_t)
-            debug_if(f"EXTENDED", "", "", not r % 100, include_time=True)
+            #tiles_in_rows = [x for x in col_coords if x in outline_tiles_in_row]
+            #debug_if(f"GOT TILES NUM OUTLINE {len(outline_tiles_in_row)}", "", "", False, include_time=True)
+            #first = tiles_in_rows[0][1]
+            #last = tiles_in_rows[-1][1]
+            #debug_if(f"FIRST {first} LAST {last} CC {col_coords}", "", "", not r % 100, include_time=True)
+            #i_t = [x for x in col_coords if x[1] > first and x[1] < last]
+            #debug_if(f"GOT INTERNAL", "", "", False, include_time=True)
+            #self.green_tiles.extend(i_t)
+            self.green_tiles.extend(col_coords)
+            debug_if(f"{r} EXTENDED", "", "", not r % 100, include_time=True)
 
         self.colored_tiles = self.red_tiles + self.green_tiles
         #self._print_tiles()
