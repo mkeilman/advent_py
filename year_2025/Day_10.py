@@ -5,19 +5,6 @@ from utils import stringutils
 import re
 
 
-class Indicator:
-
-    def __init__(self, num_lights, button):
-        self.num_lights = num_lights
-        self.lights = self.num_lights * [0]
-        self.button = button
-
-
-    def toggle(self):
-        for i in self.button:
-            self.lights[i] = not self.lights[i]
-
-
 class Machine:
 
     ON = "#"
@@ -29,6 +16,19 @@ class Machine:
     }
     STATE_VALS = {v: k for k, v in STATES.items()}
 
+    @classmethod
+    def state_str(cls, state, state_len):
+        s = "["
+        n = state
+        for i in range(state_len):
+            p = 1 << (state_len - i - 1)
+            q = n // p
+            s += cls.STATE_VALS[q]
+            n -= p * q
+        s += "]"
+        return s
+
+
     def __init__(self, goal_state_str, buttons, joltage):
         s = goal_state_str.strip("[]")
         self.num_lights = len(s)
@@ -38,7 +38,6 @@ class Machine:
             self.goal_state += Machine.STATES[x] * (1 << i)
         
         self.buttons = [mathutils.sum([1 << x for x in y]) for y in buttons]
-        self.indicators = [Indicator(len(s), x) for x in buttons]
         self.joltage = joltage
 
 
@@ -50,16 +49,9 @@ class Machine:
         s = txt.strip("[]")
 
 
-    def state_str(self):
-        s = "["
-        n = self.state
-        for i in range(self.num_lights):
-            p = 1 << (self.num_lights - i - 1)
-            q = n // p
-            s += Machine.STATE_VALS[q]
-            n -= p * q
-        s += "]"
-        return s
+    def current_state_str(self):
+        return Machine.state_str(self.state, self.num_lights)
+
         
 
 class AdventDay(Day.Base):
@@ -88,7 +80,7 @@ class AdventDay(Day.Base):
         debug_print(m.buttons)
         debug_print(f"START {m.state} B {m.buttons[b]}")
         m.press(b)
-        debug_print(f"NEXT {m.state_str()}")
+        debug_print(f"NEXT {m.current_state_str()}")
         return n
  
 
