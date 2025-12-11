@@ -18,15 +18,14 @@ class Machine:
 
     @classmethod
     def state_int_to_str(cls, state, state_len):
-        s = "["
+        s = ""
         n = state
         for i in range(state_len):
             p = 1 << (state_len - i - 1)
             q = n // p
             s += cls.STATE_VALS[q]
             n -= p * q
-        s += "]"
-        return s
+        return "[" + s + "]"
 
 
     @classmethod
@@ -44,20 +43,45 @@ class Machine:
         self.goal_state_str = goal_state_str
         self.goal_state, self.num_bits = Machine.state_str_to_int(goal_state_str)
         self.buttons = [mathutils.sum([1 << (self.num_bits - x - 1)for x in y]) for y in buttons]
-        debug_print(self.buttons)
         self.joltage = joltage
-
-
-    # a toggle is the same as bitwise exclusive or
-    def press(self, idx):
-        self.state ^= self.buttons[idx]
-        debug_print(f"AFTER {self.buttons[idx]} {self.state}: {self.current_state_str()} {self.goal_state}: {self.goal_state_str} DONE? {self.state == self.goal_state}")
 
 
     def current_state_str(self):
         return Machine.state_int_to_str(self.state, self.num_bits)
 
-        
+
+    def seek_goal_state(self):
+        import itertools
+
+        indices = list(range(len(self.buttons)))
+        for n in range(1, len(self.buttons) + 1):
+            #debug_print(f"PRESSING {n} BUTTONS")
+            self.state = 0
+            for c in itertools.combinations(indices, n):
+                #debug_print(f"PRESSING {c}")
+                self.press_buttons(*c)
+                if self.state == self.goal_state:
+                    return n
+                self.state = 0
+        return 0
+
+
+    def next_state(self, val):
+            #debug_print(val)
+            self.state ^= val
+            #debug_print(f"AFTER {val} {self.state}: {self.current_state_str()} {self.goal_state}: {self.goal_state_str} DONE? {self.state == self.goal_state}")
+
+
+    # a toggle is the same as bitwise exclusive or (^)
+    def press(self, idx):
+        self.next_state(self.buttons[idx])
+    
+
+    def press_buttons(self, *args):
+        for i in args:
+            self.press(i)
+    
+
 
 class AdventDay(Day.Base):
 
@@ -84,10 +108,11 @@ class AdventDay(Day.Base):
         #self.input = AdventDay.TWO_BIT
         n = 0
         self._parse()
-        i = 2
-        m = self.machines[i]
-        m.press(2)
-        m.press(1)
+        for i, m in enumerate(self.machines):
+            p = m.seek_goal_state()
+            n += p
+            debug_print(f"{i} FOUND GOAL IN {p} PRESSES")
+        debug_print(f"{n} TOTAL PRESSES")
         return n
  
 
