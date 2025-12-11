@@ -17,7 +17,7 @@ class Machine:
     STATE_VALS = {v: k for k, v in STATES.items()}
 
     @classmethod
-    def state_str(cls, state, state_len):
+    def state_int_to_str(cls, state, state_len):
         s = "["
         n = state
         for i in range(state_len):
@@ -29,28 +29,33 @@ class Machine:
         return s
 
 
+    @classmethod
+    def state_str_to_int(cls, txt):
+        s = txt.strip("[]")
+        l = len(s)
+        state = 0
+        for i, p in enumerate(s):
+            state += Machine.STATES[p] * (1 << (l - i - 1))
+        return state
+        
+
     def __init__(self, goal_state_str, buttons, joltage):
         s = goal_state_str.strip("[]")
         self.num_lights = len(s)
         self.state = 0
-        self.goal_state = 0
-        for i, x in enumerate(s):
-            self.goal_state += Machine.STATES[x] * (1 << i)
-        
+        self.goal_state = Machine.state_str_to_int(goal_state_str)
         self.buttons = [mathutils.sum([1 << x for x in y]) for y in buttons]
         self.joltage = joltage
 
 
+    # a toggle is the same as bitwise exclusive or
     def press(self, idx):
         self.state ^= self.buttons[idx]
 
 
-    def state_str_to_int(self, txt):
-        s = txt.strip("[]")
-
 
     def current_state_str(self):
-        return Machine.state_str(self.state, self.num_lights)
+        return Machine.state_int_to_str(self.state, self.num_lights)
 
         
 
