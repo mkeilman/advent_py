@@ -47,8 +47,13 @@ class Machine:
         self.goal_state, self.num_bits = Machine.state_str_to_int(goal_state_str)
         self.buttons = [mathutils.sum([1 << (self.num_bits - x - 1)for x in y]) for y in buttons]
         self.button_indices = buttons
+        
         self.goal_joltage = goal_joltage
         self.joltage = len(self.goal_joltage) * [0]
+        self.joltage_spans = self._joltage_spans()
+        self.joltage_tallies = self._joltage_tallies()
+        debug_print(f"T {self.joltage_tallies}")
+        
 
         self.goal_fns = {
             f"{Machine.LEVER_STATE_IND}": self.seek_goal_state,
@@ -75,12 +80,14 @@ class Machine:
             self.state = 0
             for c in itertools.combinations(indices, n):
                 self.press_buttons(*c)
-                if self.state == self.goal_state:
+                if self.joltage == self.goal_joltage:
                     return n
                 self.state = 0
         return 0
     
 
+    # since buttons toggle bits, we need to press them
+    # most once
     def seek_goal_state(self):
         import itertools
 
@@ -104,13 +111,40 @@ class Machine:
         self.next_state(self.buttons[idx])
         for i in self.button_indices[idx]:
             self.joltage[i] += 1
-            #debug_print(f"PRESSSED {i} {self.button_indices[idx]} J NOW {self.joltage}")
     
 
     def press_buttons(self, *args):
         for i in args:
             self.press(i)
-    
+
+
+    # get combinations of button indices that span all indices
+    def _joltage_spans(self):
+        import itertools
+
+        s = []
+        indices = list(range(len(self.buttons)))
+        for n in range(1, len(self.buttons) + 1):
+            for c in itertools.combinations(indices, n):
+                all_inds = set()
+                for x in c:
+                    all_inds = all_inds | set(self.button_indices[x])
+                if len(all_inds) == len(self.joltage):
+                    s.append(c)
+        return s
+
+
+    def _joltage_tallies(self):
+        
+        t = []
+        for span in self.joltage_spans:
+            tally = len(self.joltage) * [0]
+            for s in span:
+                for j in self.button_indices[s]:
+                    tally[j] += 1
+            debug_print(f"SPAN {[self.button_indices[x] for x in span]} -> TALLY {tally}")
+            t.append(tally)
+        return t
 
 
 class AdventDay(Day.Base):
@@ -122,7 +156,7 @@ class AdventDay(Day.Base):
     ]
 
     TWO_BIT = [
-        "[.#] (0) (1) (1,0) {3,5,4,7}",
+        "[.#] (0) (1) (1,0) {9, 9}",
     ]
 
 
