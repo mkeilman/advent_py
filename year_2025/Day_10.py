@@ -16,6 +16,9 @@ class Machine:
     }
     STATE_VALS = {v: k for k, v in STATES.items()}
 
+    LEVER_STATE_IND = "indicators"
+    LEVER_STATE_JOLT = "joltage"
+
     @classmethod
     def state_int_to_str(cls, state, state_len):
         s = ""
@@ -25,7 +28,7 @@ class Machine:
             q = n // p
             s += cls.STATE_VALS[q]
             n -= p * q
-        return "[" + s + "]"
+        return f"[{s}]"
 
 
     @classmethod
@@ -38,27 +41,53 @@ class Machine:
         return state, l
         
 
-    def __init__(self, goal_state_str, buttons, joltage):
+    def __init__(self, goal_state_str, buttons, goal_joltage):
         self.state = 0
         self.goal_state_str = goal_state_str
         self.goal_state, self.num_bits = Machine.state_str_to_int(goal_state_str)
         self.buttons = [mathutils.sum([1 << (self.num_bits - x - 1)for x in y]) for y in buttons]
-        self.joltage = joltage
+        self.button_indices = buttons
+        self.goal_joltage = goal_joltage
+        self.joltage = len(self.goal_joltage) * [0]
+
+        self.goal_fns = {
+            f"{Machine.LEVER_STATE_IND}": self.seek_goal_state,
+            f"{Machine.LEVER_STATE_JOLT}": self.seek_goal_joltage
+        }
+        self.lever_state = Machine.LEVER_STATE_IND
 
 
     def current_state_str(self):
         return Machine.state_int_to_str(self.state, self.num_bits)
 
 
+    def seek_goal(self):
+        return self.goal_fns[self.lever_state]()
+
+
+    def seek_goal_joltage(self):
+        import itertools
+
+        debug_print("J")
+        return 0
+        indices = list(range(len(self.buttons)))
+        for n in range(1, len(self.buttons) + 1):
+            self.state = 0
+            for c in itertools.combinations(indices, n):
+                self.press_buttons(*c)
+                if self.state == self.goal_state:
+                    return n
+                self.state = 0
+        return 0
+    
+
     def seek_goal_state(self):
         import itertools
 
         indices = list(range(len(self.buttons)))
         for n in range(1, len(self.buttons) + 1):
-            #debug_print(f"PRESSING {n} BUTTONS")
             self.state = 0
             for c in itertools.combinations(indices, n):
-                #debug_print(f"PRESSING {c}")
                 self.press_buttons(*c)
                 if self.state == self.goal_state:
                     return n
@@ -66,15 +95,16 @@ class Machine:
         return 0
 
 
-    def next_state(self, val):
-            #debug_print(val)
-            self.state ^= val
-            #debug_print(f"AFTER {val} {self.state}: {self.current_state_str()} {self.goal_state}: {self.goal_state_str} DONE? {self.state == self.goal_state}")
-
-
     # a toggle is the same as bitwise exclusive or (^)
+    def next_state(self, val):
+            self.state ^= val
+
+    
     def press(self, idx):
         self.next_state(self.buttons[idx])
+        for i in self.button_indices[idx]:
+            self.joltage[i] += 1
+            #debug_print(f"PRESSSED {i} {self.button_indices[idx]} J NOW {self.joltage}")
     
 
     def press_buttons(self, *args):
@@ -99,17 +129,30 @@ class AdventDay(Day.Base):
     def __init__(self, run_args):
         import argparse
         super(AdventDay, self).__init__(2025, 10)
+        self.args_parser.add_argument(
+            "--lever-state",
+            type=str,
+            help="property for which to minimize button presses",
+            choices=[Machine.LEVER_STATE_IND, Machine.LEVER_STATE_JOLT],
+            default=Machine.LEVER_STATE_IND,
+            dest="lever_state",
+        )
         self.add_args(run_args)
         self.machines = []
 
 
-    # eigenvalues? addition?
     def run(self):
-        #self.input = AdventDay.TWO_BIT
         n = 0
         self._parse()
+        m = self.machines[2]
+        m.press_buttons(0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 3)
+        debug_print(f"{0} JOLTAGE {m.joltage} VS GOAL {m.goal_joltage}")
+        return 0
         for i, m in enumerate(self.machines):
-            p = m.seek_goal_state()
+            m.press_buttons(*list(range(len(m.buttons))))
+            debug_print(f"{i} JOLTAGE GOAL IN {m.joltage}")
+            continue
+            p = m.seek_goal()
             n += p
             debug_print(f"{i} FOUND GOAL IN {p} PRESSES")
         debug_print(f"{n} TOTAL PRESSES")
@@ -132,4 +175,6 @@ class AdventDay(Day.Base):
             b = _parse_button(line)
             j = _parse_joltage(line)
             g = re.match(fr"\[[\{Machine.OFF}{Machine.ON}]+\]", line)[0]
-            self.machines.append(Machine(g, b, j))
+            m = Machine(g, b, j)
+            m.lever_state = self.lever_state
+            self.machines.append(m)
