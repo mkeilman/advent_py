@@ -18,8 +18,26 @@ class AdventDay(Day.Base):
         "iii: out",
     ]
 
+    SERVER = [
+        "svr: aaa bbb",
+        "aaa: fft",
+        "fft: ccc",
+        "bbb: tty",
+        "tty: ccc",
+        "ccc: ddd eee",
+        "ddd: hub",
+        "hub: fff",
+        "eee: dac",
+        "dac: fff",
+        "fff: ggg hhh",
+        "ggg: out",
+        "hhh: out",
+    ]
+
     YOU = "you"
     OUT = "out"
+    SERVER = "svr"
+    FFT = "fft"
 
 
     def __init__(self, run_args):
@@ -38,16 +56,19 @@ class AdventDay(Day.Base):
         return n
  
 
-    def _num_paths(self, key=None, depth=0):
+    def _num_paths(self, key=None, depth=0, dev_chain=None):
         n = 0
         k = key or AdventDay.YOU
-        debug_print(f"KEY {k}")
+        c = dev_chain or f"{k}:"
+        #debug_print(f"{depth} KEY {k}")
         for d in self.rack[k]:
-            debug_print(f"{k}: DDEVS {d}")
+            dl = f"{c}:{d}"
             if d == AdventDay.OUT:
-                n += 1
+                #debug_print(f"{depth} {dl}")
+                return 1
             else:
-                n += mathutils.sum([self._num_paths(key=d, depth=depth+1) for x in d])
+                n += self._num_paths(key=d, depth=depth+1, dev_chain=dl)
+        
         return n
 
 
