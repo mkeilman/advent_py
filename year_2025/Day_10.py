@@ -36,26 +36,26 @@ class Machine:
         state = 0
         for i, p in enumerate(s):
             state += Machine.STATES[p] * (1 << (l - i - 1))
-        return state
+        return state, l
         
 
     def __init__(self, goal_state_str, buttons, joltage):
-        s = goal_state_str.strip("[]")
-        self.num_lights = len(s)
         self.state = 0
-        self.goal_state = Machine.state_str_to_int(goal_state_str)
-        self.buttons = [mathutils.sum([1 << x for x in y]) for y in buttons]
+        self.goal_state_str = goal_state_str
+        self.goal_state, self.num_bits = Machine.state_str_to_int(goal_state_str)
+        self.buttons = [mathutils.sum([1 << (self.num_bits - x - 1)for x in y]) for y in buttons]
+        debug_print(self.buttons)
         self.joltage = joltage
 
 
     # a toggle is the same as bitwise exclusive or
     def press(self, idx):
         self.state ^= self.buttons[idx]
-
+        debug_print(f"AFTER {self.buttons[idx]} {self.state}: {self.current_state_str()} {self.goal_state}: {self.goal_state_str} DONE? {self.state == self.goal_state}")
 
 
     def current_state_str(self):
-        return Machine.state_int_to_str(self.state, self.num_lights)
+        return Machine.state_int_to_str(self.state, self.num_bits)
 
         
 
@@ -67,6 +67,10 @@ class AdventDay(Day.Base):
         "[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}",
     ]
 
+    TWO_BIT = [
+        "[.#] (0) (1) (1,0) {3,5,4,7}",
+    ]
+
 
     def __init__(self, run_args):
         import argparse
@@ -75,17 +79,15 @@ class AdventDay(Day.Base):
         self.machines = []
 
 
-    # eigenvalues?
+    # eigenvalues? addition?
     def run(self):
+        #self.input = AdventDay.TWO_BIT
         n = 0
         self._parse()
-        i = 0
-        b = 5
+        i = 2
         m = self.machines[i]
-        debug_print(m.buttons)
-        debug_print(f"START {m.state} B {m.buttons[b]}")
-        m.press(b)
-        debug_print(f"NEXT {m.current_state_str()}")
+        m.press(2)
+        m.press(1)
         return n
  
 
