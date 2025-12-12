@@ -54,13 +54,14 @@ class AdventDay(Day.Base):
         self.add_args(run_args)
         self.rack = {}
 
-
+    # start DAC - goes to OUT, no FFT
+    # start FFT - ???
     def run(self):
         n = 0
         if self.mode == "test" and self.count_dac_fft:
             self.input = AdventDay.SERVER
         self._parse()
-        n = self._num_paths(start_key=AdventDay.DAC)
+        n = self._num_paths(end_key=AdventDay.FFT)
         #a = self._ancestors(AdventDay.DAC)
         debug_print(f"N {n}")
         return n
