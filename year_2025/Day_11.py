@@ -60,24 +60,29 @@ class AdventDay(Day.Base):
         if self.mode == "test" and self.count_dac_fft:
             self.input = AdventDay.SERVER
         self._parse()
-        #n = self._num_paths()
-        self._ancestors(AdventDay.DAC)
+        n = self._num_paths(start_key=AdventDay.DAC)
+        #a = self._ancestors(AdventDay.DAC)
         debug_print(f"N {n}")
         return n
  
 
-    def _ancestors(self, device, chain=None, depth=0):
-        c = chain or []
-        c.append(device)
+    def _ancestors(self, device, depth=0):
+        c = [device]
+        #ancestors = [c]
         parents = [x for x in self.rack if device in self.rack[x]]
+        # reached a root, we're done
+        #if not parents:
+        #    return c
         for p in parents:
-            self._ancestors(p, chain=c, depth=depth+1)
-        debug_if(f"{depth} {c}", "", "", depth == 0)
+            c.append(self._ancestors(p, depth=depth+1))
+        debug_if(f"{depth} {c}", "", "", True)
+        return c
 
 
-    def _num_paths(self, key=None, depth=0, dev_chain=None):
+    def _num_paths(self, start_key=None, end_key=None, depth=0, dev_chain=None):
         n = 0
-        k = key or (AdventDay.SVR if self.count_dac_fft else AdventDay.YOU)
+        k = start_key or (AdventDay.SVR if self.count_dac_fft else AdventDay.YOU)
+        e = end_key or AdventDay.OUT
         c = dev_chain or f"{k}"
         for d in self.rack[k]:
             dl = f"{c}:{d}"
@@ -90,7 +95,7 @@ class AdventDay(Day.Base):
                     return int(AdventDay.DAC in dl and AdventDay.FFT in dl)
                 return 1
             else:
-                n += self._num_paths(key=d, depth=depth+1, dev_chain=dl)
+                n += self._num_paths(start_key=d, depth=depth+1, dev_chain=dl)
         
         return n
 
