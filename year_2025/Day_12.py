@@ -14,6 +14,7 @@ class Shape:
         self.shape_id = shape_id or collectionutils.random_base62(8)
         self.shape_grid = shape_grid
         self.flat_grid = collectionutils.flatten(self.shape_grid)
+        self.num_full = mathutils.sum([int(x == Shape.FULL) for x in self.flat_grid])
         self.size = (len(shape_grid), len(shape_grid[0]))
 
 
@@ -68,10 +69,13 @@ class Region:
         return True
 
 
-    def __init__(self, size, required_shapes):
+    def __init__(self, size, shape_prototypes, required_shapes):
         self.size = size
         self.area = size[0] * size[1]
+        self.shape_prototypes = shape_prototypes
         self.required_shapes = required_shapes
+        self.required_full = mathutils.sum([self.required_shapes[i] * x.num_full for i, x in enumerate(self.shape_prototypes)])
+        debug_print(self.required_full)
         self.shapes_dict = {}
 
 
@@ -81,7 +85,7 @@ class Region:
             s = self.shapes_dict[s_id]["shape"]
             b = self.shapes_dict[s_id]["bounds"]
             r, c = b[0][0][0], b[1][0][0]
-            debug_print(f"CHECK R {r} C {c}")
+            #debug_print(f"CHECK R {r} C {c}")
             for i in range(s.size[0]):
                 txt[r + i] = txt[r + i][:c] + s.shape_grid[i] + txt[r + i][c + s.size[1]:]
         return "\n".join(txt)
@@ -89,28 +93,40 @@ class Region:
 
     # add a shape with the upper left corner at the given coords
     def add_shape(self, shape, coords):
-        debug_print(f"ADD {shape} AT {coords}")
+        #debug_print(f"TRY {shape} AT {coords}")
         shape_entry = {
             "shape": shape,
             "bounds": Region.bounds(shape, coords)
         }
-        assert self.fits(shape_entry, coords)
-        self.shapes_dict[shape.shape_id] = shape_entry
+        if self.fits(shape_entry, coords):
+            self.shapes_dict[shape.shape_id] = shape_entry
+            return True
+        debug_print(f"CANNOT FIT {shape} AT {coords}")
+        return False
+
+
+    def add_all_required(self):
+        debug_print(f"REQ: {self.required_shapes}")
+        for i, p in enumerate(self.required_shapes):
+            s = self.shape_prototypes[i]
+            for _ in range(p):
+                pass
+        pass
 
 
     def fits(self, shape_entry, coords):
         shape = shape_entry["shape"]
-        debug_print(f"SZ {self.size} SH {shape.size} C {coords}: {coords[0] + shape.size[0]} {coords[1] + shape.size[1]}")
+        #debug_print(f"SZ {self.size} SH {shape.size} C {coords}: {coords[0] + shape.size[0]} {coords[1] + shape.size[1]}")
         # check that the shape is inside the region
         if not (0 <= (coords[0] + shape.size[0]) < self.size[0] and 0 <= (coords[1] + shape.size[1]) < self.size[1]):
             return False
         
         for s_id in self.shapes_dict:
             s = self.shapes_dict[s_id]
-            debug_print(f"S {s}")
             # if the bounds do not overlap at all, the new shape fits
             if not Region.overlaps(s, shape_entry):
                 continue
+            # at most one shape can be FULL at this coordinate if they are to fit together
             if not all([x == Shape.EMPTY or shape.flat_grid[i] == Shape.EMPTY for i, x in enumerate(s["shape"].flat_grid)]):
                 return False
 
@@ -122,6 +138,8 @@ class Region:
         return b[0][0] < coord[0] < b[0][1] and b[1][0] < coord[1] < b[1][1]
     
 
+    def _shape_coord_ranges(self, shape):
+        return range(self.size[0] - shape.size[0]), range(self.size[1] - shape.size[1])
 
 
 
@@ -176,12 +194,8 @@ class AdventDay(Day.Base):
     def run(self):
         n = 0
         self._parse()
-        s = self.shapes[0]
-        #debug_print(f"SHAPE {s} ROT 1 {s.rotate(1)} ROT -1 {s.rotate(-1)}")
-        r = self.regions[0]
-        r.add_shape(s, (0, 0))
-        debug_print(f"{r}")
-        r.add_shape(s, (0, 0))
+        for r in self.regions:
+            r.add_all_required()
         return n
  
 
@@ -208,6 +222,7 @@ class AdventDay(Day.Base):
                 self.regions.append(
                     Region(
                         (int(m.group(1)), int(m.group(2))),
+                        self.shapes,
                         [int(x) for x in re.findall(r"\d", line.split(":")[1])]
                     )
                 )
