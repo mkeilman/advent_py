@@ -9,7 +9,9 @@ class Shape:
     EMPTY = "."
     FULL = "#"
 
-    def __init__(self, shape_grid):
+    def __init__(self, shape_grid, shape_prototype, shape_id=None):
+        self.shape_prototype = shape_prototype
+        self.shape_id = shape_id or collectionutils.random_base62(8)
         self.shape_grid = shape_grid
         self.flat_grid = collectionutils.flatten(self.shape_grid)
         self.size = (len(shape_grid), len(shape_grid[0]))
@@ -19,24 +21,25 @@ class Shape:
         return f"{self.shape_grid}"
 
 
+    # flip around the specified axis, preserving the id
     def flip(self, axis):
         if axis == 0:
-            return Shape(self.shape_grid[::-1])
-        return Shape([x[::-1] for x in self.shape_grid])
+            return Shape(self.shape_grid[::-1], self.shape_prototype, shape_id=self.shape_id)
+        return Shape([x[::-1] for x in self.shape_grid], self.shape_prototype, shape_id=self.shape_id)
         
 
-    # 90 degrees at a time around the center
+    # 90 degrees at a time around the center, preserving the id
     def rotate(self, direction):
         d = mathutils.sign(direction)
         if not d:
-            return Shape(self.shape_grid)
+            return Shape(self.shape_grid, self.shape_prototype, shape_id=self.shape_id)
         g = []
         for i in range(self.size[0]):
             r = ""
             for j in range(self.size[1]):
                 r += self.shape_grid[j][i]
             g.append(r)
-        return Shape(g).flip(1 if d == 1 else 0)
+        return Shape(g, self.shape_prototype, shape_id=self.shape_id).flip(1 if d == 1 else 0)
 
 
 class Region:
@@ -50,13 +53,16 @@ class Region:
     
 
     @classmethod
-    def overlaps(cls, bounds0, bounds1):
+    def overlaps(cls, shape_entry0, shape_entry1):
+        #debug_print(f"S0 {shape_entry0} S1 {shape_entry1}")
+        b0 = shape_entry0["bounds"]
+        b1 = shape_entry1["bounds"]
         # check x
-        if bounds1[0][0] > bounds0[0][1] or bounds1[0][1] < bounds0[0][0]:
+        if b1[0][0] > b0[0][1] or b1[0][1] < b0[0][0]:
             return False
         
         # check y
-        if bounds1[1][0] > bounds0[1][1] or bounds1[1][1] < bounds0[1][0]:
+        if b1[1][0] > b0[1][1] or b1[1][1] < b0[1][0]:
             return False
 
         return True
@@ -66,41 +72,58 @@ class Region:
         self.size = size
         self.area = size[0] * size[1]
         self.required_shapes = required_shapes
-        self.shapes = []
+        self.shapes_dict = {}
+
+
+    def __repr__(self):
+        txt = self.size[0] * [self.size[1] * Shape.EMPTY]
+        for s_id in self.shapes_dict:
+            s = self.shapes_dict[s_id]["shape"]
+            b = self.shapes_dict[s_id]["bounds"]
+            r, c = b[0][0][0], b[1][0][0]
+            debug_print(f"CHECK R {r} C {c}")
+            for i in range(s.size[0]):
+                txt[r + i] = txt[r + i][:c] + s.shape_grid[i] + txt[r + i][c + s.size[1]:]
+        return "\n".join(txt)
 
 
     # add a shape with the upper left corner at the given coords
     def add_shape(self, shape, coords):
-        assert self.fits(shape, coords)
-        self.shapes.append(
-            {
-                "shape": shape,
-                "bounds": Region.bounds(shape, coords)
-            }
-        )
+        debug_print(f"ADD {shape} AT {coords}")
+        shape_entry = {
+            "shape": shape,
+            "bounds": Region.bounds(shape, coords)
+        }
+        assert self.fits(shape_entry, coords)
+        self.shapes_dict[shape.shape_id] = shape_entry
 
 
-    def fits(self, shape, coords):
+    def fits(self, shape_entry, coords):
+        shape = shape_entry["shape"]
         debug_print(f"SZ {self.size} SH {shape.size} C {coords}: {coords[0] + shape.size[0]} {coords[1] + shape.size[1]}")
         # check that the shape is inside the region
         if not (0 <= (coords[0] + shape.size[0]) < self.size[0] and 0 <= (coords[1] + shape.size[1]) < self.size[1]):
             return False
         
-        for s in self.shapes:
-            b0 = s["bounds"]
-            b1 = Region.bounds(shape, coords)
+        for s_id in self.shapes_dict:
+            s = self.shapes_dict[s_id]
+            debug_print(f"S {s}")
             # if the bounds do not overlap at all, the new shape fits
-            if not Region.overlaps(b0, b1):
+            if not Region.overlaps(s, shape_entry):
                 continue
-            g0 = s.flat_grid
-            g1 = shape.flat_grid
-            if not all([x == Shape.EMPTY or g1[i] == Shape.EMPTY for i, x in enumerate(g0)]):
+            if not all([x == Shape.EMPTY or shape.flat_grid[i] == Shape.EMPTY for i, x in enumerate(s["shape"].flat_grid)]):
                 return False
 
         return True
     
 
+    def is_coord_in_shape(self, coord, shape_id):
+        b = self.shapes_dict[shape_id]["bounds"]
+        return b[0][0] < coord[0] < b[0][1] and b[1][0] < coord[1] < b[1][1]
     
+
+
+
 
 
 class AdventDay(Day.Base):
@@ -154,8 +177,10 @@ class AdventDay(Day.Base):
         n = 0
         self._parse()
         s = self.shapes[0]
-        debug_print(f"SHAPE {s} ROT 1 {s.rotate(1)} ROT -1 {s.rotate(-1)}")
+        #debug_print(f"SHAPE {s} ROT 1 {s.rotate(1)} ROT -1 {s.rotate(-1)}")
         r = self.regions[0]
+        r.add_shape(s, (0, 0))
+        debug_print(f"{r}")
         r.add_shape(s, (0, 0))
         return n
  
@@ -163,14 +188,17 @@ class AdventDay(Day.Base):
     def _parse(self):
         in_shape = False
         s = None
+        s_p = None
         for line in self.input:
             if not line:
                 if in_shape:
-                    self.shapes.append(Shape(s))
+                    self.shapes.append(Shape(s, s_p))
                 in_shape = False
                 continue
-            if re.match(r"^\d:", line):
+            m = re.match(r"^(\d):", line)
+            if m:
                 in_shape = True
+                s_p = int(m.group(1))
                 s = []
                 continue
             if in_shape:
