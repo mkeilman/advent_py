@@ -71,8 +71,6 @@ class Region:
                     return False
             return True
 
-
-        #debug_print(f"S0 {shape_entry0} S1 {shape_entry1}")
         b0 = shape_entry0["bounds"]
         b1 = shape_entry1["bounds"]
         if not _does_overlap(b0, b1):
@@ -80,25 +78,13 @@ class Region:
         
         # check x
         o = []
-        debug_print(f"S0 {b0} S1 {b1}")
         rows = max(b0["row"]["min"],  b1["row"]["min"]), min(b0["row"]["max"], b1["row"]["max"])
         cols = max(b0["col"]["min"], b1["col"]["min"]), min(b0["col"]["max"], b1["col"]["max"])
-        debug_print(f"ROWS {rows} COLS {cols}")
         for r in rows:
-            #debug_print(f"R {r}")
             for c in cols:
-                #debug_print(f"C {c}")
                 o.append((r, c))
-        debug_print(o)
-        #if b1[0][0] > b0[0][1] or b1[0][1] < b0[0][0]:
-        #    return False
-        
-        # check y
-        #if b1[1][0] > b0[1][1] or b1[1][1] < b0[1][0]:
-        #    return False
 
         return o
-        return True
 
 
     def __init__(self, size, shape_prototypes, required_shapes):
@@ -116,19 +102,12 @@ class Region:
 
 
     def __repr__(self):
-        #txt = self.size[0] * [self.size[1] * Shape.EMPTY]
         txt = []
         for r in range(self.size[0]):
             row = ""
             for c in range(self.size[1]):
                 row += Shape.FULL if self.filled[r][c] else Shape.EMPTY
             txt.append(row)
-        #for s_id in self.shapes_dict:
-        #    s = self.shapes_dict[s_id]["shape"]
-        #    b = self.shapes_dict[s_id]["bounds"]
-        #    r, c = b["row"]["min"], b["col"]["min"]
-        #    for i in range(s.size[0]):
-        #        txt[r + i] = txt[r + i][:c] + s.shape_grid[i] + txt[r + i][c + s.size[1]:]
         return "\n".join(txt)
 
 
@@ -160,7 +139,7 @@ class Region:
     def add_all_required(self):
         #debug_print(f"REQ: {self.required_shapes}")
         for i, p in enumerate(self.required_shapes):
-            s = self.shape_prototypes[i]
+            s = self.get_shape(i)
             debug_print(f"TRY {p}\n{s}")
             # 
             for _ in range(p):
@@ -170,7 +149,6 @@ class Region:
 
     def fits(self, shape_entry, coords):
         shape = shape_entry["shape"]
-        #debug_print(f"R SZ {self.size} SH SZ {shape.size} C {coords}: {coords[0] + shape.size[0]} {coords[1] + shape.size[1]}")
         # check that the shape is inside the region
         if not (0 <= (coords[0] + shape.size[0]) <= self.size[0] and 0 <= (coords[1] + shape.size[1]) <= self.size[1]):
             return False
@@ -182,7 +160,6 @@ class Region:
             if not overlap:
                 continue
 
-            #debug_print(f"{shape.shape_id} OVERLAPS {s_id}")
             # at most one shape can be FULL at this coordinate if they are to fit together
             grid = shape.shape_grid
             bounds = shape_entry["bounds"]
@@ -207,8 +184,6 @@ class Region:
 
     def _shape_coord_ranges(self, shape):
         return range(self.size[0] - shape.size[0]), range(self.size[1] - shape.size[1])
-
-
 
 
 class AdventDay(Day.Base):
@@ -271,20 +246,9 @@ class AdventDay(Day.Base):
         n = 0
         self._parse()
         v = [x for x in self.regions if x.valid]
-        #for i, r in enumerate(v):
-        #    debug_print(f"FIT ALL IN {i}")
-        #    r.add_all_required()
-        r = self.regions[0]
-        s = r.get_shape(4)
-        r.add_shape(s)
-        debug_print(r)
-        #r.add_shape(s, coords=(2,0))
-        s = r.get_shape(4).flip(1)
-        r.add_shape(s, coords=(1, 1))
-        debug_print(r)
-        #sf = s.flip(1)
-        #r.add_shape(sf, coords=(1, 0))
-        #debug_print(r)
+        for i, r in enumerate(v):
+            debug_print(f"FIT ALL IN {i}")
+            r.add_all_required()
         return n
  
 
