@@ -23,6 +23,10 @@ class Shape:
         #return f"{self.shape_grid}"
 
 
+    def clone(self):
+        return Shape(self.shape_grid, self.shape_prototype)
+
+
     # flip around the specified axis
     def flip(self, axis):
         if axis == 0:
@@ -66,19 +70,29 @@ class Region:
 
     @classmethod
     def overlap(cls, shape_entry0, shape_entry1):
+        def _does_overlap(b0, b1):
+            for d in ("row", "col"):
+                if b1[d]["min"] > b0[d]["max"] or b1[d]["max"] < b0[d]["min"]:
+                    return False
+            return True
+
+
         #debug_print(f"S0 {shape_entry0} S1 {shape_entry1}")
         b0 = shape_entry0["bounds"]
         b1 = shape_entry1["bounds"]
+        if not _does_overlap(b0, b1):
+            return []
+        
         # check x
         o = []
         debug_print(f"S0 {b0} S1 {b1}")
         rows = max(b0["row"]["min"],  b1["row"]["min"]), min(b0["row"]["max"], b1["row"]["max"])
-        cols = range(max(b0["col"]["min"], b1["col"]["min"]), min(b0["col"]["max"], b1["col"]["max"]))
+        cols = max(b0["col"]["min"], b1["col"]["min"]), min(b0["col"]["max"], b1["col"]["max"])
         debug_print(f"ROWS {rows} COLS {cols}")
         for r in rows:
-            debug_print(f"R {r}")
+            #debug_print(f"R {r}")
             for c in cols:
-                debug_print(f"C {c}")
+                #debug_print(f"C {c}")
                 o.append((r, c))
         debug_print(o)
         #if b1[0][0] > b0[0][1] or b1[0][1] < b0[0][0]:
@@ -119,7 +133,9 @@ class Region:
 
     # add a shape with the upper left corner at the given coords
     def add_shape(self, shape, coords=(0, 0)):
-        #debug_print(f"TRY {shape} AT {coords}")
+        if shape.shape_id in self.shapes_dict:
+            debug_print(f"SHAPE {shape.shape_id} ALREADY ADDED")
+            shape = shape.clone()
         shape_entry = {
             "shape": shape,
             "bounds": Region.bounds(shape, coords)
@@ -159,14 +175,23 @@ class Region:
 
             debug_print(f"{shape.shape_id} OVERLAPS {s_id}")
             # at most one shape can be FULL at this coordinate if they are to fit together
-            for c in overlap:
-                
+            grid = shape.shape_grid
+            bounds = shape_entry["bounds"]
+            g = s["shape"].shape_grid
+            b = s["bounds"]
+            for oc in overlap: 
+                if grid[oc[0] - bounds["row"]["min"]][oc[1] - bounds["col"]["min"]] == Shape.FULL and \
+                g[oc[0] - b["row"]["min"]][oc[1] - b["row"]["min"]]== Shape.FULL:
+                    return False
 
-            if not all([x == Shape.EMPTY or shape.flat_grid[i] == Shape.EMPTY for i, x in enumerate(s["shape"].flat_grid)]):
-                return False
+            #if not all([x == Shape.EMPTY or shape.flat_grid[i] == Shape.EMPTY for i, x in enumerate(s["shape"].flat_grid)]):
+            #    return False
 
         return True
     
+    def get_shape(self, index):
+        return self.shape_prototypes[index].clone()
+
 
     def is_coord_in_shape(self, coord, shape_id):
         b = self.shapes_dict[shape_id]["bounds"]
@@ -217,16 +242,25 @@ class AdventDay(Day.Base):
         "12x5: 1 0 1 0 3 2",
     ]
 
+    SIMPLE = [
+        "0:",
+        "##",
+        "##",
+        "",
+        "4x4: 4",
+    ]
+
 
     def __init__(self, run_args):
         import argparse
         super(AdventDay, self).__init__(2025, 12)
         self.add_args(run_args)
-        self.shapes = []
+        #self.shapes = []
         self.regions = []
 
 
     def run(self):
+        #self.input = AdventDay.SIMPLE
         n = 0
         self._parse()
         v = [x for x in self.regions if x.valid]
@@ -235,11 +269,16 @@ class AdventDay(Day.Base):
         #    debug_print(f"FIT ALL IN {i}")
         #    r.add_all_required()
         r = self.regions[0]
-        s = self.shapes[4]
+        s = r.get_shape(4)
         r.add_shape(s)
+        #debug_print(r)
+        #r.add_shape(s, coords=(2,0))
+        s = r.get_shape(4).flip(1)
+        r.add_shape(s, coords=(1, 1))
         debug_print(r)
-        sf = s.flip(1)
-        r.add_shape(sf, coords=(1, 1))
+        #sf = s.flip(1)
+        #r.add_shape(sf, coords=(1, 0))
+        #debug_print(r)
         return n
  
 
@@ -247,10 +286,11 @@ class AdventDay(Day.Base):
         in_shape = False
         s = None
         s_p = None
+        shapes = []
         for line in self.input:
             if not line:
                 if in_shape:
-                    self.shapes.append(Shape(s, s_p))
+                    shapes.append(Shape(s, s_p))
                 in_shape = False
                 continue
             m = re.match(r"^(\d):", line)
@@ -266,7 +306,7 @@ class AdventDay(Day.Base):
                 self.regions.append(
                     Region(
                         (int(m.group(1)), int(m.group(2))),
-                        self.shapes,
+                        shapes,
                         [int(x) for x in re.findall(r"\d+", line.split(":")[1])]
                     )
                 )
