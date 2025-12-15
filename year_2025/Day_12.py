@@ -16,6 +16,7 @@ class Shape:
         self.flat_grid = collectionutils.flatten(self.shape_grid)
         self.num_full = mathutils.sum([int(x == Shape.FULL) for x in self.flat_grid])
         self.size = (len(shape_grid), len(shape_grid[0]))
+        self.area = mathutils.product(self.size)
 
 
     def __repr__(self):
@@ -78,10 +79,8 @@ class Region:
         
         # check x
         o = []
-        rows = max(b0["row"]["min"],  b1["row"]["min"]), min(b0["row"]["max"], b1["row"]["max"])
-        cols = max(b0["col"]["min"], b1["col"]["min"]), min(b0["col"]["max"], b1["col"]["max"])
-        for r in rows:
-            for c in cols:
+        for r in max(b0["row"]["min"],  b1["row"]["min"]), min(b0["row"]["max"], b1["row"]["max"]):
+            for c in max(b0["col"]["min"], b1["col"]["min"]), min(b0["col"]["max"], b1["col"]["max"]):
                 o.append((r, c))
 
         return o
@@ -93,8 +92,18 @@ class Region:
         self.shape_prototypes = shape_prototypes
         self.required_shapes = required_shapes
         self.num_required = mathutils.sum(self.required_shapes)
-        self.required_full = mathutils.sum([self.required_shapes[i] * x.num_full for i, x in enumerate(self.shape_prototypes)])
-        self.valid = self.required_full <= self.area
+
+         # a region is valid if its area is at least as big as all the filled shape sections
+        required_full = mathutils.sum([self.required_shapes[i] * x.num_full for i, x in enumerate(self.shape_prototypes)])
+        self.valid = required_full <= self.area
+
+        # a region is trivial if all the required shapes can be placed without overlap
+        # that is they tile the region
+        min_rows = mathutils.sum([self.required_shapes[i] * x.size[0] for i, x in enumerate(self.shape_prototypes)])
+        min_cols = mathutils.sum([self.required_shapes[i] * x.size[1] for i, x in enumerate(self.shape_prototypes)])
+        #debug_print(f"MR {min_rows} MC {min_cols} SZ {self.size}")
+        self.trivial = min_rows <= self.size[0] and min_cols <= self.size[1]
+        #debug_print(f"A {self.area} NA {mathutils.sum([self.required_shapes[i] * x.area for i, x in enumerate(self.shape_prototypes)])} V? {self.required_full} {self.valid} T? {self.trivial}")
         self.shapes_dict = {}
         self.filled = self.size[0] * []
         for i in range(self.size[0]):
@@ -140,7 +149,7 @@ class Region:
         #debug_print(f"REQ: {self.required_shapes}")
         for i, p in enumerate(self.required_shapes):
             s = self.get_shape(i)
-            debug_print(f"TRY {p}\n{s}")
+            #debug_print(f"TRY {p}\n{s}")
             # 
             for _ in range(p):
                 pass
@@ -237,7 +246,6 @@ class AdventDay(Day.Base):
         import argparse
         super(AdventDay, self).__init__(2025, 12)
         self.add_args(run_args)
-        #self.shapes = []
         self.regions = []
 
 
@@ -246,8 +254,10 @@ class AdventDay(Day.Base):
         n = 0
         self._parse()
         v = [x for x in self.regions if x.valid]
+        t = [x for x in v if x.trivial]
+        debug_print(f"N {len(self.regions)} V {len(v)} T {len(t)}")
         for i, r in enumerate(v):
-            debug_print(f"FIT ALL IN {i}")
+            #debug_print(f"FIT ALL IN {i} T? {r.trivial}")
             r.add_all_required()
         return n
  
@@ -281,4 +291,3 @@ class AdventDay(Day.Base):
                     )
                 )
             
-
