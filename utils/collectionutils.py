@@ -8,11 +8,11 @@ def flatten(arr):
 
 def random_base62(length):
     BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    return "".join([random.choice(BASE62_CHARS) for _ in range(length)]) 
+    return "".join([random.choice(BASE62_CHARS) for _ in range(length)])
 
 
 def random_exchanges(elements, inclusions=None, exclusions=None):
-    """From the given list, retruns a list of pairs of random elements
+    """From the given list, returns a list of pairs of random elements
     where each element appears in each position once and only once, and
     never in both positions of a single pair. Consider a gift exchange where each person draws a
     name not their own to give to.
