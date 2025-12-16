@@ -13,8 +13,9 @@ class AdventDay(Day.Base):
     ]
 
     SHORT_BANK = [
-        #"8119",
-        "24234278",
+        #"819121",
+        "8119",
+        #"24234278",
     ]
 
 
@@ -32,56 +33,106 @@ class AdventDay(Day.Base):
 
 
     def run(self):
-        #self.input = AdventDay.SHORT_BANK
+        self.input = AdventDay.SHORT_BANK
         n = self._max_joltage_sum()
         debug_print(f"RUN {self.year} {self.day}: {n}")
         return n
  
 
-    def _max_joltage(self, bank):
+    def _max_joltage(self, bank, depth=0):
+        import operator
+
         if self.num_batts > len(bank):
             raise ValueError(f"too many batteries: {self.num_batts} > {len(bank)}")
         
         if self.num_batts < 2:
             raise ValueError(f"too few batteries: {self.num_batts} < 2")
         
+        # the number as written is the largest it can be
+        if self.num_batts == len(bank):
+            return int("".join(bank))
+        
         i = 0
         last_i = 0
         joltage = ""
         k = len(bank)
         n = 0
+
+        # sort the batteries largest to smallest, keeping track of the original order 
         sorted_bank = sorted(bank, reverse=True)
+        
         inds = []
         for batt in sorted_bank:
             inds.extend([x for x in stringutils.indices(batt, bank) if x not in inds])
+        batt_index = [(i, bank[i]) for i in inds]
        
-        debug_print(f"BANK {bank} SORTED {sorted_bank} INDS {inds}")
+        #debug_print(f"BANK {bank} SORTED {sorted_bank} INDS {inds} BI {batt_index}")
+        debug_print(f"BANK {bank}")
         start = 0
         digits = []
         i = 0
         #while not done:
+        sbi = sorted(batt_index, reverse=True, key=operator.itemgetter(1))  #[:self.num_batts]
+        #digits = [x[1] for x in sorted(sbi, key=operator.itemgetter(0))]
+        debug_print(f"SBI {sbi}")
+        i, d = sbi[start]
+        digits.append(d)
         while len(digits) < self.num_batts:
+            #debug_print(f"NEXT {start}")
+            #digits.append(sbi[start][1])
+
+            # get the remaining digits whose index is greater than the current digit's index
+            remainder = [x for x in sbi if x[0] > i]
+            debug_print(f"D {digits} R {remainder}")
+            total = len(digits) + len(remainder)
+            # if the number of digits plus the number remaining is num_batts, add to the 
+            # remainder sorted by index - we're done
+            if total == self.num_batts:
+                digits.extend([x[1] for x in sorted(remainder, key=operator.itemgetter(0))])
+                #debug_print(f"DONE {digits}")
+                break
+
+            # if there are too few, start over with the next largest digt
+            if total < self.num_batts:
+                start += 1
+                i, d = sbi[start]
+                digits = [d]
+                debug_print(f"START OVER AT {start}")
+                continue
+
+            
+            # ???
+            i, d = remainder[0]
+            debug_print(f"NEXT DGIT OK {i} {d}")
+            digits.append(d)
+
+            
             #j = inds[start + i]
-            j = inds[start]
+            #j = inds[start]
             # extract j?
-            ii = [x for x in inds if x != j]
-            debug_print(f"NEW INDS {ii}")
-            for index in ii:
-                digits.append(bank[j])
-                debug_print(f"DIGITS NOW {digits}")
-                debug_print(f"CHECK INDS {index} VS J {j}")
-                if len(digits) == self.num_batts:
-                    break
-                if index < j:
-                    debug_print(f"START OVER")
-                    digits = []
-                    start += 1
-                    break
+            #ii = [x for x in inds if x != j]
+            #ii = inds[:]
+            #debug_print(f"NEW INDS {ii}")
+            #for index in ii:
+            #    #digits.append(bank[j])
+            #    digits.append(bank[index])
+            #    debug_print(f"DIGITS NOW {digits}")
+            #    if len(digits) == self.num_batts:
+            #        debug_print(f"DONE")
+            #        break
+
+            #    debug_print(f"CHECK INDS {index} VS J {j}")
+            #    if index < j:
+            #        debug_print(f"SWAP")
+            #        ii[index], ii[j] = ii[j], ii[index]
+                    #digits = []
+                    #start += 1
+                    #break
                 #digits.append(bank[j])
                 #debug_print(f"DIGITS NOW {digits}")
                 #if len(digits) == self.num_batts:
                 #    break
-                j = index
+                #j = index
             #i += 1
             # next digit is before the current
             #debug_print(f"CHECK INDS {ii[i]} VS J {j}")
