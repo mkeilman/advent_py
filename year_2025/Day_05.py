@@ -1,5 +1,6 @@
 import Day
 from utils.debug import debug_print, debug_if
+from utils import collectionutils
 from utils import mathutils
 import re
 
@@ -60,28 +61,113 @@ class AdventDay(Day.Base):
     def _num_all_fresh(self):
         import operator
 
-        n = 0
-        # deal with single-member ranges first
-        n = len([x for x in self.fresh_ranges if x[0] == x[-1]])
+        def _combine_adjacent(ranges):
+            both = [x for x in [y[0] for y in ranges] if x in [y[-1] for y in ranges]]
+            # sort by range start
+            a = sorted([x for x in ranges if x[0] in both], key=operator.itemgetter(0))
+            combined = []
+            inds = []
+            for i in range(len(a) - 1):
+                r1, r2 = a[i], a[i + 1]
+                if r1[-1] != r2[0]:
+                    continue
+                combined.append(range(r1.start, r2.stop))
+                inds.append(ranges.index(r1))
+                inds.append(ranges.index(r2))
+            for i in sorted(inds, reverse=True):
+                del ranges[i]
+            ranges.extend(combined)
+            ranges.sort(key=operator.itemgetter(0))
 
-        non_trivial = sorted([x for x in self.fresh_ranges if x[0] != x[-1]], key=operator.itemgetter(0))
+
+        def _combine_overlapping(ranges):
+            #rr = sorted(ranges, key=operator.itemgetter(0))
+            combined = []
+            inds = []
+            for i in range(len(ranges)):
+                if i in inds:
+                    # already accounted for
+                    continue
+                r1 = ranges[i]
+                r_inds = [ranges.index(x) for x in ranges[i + 1:] if x.start < r1.stop and x.stop > r1.stop]
+                if not r_inds:
+                    continue
+                inds.extend([i] + r_inds)
+                combined.append(range(r1.start, ranges[r_inds[-1]].stop))
+                debug_print(f"{i} OVERLAP {r_inds}")
+            debug_print(f"OVERLAP INDS {sorted(inds, reverse=True)}")
+            for i in sorted(inds, reverse=True):
+                debug_print(f"DEL {i} / {len(ranges)}")
+                del ranges[i]
+            ranges.extend(combined)
+            ranges.sort(key=operator.itemgetter(0))
+            
+
+        def _remove_interior(ranges):
+            inds = []
+            for i in range(len(ranges)):
+                r1 = ranges[i]
+                intr = [ranges.index(x) for x in ranges[i + 1:] if x.start >= r1.start and x.stop <= r1.stop]
+                #debug_if(f"INT {r1}: {[ranges[x] for x in intr]}", "", "", intr)
+                inds.extend([ranges.index(x) for x in ranges[i + 1:] if x.start >= r1.start and x.stop <= r1.stop])
+            for i in sorted(inds, reverse=True):
+                del ranges[i]
+
+
+        n = 0
+        debug_print(f"NUM R INIT {len(self.fresh_ranges)}")
+
+        # deal with single-member ranges
+        n = len([x for x in self.fresh_ranges if len(x) == 1])
+        debug_print(f"NUM SINGLE {n}")
+
+        # the rest are multi-member ranges
+        non_trivial = [x for x in self.fresh_ranges if len(x) > 1]
+        debug_print(f"NUM R INIT {len(non_trivial)}")
+
+
+        # remove interior
+        _remove_interior(non_trivial)
+        debug_print(f"NUM R AFTER RM INT {len(non_trivial)}")
+
+
+        # combine adjacent
+        _combine_adjacent(non_trivial)
+        debug_print(f"NUM R AFTER COMB ADJ {len(non_trivial)}")
+
+        # combine overlapping
+        _combine_overlapping(non_trivial)
+        debug_print(f"NUM R AFTER COMB OVERLAP {len(non_trivial)}")
+
+        
+        
+
         mins = sorted([x[0] for x in non_trivial])
         maxs = sorted([x[-1] for x in non_trivial])
-        both = [x for x in mins if x in maxs]
-        adjacent = [x for x in non_trivial if x[0] in both]
-        debug_print(f"N MIN {len(mins)} N MAX {len(maxs)} BOTH {adjacent}")
+        #adjacent = _adjacent(non_trivial)  #[x for x in non_trivial if x[0] in both]
+        #combined = []
+        #debug_print(f"AFTER COMB ADJ {len(non_trivial)}")
+        # combine adjacent ranges
+        #inds = []
+        #for i in range(len(adjacent) - 1):
+        #    r1, r2 = adjacent[i], adjacent[i + 1]
+        #    if r1[-1] == r2[0]:
+        #        combined.append(range(r1.start, r2.stop))
+        #        inds.append(non_trivial.index(r1))
+        #        inds.append(non_trivial.index(r2))
+        #debug_print(f"CONB {combined} INDS {inds}")
+        # replace adjacent ranges with combied
+        #for i in inds[::-1]:
+        #    del non_trivial[i]
+        #non_trivial.extend(combined)
+        #non_trivial.sort(key=operator.itemgetter(0))
+        #debug_print()
         all_limits = sorted(mins + maxs)
         #debug_print(f"MINS {mins} MAXS {maxs} ALL {all_limits}")
 
         # THIS DOES NOT WORK --> sets = [set(x) for x in self.fresh_ranges]
         # the natural thing to try is to make sets out of the ranges, but they are
         # so large that converting them takes forever
-
-        # renormalize? all we want is a count, so offset by the smallest min?
-        #offset = mins[0]
-        #rr = [range(x[0] - offset, x[-1] - offset) for x in self.fresh_ranges]
-        #debug_print(f"RENORM {rr}")
-
 
         # first limit is guaranteed to be the lowest minimum
         r = [all_limits[0]]
