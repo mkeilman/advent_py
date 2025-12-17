@@ -88,6 +88,7 @@ class Region:
 
     def __init__(self, size, shape_prototypes, required_shapes):
         self.size = size
+        self.grid = Day.Grid.grid_of_size(*self.size)
         self.area = size[0] * size[1]
         self.shape_prototypes = shape_prototypes
         self.required_shapes = required_shapes
@@ -145,9 +146,21 @@ class Region:
         return False
 
 
+    # since all shapes are continuous they must be offest from each other by
+    # at least 1 row and column
+    # WLOG put the first required shape at 0, 0 (???)
     def add_all_required(self):
         #debug_print(f"REQ: {self.required_shapes}")
-        for i, p in enumerate(self.required_shapes):
+        req = [(i, x) for (i, x) in enumerate(self.required_shapes) if x]
+        debug_print(f"REQ: {req}")
+        i0 = req[0][0]
+        n0 = req[0][1]
+        c0 = (0, 0)
+        self.add_shape(self.get_shape(i0), coords=c0)
+        last_coord = c0
+        req[0] = (i0, n0 - 1)
+        for i, p in req:
+            c = 0
             s = self.get_shape(i)
             #debug_print(f"TRY {p}\n{s}")
             # 
@@ -176,7 +189,7 @@ class Region:
             b = s["bounds"]
             for oc in overlap: 
                 if grid[oc[0] - bounds["row"]["min"]][oc[1] - bounds["col"]["min"]] == Shape.FULL and \
-                g[oc[0] - b["row"]["min"]][oc[1] - b["row"]["min"]] == Shape.FULL:
+                g[oc[0] - b["row"]["min"]][oc[1] - b["col"]["min"]] == Shape.FULL:
                     return False
 
         return True
