@@ -81,26 +81,32 @@ class AdventDay(Day.Base):
 
 
         def _combine_overlapping(ranges):
+            #debug_print(f"CMB INIT {ranges}")
             #rr = sorted(ranges, key=operator.itemgetter(0))
             combined = []
             inds = []
             for i in range(len(ranges)):
-                if i in inds:
-                    # already accounted for
-                    continue
+                #if i in inds:
+                #    # already accounted for
+                #    continue
                 r1 = ranges[i]
                 r_inds = [ranges.index(x) for x in ranges[i + 1:] if x.start < r1.stop and x.stop > r1.stop]
                 if not r_inds:
                     continue
-                inds.extend([i] + r_inds)
-                combined.append(range(r1.start, ranges[r_inds[-1]].stop))
-                debug_print(f"{i} OVERLAP {r_inds}")
-            debug_print(f"OVERLAP INDS {sorted(inds, reverse=True)}")
+                if i not in inds:
+                    inds.append(i)
+                inds.extend(r_inds)
+                c = range(r1.start, ranges[r_inds[-1]].stop)
+                #debug_print(f"COMB {c}")
+                combined.append(c)
+                #debug_print(f"{i} OVERLAP {r_inds}")
+            #debug_print(f"OVERLAP INDS {sorted(inds, reverse=True)}")
             for i in sorted(inds, reverse=True):
-                debug_print(f"DEL {i} / {len(ranges)}")
                 del ranges[i]
+            #debug_print(f"CMB OVERLAP {combined}")
             ranges.extend(combined)
             ranges.sort(key=operator.itemgetter(0))
+            return len(inds)
             
 
         def _remove_interior(ranges):
@@ -118,29 +124,32 @@ class AdventDay(Day.Base):
         debug_print(f"NUM R INIT {len(self.fresh_ranges)}")
 
         # deal with single-member ranges
-        n = len([x for x in self.fresh_ranges if len(x) == 1])
-        debug_print(f"NUM SINGLE {n}")
+        single = [x for x in self.fresh_ranges if len(x) == 1]
+        n = len(single)
+        debug_print(f"NUM SINGLE {n} {[x[0] for x in single]}")
 
         # the rest are multi-member ranges
         non_trivial = [x for x in self.fresh_ranges if len(x) > 1]
         debug_print(f"NUM R INIT {len(non_trivial)}")
 
-
-        # remove interior
-        _remove_interior(non_trivial)
-        debug_print(f"NUM R AFTER RM INT {len(non_trivial)}")
-
-
         # combine adjacent
         _combine_adjacent(non_trivial)
         debug_print(f"NUM R AFTER COMB ADJ {len(non_trivial)}")
 
-        # combine overlapping
-        _combine_overlapping(non_trivial)
-        debug_print(f"NUM R AFTER COMB OVERLAP {len(non_trivial)}")
+        # combine overlapping - may take multiple iterations to get them all
+        while _combine_overlapping(non_trivial):
+            pass
+        debug_print(f"NUM R AFTER COMB OVERLAP LEN {len(non_trivial)}")
 
-        
-        
+        # remove interior
+        _remove_interior(non_trivial)
+        debug_print(f"NUM R AFTER RM INT {non_trivial}")
+
+        #debug_print(f"INTERIOR SINGLES? {[x for x in single if any([single in y for y in non_trivial])]}")
+
+
+        debug_print(f"TOTAL? {n + mathutils.sum([len(x) for x in non_trivial])}")
+
 
         mins = sorted([x[0] for x in non_trivial])
         maxs = sorted([x[-1] for x in non_trivial])
@@ -199,8 +208,10 @@ class AdventDay(Day.Base):
                     #continue
                 #d.append([d[-1][1] + 1, x])
                 depth -= 1
-        debug_print(f"DISJOINT RANGES {ranges} DEPTH {depth}")
+        debug_print(f"DISJOINT RANGES {ranges} DEPTH {depth} LEN {len(ranges)}")
+        #debug_print(f"INTERIOR SINGLES? {[x for x in single if any([single in y for y in ranges])]}")
         #debug_print(f"DEPTH {depth}")
+        #n += mathutils.sum([x[-1] - x[0] + 1 for x in ranges if x])
         n += mathutils.sum([x[-1] - x[0] + 1 for x in ranges if x])
         return n
 
