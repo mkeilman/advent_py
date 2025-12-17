@@ -33,11 +33,69 @@ class AdventDay(Day.Base):
 
 
     def run(self):
-        self.input = AdventDay.SHORT_BANK
+        #self.input = AdventDay.SHORT_BANK
         n = self._max_joltage_sum()
         debug_print(f"RUN {self.year} {self.day}: {n}")
         return n
  
+
+    def _bank_to_batt_index(self, bank):
+        import operator
+
+        inds = []
+        for batt in sorted(bank, reverse=True):
+            inds.extend([x for x in stringutils.indices(batt, bank) if x not in inds])
+        return  sorted([(i, bank[i]) for i in inds], reverse=True, key=operator.itemgetter(1))
+
+
+    def _max_joltage_list(self, batt_index, num_batts=None, max_index=0, depth=0):
+        import operator
+        
+        nb = num_batts or self.num_batts
+        # the number as written is the largest it can be
+        #if nb == len(bank):
+        #    return "".join(bank)
+        
+        i = 0
+
+        #batt_index = self._bank_to_batt_index(bank)
+       
+        #debug_print(f"{depth} BANK {batt_index} NB {nb}")
+        start = 0
+        digits = []
+        i = 0
+        #sbi = sorted(batt_index, reverse=True, key=operator.itemgetter(1))
+        #debug_print(f"{depth} SBI {sbi}")
+        i, d = batt_index[start]
+        digits.append(d)
+        while len(digits) < nb:
+            #debug_print(f"NEXT {start}")
+            # get the remaining digits whose index is greater than the current digit's index
+            remainder = [x for x in batt_index if x[0] > i]
+            #debug_print(f"{depth} D {digits} R {remainder}")
+            total = len(digits) + len(remainder)
+            # if the number of digits plus the number remaining is num_batts, add to the 
+            # remainder sorted by index - we're done
+            if total == nb:
+                digits.extend([x[1] for x in sorted(remainder, key=operator.itemgetter(0))])
+                return digits
+
+            # if there are too few, start over with the next largest digt
+            if total < nb:
+                start += 1
+                i, d = batt_index[start]
+                digits = [d]
+                #debug_print(f"{depth} START OVER AT {start}")
+                continue
+
+            #remove_idx = i
+            #debug_print(f"{depth} REMOVE {d} AT {i}")
+            #i, d = remainder[0]
+            #debug_print(f"{depth} NEXT DGIT OK {i} {d}")
+            digits.extend(self._max_joltage_list(remainder, num_batts=nb - 1, depth=depth + 1))
+
+        return digits
+
 
     def _max_joltage(self, bank, depth=0):
         import operator
@@ -48,6 +106,13 @@ class AdventDay(Day.Base):
         if self.num_batts < 2:
             raise ValueError(f"too few batteries: {self.num_batts} < 2")
         
+        #debug_print(f"GET J FOR {bank}")
+        batt_index = self._bank_to_batt_index(bank)
+
+        js = self._max_joltage_list(batt_index)
+        #debug_print(f"MAX J ? {int("".join(js))}")
+        return int("".join(js))
+
         # the number as written is the largest it can be
         if self.num_batts == len(bank):
             return int("".join(bank))
@@ -106,93 +171,8 @@ class AdventDay(Day.Base):
             debug_print(f"NEXT DGIT OK {i} {d}")
             digits.append(d)
 
-            
-            #j = inds[start + i]
-            #j = inds[start]
-            # extract j?
-            #ii = [x for x in inds if x != j]
-            #ii = inds[:]
-            #debug_print(f"NEW INDS {ii}")
-            #for index in ii:
-            #    #digits.append(bank[j])
-            #    digits.append(bank[index])
-            #    debug_print(f"DIGITS NOW {digits}")
-            #    if len(digits) == self.num_batts:
-            #        debug_print(f"DONE")
-            #        break
-
-            #    debug_print(f"CHECK INDS {index} VS J {j}")
-            #    if index < j:
-            #        debug_print(f"SWAP")
-            #        ii[index], ii[j] = ii[j], ii[index]
-                    #digits = []
-                    #start += 1
-                    #break
-                #digits.append(bank[j])
-                #debug_print(f"DIGITS NOW {digits}")
-                #if len(digits) == self.num_batts:
-                #    break
-                #j = index
-            #i += 1
-            # next digit is before the current
-            #debug_print(f"CHECK INDS {ii[i]} VS J {j}")
-            #if inds[start + i] < j:
-            #if ii[i] < j:
-            #    debug_print(f"START OVER")
-            #    digits = []
-            #    start += 1
-            #    i = 0
-            #    continue
-            #debug_print(f"ADD IDX {j}")
-            #digits.append(bank[j])
-            #debug_print(f"DIGITS NOW {digits}")
         joltage = "".join(digits)
-
-
-        #digits = sorted_bank[-self.num_batts:]
-        #digit_inds = inds[-self.num_batts:]
-        ##sorted_inds = sorted(digit_inds)
-        #debug_print(f"DIGITS {digits} DIGIT INDS {digit_inds} SORTED INDS {sorted_inds}")
-        #j = ""
-        #for ii in sorted_inds:
-        #    j += bank[ii]
         debug_print(f"MAX J ? {joltage}")
-        return int(joltage)
-    
-        #while n < self.num_batts:
-        while len(joltage) < self.num_batts:
-            b = bank[i:k]
-            debug_print(f"CHECK {b} I {i} -> K {k}")
-            # no more batts
-            # start over?
-            if not b:
-                debug_print(f"EMPTY BANK")
-                i = 0
-                last_i = 0
-                k -= 1
-                joltage = ""
-            #    n = 0
-                continue
-            i = bank.index(str(max([int(x) for x in b])))
-            # if we still have batteries to connect but have reached the
-            # end of the bank, start again excluding the last battery
-            #if n < self.num_batts - 1 and i == len(bank) - 1:
-            if len(joltage) < self.num_batts - 1 and i == len(bank) - 1:
-                debug_print(f"BANK {bank} J {bank[i]} AT {i} NO MORE BATTS")
-                k -= 1
-                i = last_i
-                #joltage = joltage[:-1]
-                continue
-            joltage += bank[i]
-            debug_print(f"J {joltage} AT {i}")
-            # search for next digit after the one we found
-            i += 1
-            last_i = i
-            n += 1
-            # reset to check to the end of the bank?
-            k = len(bank)
-
-        debug_print(f"BANK {bank} J {joltage}")
         return int(joltage)
 
 
