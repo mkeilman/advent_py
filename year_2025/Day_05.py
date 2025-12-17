@@ -58,15 +58,35 @@ class AdventDay(Day.Base):
 
     # be wary of large numbers!
     def _num_all_fresh(self):
+        import operator
+
         n = 0
-        mins = sorted([x[0] for x in self.fresh_ranges])
-        maxs = sorted([x[-1] for x in self.fresh_ranges])
+        # deal with single-member ranges first
+        n = len([x for x in self.fresh_ranges if x[0] == x[-1]])
+
+        non_trivial = sorted([x for x in self.fresh_ranges if x[0] != x[-1]], key=operator.itemgetter(0))
+        mins = sorted([x[0] for x in non_trivial])
+        maxs = sorted([x[-1] for x in non_trivial])
+        both = [x for x in mins if x in maxs]
+        adjacent = [x for x in non_trivial if x[0] in both]
+        debug_print(f"N MIN {len(mins)} N MAX {len(maxs)} BOTH {adjacent}")
         all_limits = sorted(mins + maxs)
         #debug_print(f"MINS {mins} MAXS {maxs} ALL {all_limits}")
+
+        # THIS DOES NOT WORK --> sets = [set(x) for x in self.fresh_ranges]
+        # the natural thing to try is to make sets out of the ranges, but they are
+        # so large that converting them takes forever
+
+        # renormalize? all we want is a count, so offset by the smallest min?
+        #offset = mins[0]
+        #rr = [range(x[0] - offset, x[-1] - offset) for x in self.fresh_ranges]
+        #debug_print(f"RENORM {rr}")
+
 
         # first limit is guaranteed to be the lowest minimum
         r = [all_limits[0]]
         ranges = [r]
+        # depth is the number of concurrent ranges we are counting
         depth = 1
         # go through all limits
         for x in all_limits[1:]:
@@ -95,7 +115,7 @@ class AdventDay(Day.Base):
                 depth -= 1
         debug_print(f"DISJOINT RANGES {ranges} DEPTH {depth}")
         #debug_print(f"DEPTH {depth}")
-        n = mathutils.sum([x[-1] - x[0] + 1 for x in ranges if x])
+        n += mathutils.sum([x[-1] - x[0] + 1 for x in ranges if x])
         return n
 
 
@@ -114,6 +134,8 @@ class AdventDay(Day.Base):
                 r = [int(x) for x in re.findall(r"\d+", line)]
                 #if r[0] == r[-1]:
                 #    debug_print(f"ZERO RANGE {r}")
+                # Note the range stop is one more than the second parameter;
+                # this is because the ranges here include the final value
                 self.fresh_ranges.append(range(r[0], r[1] + 1))
                 
             else:
