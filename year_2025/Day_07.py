@@ -11,7 +11,7 @@ class AdventDay(Day.Base):
         ".......^.......",
         "...............",
         "......^.^......",
-        #"...............",
+        "...............",
         #".....^.^.^.....",
         #"...............",
         #"....^.^...^....",
@@ -44,53 +44,70 @@ class AdventDay(Day.Base):
         n, all_pos = self._propagate()
         debug_print(f"NUM SPLITS {n}")
         self._print_beams(all_pos)
-        m = self._num_paths(all_pos)
+        m, paths = self._num_paths(all_pos)
         debug_print(f"NUM PATHS {m}")
+        for p in paths:
+            self._print_beams([p])
+            debug_print(p)
         return n
  
 
-    def _np(self, beam_positons, curr_pos=None, depth=0, n=1):
+    def _np(self, beam_positons, curr_pos=None, depth=0, n=1, paths=None):
         
         #n = 0
-        n = 1
+        #n = 1
         if not beam_positons:
             return 0, []
         
+        #for i in range(len(beam_positons) - 1, 0, -1):
+        #    m = 0
+        #    positions = beam_positons[i]
+        #    prev_pos = beam_positons[i - 1]
+        #    for pos in positions:
+        #        parents = [x for x in prev_pos if abs(x[1] - pos[1]) == 1] or [x for x in prev_pos if x[1] == pos[1]]
+
         b0 = beam_positons[0]
         pos = curr_pos or self.entry_pos
         #debug_print(f"{depth} NP {beam_positons} CURR {pos} NEXT ROW {b0}")
         path = [pos]
-        #paths = [path]
+        #paths = paths or []
+        paths = []
+        paths.append(path)
         # positions below and to either side of the current one; 
         # no split positions means the beam continues straight down
         next = [x for x in b0 if abs(x[1] - pos[1]) == 1] or [x for x in b0 if x[1] == pos[1]]
-        n = len(next)
-        #for _ in range(len(next) - 1):
-        #    paths.append(path[:])
-        debug_print(f"{depth} NEXT {n}")
+        n *= len(next)
+        # copy what we have so far
+        paths += (len(next) - 1) * [path[:]]
+        
+        #debug_print(f"{depth} {pos} NEXT {next} PATHS {paths}")
         for i, q in enumerate(next):
+            #debug_print(f"{depth} PATH[{i}] {paths[i]} + {q}")
             #paths[i].append(q)
-            m, r = self._np(beam_positons[1:], curr_pos=q, depth=depth + 1, n=n * len(next))
-            debug_print(f"{depth} R {r} N NON LIST {len([x for x in r if type(x) != list])}")
-            if r:
+            #m, r = self._np(beam_positons[1:], curr_pos=q, depth=depth + 1, n=n)
+            _, r_paths = self._np(beam_positons[1:], curr_pos=q, depth=depth + 1, n=n, paths=paths)
+            #debug_print(f"{depth} PATH[{i}] R {r_paths}")
+            # copy what we have so far
+            #paths += (len(r_paths) - 1) * [paths[i][:]]
+            for _ in range(len(r_paths) - 1):
+                paths.append(paths[i][:])
+            debug_print(f"{depth} NOW HAVE {len(paths)} PATHS")
+            for j, r in enumerate(r_paths):
+                debug_print(f"{depth} I {i} J {j} PATH[{i + j}] {paths[i + j]} ADD ARR {r}")
                 #path.extend(r)
-                path.append(r)
-                n += len([x for x in r if type(x) != list])
-        #debug_print(f"{depth} N {n}")
-        # done
-        #if not depth:
-        #    n = 1
-        #    debug_print("DONE")
-        #    p = path[:]
-        #    n_loop = 4
-        #    while p and n_loop:
-        #        n *= len(p)
-        #        debug_print(f"P {p}")
-        #        p = [x for x in p if type(x) is list][0]
-        #        n_loop -= 1
-        #        
-        #debug_print(f"N?? {n}")
-        return n, path
+                #paths.append(r)
+                for p in r:
+                    #debug_print(f"{depth} PATH[{i}] ADD POS {p}")
+                    paths[i + j].append(p)
+                debug_print(f"{depth} PATH[{i + j}] NOW {paths[i + j]}")
+                #n += len([x for x in r if type(x) != list])
+            #if r:
+            #    #path.extend(r)
+            #    #paths.append(r)
+            #    paths[i].extend(r)
+            #    #n += len([x for x in r if type(x) != list])
+        #debug_print(f"{depth} N {len(paths)}")
+        return n, paths
 
 
     def _num_paths(self, beam_positons, depth=0):
@@ -165,5 +182,6 @@ class AdventDay(Day.Base):
         p = []
         for i, r in enumerate(self.input):
             if token in r:
-                p.append((i, r.index(token))) 
+                for t in stringutils.indices(token, r):
+                    p.append((i, t)) 
         return p
