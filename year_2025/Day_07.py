@@ -69,44 +69,49 @@ class AdventDay(Day.Base):
         b0 = beam_positons[0]
         pos = curr_pos or self.entry_pos
         #debug_print(f"{depth} NP {beam_positons} CURR {pos} NEXT ROW {b0}")
-        path = [pos]
-        #paths = paths or []
-        paths = []
-        paths.append(path)
+        p0 = [pos]
+        paths = [p0]
         # positions below and to either side of the current one; 
         # no split positions means the beam continues straight down
         next = [x for x in b0 if abs(x[1] - pos[1]) == 1] or [x for x in b0 if x[1] == pos[1]]
         n *= len(next)
-        # copy what we have so far
-        paths += (len(next) - 1) * [path[:]]
+        # copy what we have so far - each possible next position sprouts a new path
+        num_new = len(next) - 1
+        debug_print(f"{depth} APPENDING {num_new} COPIES OF {p0}")
+        paths += num_new * [p0[:]]
         
-        #debug_print(f"{depth} {pos} NEXT {next} PATHS {paths}")
-        for i, q in enumerate(next):
+        debug_print(f"{depth} {pos} CURR PATHS {paths}; NEXT {next}")
+        i = 0
+        #for i, q in enumerate(next):
+        for q in next:
             #debug_print(f"{depth} PATH[{i}] {paths[i]} + {q}")
-            #paths[i].append(q)
-            #m, r = self._np(beam_positons[1:], curr_pos=q, depth=depth + 1, n=n)
             _, r_paths = self._np(beam_positons[1:], curr_pos=q, depth=depth + 1, n=n, paths=paths)
+            if not r_paths:
+                debug_print(f"{depth} NO NEW PATHS FROM {q}")
+                continue
             #debug_print(f"{depth} PATH[{i}] R {r_paths}")
             # copy what we have so far
+            num_r = len(r_paths) - 1
             #paths += (len(r_paths) - 1) * [paths[i][:]]
+            debug_print(f"{depth} I {i}")
+            debug_print(f"{depth} ADDING {num_r} COPIES OF {paths[i]} INTO {paths} AT {i} FOR {r_paths}")
+            # insert new paths
+            #paths = paths[:i] + num_r * [paths[i][:]] + paths[i:]
             for _ in range(len(r_paths) - 1):
+                #paths.append(paths[i][:])
                 paths.append(paths[i][:])
-            debug_print(f"{depth} NOW HAVE {len(paths)} PATHS")
-            for j, r in enumerate(r_paths):
-                debug_print(f"{depth} I {i} J {j} PATH[{i + j}] {paths[i + j]} ADD ARR {r}")
-                #path.extend(r)
-                #paths.append(r)
+            debug_print(f"{depth} AFTER INSERT {paths} PATHS")
+            #for j, r in enumerate(r_paths):
+            for r in r_paths:
+                debug_print(f"{depth} I {i} PATH[{i}] {paths[i]} ADD ARR {r}")
                 for p in r:
-                    #debug_print(f"{depth} PATH[{i}] ADD POS {p}")
-                    paths[i + j].append(p)
-                debug_print(f"{depth} PATH[{i + j}] NOW {paths[i + j]}")
-                #n += len([x for x in r if type(x) != list])
-            #if r:
-            #    #path.extend(r)
-            #    #paths.append(r)
-            #    paths[i].extend(r)
-            #    #n += len([x for x in r if type(x) != list])
-        #debug_print(f"{depth} N {len(paths)}")
+                    debug_print(f"{depth} PATH[{i}] ADD POS {p}")
+                    #paths[i + j].append(p)
+                    paths[i].append(p)
+                debug_print(f"{depth} PATH[{i}] NOW {paths[i]}")
+                i += 1
+            i += 1
+        debug_print(f"{depth} FINAL {paths}")
         return n, paths
 
 
