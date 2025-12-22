@@ -46,6 +46,7 @@ class AdventDay(Day.Base):
         #self._print_beams(all_pos)
         #m, paths = self._num_paths(all_pos[1:])
         #m = self._num_paths(all_pos[1:]) + 1
+        self.num_recur = 0
         m = self._num_paths() + 1
         debug_print(f"NUM PATHS {m}")
         #for p in paths:
@@ -57,6 +58,7 @@ class AdventDay(Day.Base):
     #def _num_paths(self, beam_positions, curr_pos=None, depth=0):
     def _num_paths(self, curr_pos=None, depth=0):
         
+        self.num_recur += 1
         pos = curr_pos or self.entry_pos
         if pos[0] == len(self.input) - 1:
             return 0
@@ -64,35 +66,64 @@ class AdventDay(Day.Base):
         #    return 0 #, []
         
         n = 0
+        row = 0
+        next = [pos]
         #b0 = beam_positions[0]
         #pos = curr_pos or self.entry_pos
         #debug_print(f"{depth} NP {beam_positions} CURR {pos} NEXT ROW {b0}")
-        #debug_print(f"{depth} START")
+        #debug_if(f"{depth} START ROW {pos[0]}", condition=n > 100)
         #p0 = [pos]
         #paths = [p0]
         # positions below and to either side of the current one (if a splitter is below); 
         # no split positions means the beam continues straight down
-        below = (pos[0] + 1, pos[1])
-        left = (pos[0] + 1, pos[1] - 1)
-        right = (pos[0] + 1, pos[1] + 1)
-        #debug_print(f"{depth} BELOW {below}")
-        next = [left, right] if below in self.splitter_pos else [below]
+        while row < len(self.input):
+            debug_print(f"{depth} ON ROW {row} NUM POS {len(next)}", include_time=True)
+            #if row % 2:
+            #    debug_print(f"{depth} ON ROW {row} NUM POS {len(next)} NEXT {next}")
+            #    next = [(row + 1, x[1]) for x in next]
+            #    row += 1
+            #    continue
+            p = []
+            for pos in next:
+                below = (row + 1, pos[1])
+                left = (row + 1, pos[1] - 1)
+                right = (row + 1, pos[1] + 1)
+                if below in self.splitter_pos:
+                    n += 1
+                    p.extend([left, right])
+                else:
+                    p.append(below)
+                #next = (left, right) if below in self.splitter_pos else (below,)  
+            next = p  
+            row += 1
+        #below = (pos[0] + 1, pos[1])
+        #left = (pos[0] + 1, pos[1] - 1)
+        #right = (pos[0] + 1, pos[1] + 1)
+        #next = (left, right) if below in self.splitter_pos else (below,)
+        #if below in self.splitter_pos:
+        ##    n = n + 1 + self._num_paths(curr_pos=left, depth=depth + 1) + self._num_paths(curr_pos=right, depth=depth + 1)
+        #    debug_if(f"{depth} NR {self.num_recur} N {n} DONE ROW {pos[0]}", condition=not self.num_recur % 10000)
+        #    return n #+ 1 + self._num_paths(curr_pos=left, depth=depth + 1) + self._num_paths(curr_pos=right, depth=depth + 1)
+        #n += self._num_paths(curr_pos=below, depth=depth + 1)
+        #debug_if(f"{depth} NR {self.num_recur} N {n} DONE ROW {pos[0]}", condition=not self.num_recur % 10000)
+        return n #+ self._num_paths(curr_pos=below, depth=depth + 1)
         #next = [x for x in b0 if abs(x[1] - pos[1]) == 1 and (x[0], pos[1]) in self.splitter_pos] or [x for x in b0 if x[1] == pos[1]]
         # copy what we have so far - each possible adjacent position sprouts a new path
         # straight paths do NOT
-        n += (len(next) - 1)
+        #n += (len(next) - 1)
         #num_new = len(next) - 1
         #if num_new:
         #    n += 1
         #paths += num_new * [p0[:]]
         #debug_print(f"{depth} LEN {len(paths)} N {n} NEXT {next}")
         
-        i = 0
+        #i = 0
         for q in next:
+            pass
             #debug_print(f"{depth} GET PATHS FOR {q}")
             #m, r_paths = self._num_paths(beam_positions[1:], curr_pos=q, depth=depth + 1)
             #n += self._num_paths(beam_positions[1:], curr_pos=q, depth=depth + 1)
-            n += self._num_paths(curr_pos=q, depth=depth + 1)
+            #n += self._num_paths(curr_pos=q, depth=depth + 1)
             #debug_print(f"{depth} M {m} LEN {len(r_paths)}")
             #debug_print(f"{depth} M {m}")
             #if not m:
@@ -157,7 +188,7 @@ class AdventDay(Day.Base):
             all_pos.append(beam_positions)
             num_splits += m
             num_paths += n
-        return num_splits, [list(x) for x in all_pos]
+        return num_splits, all_pos
 
 
     def _token_pos(self, token):
