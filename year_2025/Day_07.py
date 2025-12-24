@@ -2,6 +2,7 @@ import Day
 from utils.debug import debug_print, debug_if
 from utils import collectionutils
 from utils import stringutils
+from utils import mathutils
 
 class AdventDay(Day.Base):
 
@@ -9,19 +10,19 @@ class AdventDay(Day.Base):
         ".......S.......",
         "...............",
         ".......^.......",
-        "...............",
-        "......^.^......",
-        "...............",
-        ".....^.^.^.....",
-        "...............",
-        "....^.^...^....",
-        "...............",
-        "...^.^...^.^...",
-        "...............",
-        "..^...^.....^..",
-        "...............",
-        ".^.^.^.^.^...^.",
-        "...............",
+        #"...............",
+        #"......^.^......",
+        #"...............",
+        #".....^.^.^.....",
+        #"...............",
+        #"....^.^...^....",
+        #"...............",
+        #"...^.^...^.^...",
+        #"...............",
+        #"..^...^.....^..",
+        #"...............",
+        #".^.^.^.^.^...^.",
+        #"...............",
     ]
 
     BEAM = "|"
@@ -40,14 +41,14 @@ class AdventDay(Day.Base):
         n = 0
         self.entry_pos = self._token_pos(AdventDay.ENTRY)
         self.splitter_pos = self._token_positions(AdventDay.SPLITTER)
-        #debug_print(f"ENTRY {self.entry_pos} S {self.splitter_pos}")
+        debug_print(f"ENTRY {self.entry_pos} S {self.splitter_pos}")
         n, all_pos = self._propagate()
         debug_print(f"NUM SPLITS {n}")
         #self._print_beams(all_pos)
         #m, paths = self._num_paths(all_pos[1:])
         #m = self._num_paths(all_pos[1:]) + 1
         self.num_recur = 0
-        m = self._num_paths() + 1
+        m = self._num_paths()
         debug_print(f"NUM PATHS {m}")
         #for p in paths:
         #    self._print_beams([p])
@@ -56,57 +57,75 @@ class AdventDay(Day.Base):
  
 
     #def _num_paths(self, beam_positions, curr_pos=None, depth=0):
-    def _num_paths(self, curr_pos=None, depth=0):
+    def _num_paths(self, curr_pos=None):
+        def _update_pos_dict(d, pos, num=1):
+            if pos not in d:
+                d[pos] = 0
+            d[pos] += num
         
-        self.num_recur += 1
+
         pos = curr_pos or self.entry_pos
         if pos[0] == len(self.input) - 1:
             return 0
         #if not beam_positions:
         #    return 0 #, []
         
-        n = 0
+        n = 1
         row = 0
-        next = [pos]
+        curr_beam_pos = [pos]
+        #curr_beam_pos = set([pos])
+        cb_set = set([pos])
+        d = {}
+        d[pos] = 0
         #b0 = beam_positions[0]
         #pos = curr_pos or self.entry_pos
-        #debug_print(f"{depth} NP {beam_positions} CURR {pos} NEXT ROW {b0}")
+        #debug_print(f"NP CURR {pos} NEXT ROW {next}")
         #debug_if(f"{depth} START ROW {pos[0]}", condition=n > 100)
         #p0 = [pos]
         #paths = [p0]
         # positions below and to either side of the current one (if a splitter is below); 
         # no split positions means the beam continues straight down
         while row < len(self.input):
-            debug_print(f"{depth} ON ROW {row} NUM POS {len(next)}", include_time=True)
-            #if row % 2:
-            #    debug_print(f"{depth} ON ROW {row} NUM POS {len(next)} NEXT {next}")
-            #    next = [(row + 1, x[1]) for x in next]
-            #    row += 1
-            #    continue
-            p = []
-            for pos in next:
-                below = (row + 1, pos[1])
-                left = (row + 1, pos[1] - 1)
-                right = (row + 1, pos[1] + 1)
-                if below in self.splitter_pos:
-                    n += 1
-                    p.extend([left, right])
+            debug_print(f"ON ROW {row} {curr_beam_pos} SET {cb_set} NUM POS {len(curr_beam_pos)}")
+            next_beam_pos = []
+            next_row = row + 1
+            nb_set = set()
+            #for pos in curr_beam_pos:
+            for pos in cb_set:
+                num_entries = d.get(pos) or 1
+                debug_print(f"POS {pos} NUM ENTRIES {num_entries}")
+                col = pos[1]
+                center = (next_row, col)
+                left = (next_row, col - 1)
+                right = (next_row, col + 1)
+                for p in (left, center, right):
+                    _update_pos_dict(d, p, num=num_entries)
+                #debug_print(f"POS {pos} LEFT {left} BELOW {center} RIGHT {right}")
+                if center in self.splitter_pos:
+                    #n += 1
+                    n += num_entries
+                    next_beam_pos.extend([left, right])
+                    nb_set = nb_set | set([left, right])
                 else:
-                    p.append(below)
-                #next = (left, right) if below in self.splitter_pos else (below,)  
-            next = p  
-            row += 1
-        #below = (pos[0] + 1, pos[1])
+                    next_beam_pos.append(center)
+                    nb_set.add(center)
+                #next = (left, right) if center in self.splitter_pos else (center,)  
+            curr_beam_pos = next_beam_pos
+            cb_set = nb_set
+            row = next_row
+        #center = (pos[0] + 1, pos[1])
         #left = (pos[0] + 1, pos[1] - 1)
         #right = (pos[0] + 1, pos[1] + 1)
-        #next = (left, right) if below in self.splitter_pos else (below,)
-        #if below in self.splitter_pos:
+        #next = (left, right) if center in self.splitter_pos else (center,)
+        #if center in self.splitter_pos:
         ##    n = n + 1 + self._num_paths(curr_pos=left, depth=depth + 1) + self._num_paths(curr_pos=right, depth=depth + 1)
         #    debug_if(f"{depth} NR {self.num_recur} N {n} DONE ROW {pos[0]}", condition=not self.num_recur % 10000)
         #    return n #+ 1 + self._num_paths(curr_pos=left, depth=depth + 1) + self._num_paths(curr_pos=right, depth=depth + 1)
-        #n += self._num_paths(curr_pos=below, depth=depth + 1)
+        #n += self._num_paths(curr_pos=center, depth=depth + 1)
         #debug_if(f"{depth} NR {self.num_recur} N {n} DONE ROW {pos[0]}", condition=not self.num_recur % 10000)
-        return n #+ self._num_paths(curr_pos=below, depth=depth + 1)
+        #debug_print(f"D {d} {mathutils.sum([x for x in d.values()])}")
+        debug_print(f"N {n}")
+        return n #+ self._num_paths(curr_pos=center, depth=depth + 1)
         #next = [x for x in b0 if abs(x[1] - pos[1]) == 1 and (x[0], pos[1]) in self.splitter_pos] or [x for x in b0 if x[1] == pos[1]]
         # copy what we have so far - each possible adjacent position sprouts a new path
         # straight paths do NOT
